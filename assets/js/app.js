@@ -5,13 +5,27 @@
   "use strict";
 
   var DATA = { listings: [], cities: [] };
-  var state = { city: "all", query: "", year: null };
+  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false };
 
   var CARDS_BEFORE_COLLECTION = 5; // بعد از ۵ کارت، کالکشن سال‌ها
+
+  var CEREMONY_TYPES = [
+    { type: "khaksepari", label: "تشییع و خاکسپاری" },
+    { type: "salgard", label: "سالگرد" },
+    { type: "chehelom", label: "چهلم" },
+    { type: "bozorgdasht", label: "بزرگداشت" }
+  ];
 
   /* ---------- کمک‌کارها ---------- */
   var FA_DIGITS = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
   function toFa(n) { return String(n).replace(/[0-9]/g, function (d) { return FA_DIGITS[+d]; }); }
+  function toEn(s) { return String(s == null ? "" : s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }); }
+  // تاریخ شمسی «۱۴۰۵/۱۱/۲۹» → عدد قابل مقایسه ۱۴۰۵۱۱۲۹
+  function jalaliNum(item) {
+    var p = toEn(item.event_date_jalali || "").split("/");
+    if (p.length !== 3) return 0;
+    return parseInt(p[0], 10) * 10000 + parseInt(p[1], 10) * 100 + parseInt(p[2], 10);
+  }
 
   function el(tag, cls, html) {
     var e = document.createElement(tag);
@@ -56,12 +70,19 @@
   function matchesFilters(item) {
     if (state.city !== "all" && item.city_slug !== state.city) return false;
     if (state.year != null && item.death_year !== state.year) return false;
+    if (state.ceremony && item.ceremony_type !== state.ceremony) return false;
+    if (state.followOnly && !SogStore.isFollowing(item.id)) return false;
     if (state.query) {
       var q = state.query.trim();
       var hay = (item.deceased_name + " " + item.city + " " + (item.ceremony_labels || []).join(" "));
       if (hay.indexOf(q) === -1) return false;
     }
     return true;
+  }
+  function sortItems(items) {
+    return items.slice().sort(function (a, b) {
+      return state.sort === "soonest" ? jalaliNum(a) - jalaliNum(b) : jalaliNum(b) - jalaliNum(a);
+    });
   }
 
   /* تعداد آگهی‌های مشاهده‌نشده برای هر شهر */
@@ -113,6 +134,90 @@
     });
   }
 
+  /* ---------- نوار ابزار (فیلتر نوع مراسم، نزدیک‌من، دنبال‌شده‌ها، مرتب‌سازی) ---------- */
+  function renderToolbar() {
+    var bar = document.getElementById("toolbar");
+    if (!bar) return;
+    bar.innerHTML = "";
+
+    // نزدیک من (GPS)
+    var gps = el("button", "tool-chip tool-gps",
+      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg> نزدیک من');
+    gps.type = "button";
+    gps.addEventListener("click", useNearMe);
+    bar.appendChild(gps);
+
+    // دنبال‌شده‌ها
+    var follows = SogStore.getFollows().length;
+    var fol = el("button", "tool-chip tool-follow" + (state.followOnly ? " is-active" : ""),
+      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" fill="' + (state.followOnly ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="1.8"/></svg> دنبال‌شده‌ها' + (follows ? " (" + toFa(follows) + ")" : ""));
+    fol.type = "button";
+    fol.addEventListener("click", function () { state.followOnly = !state.followOnly; renderToolbar(); renderFeed(); });
+    bar.appendChild(fol);
+
+    bar.appendChild(el("span", "tool-sep"));
+
+    // فیلتر نوع مراسم
+    CEREMONY_TYPES.forEach(function (c) {
+      var chip = el("button", "tool-chip" + (state.ceremony === c.type ? " is-active" : ""), c.label);
+      chip.type = "button";
+      chip.addEventListener("click", function () {
+        state.ceremony = (state.ceremony === c.type ? null : c.type);
+        state.year = null; renderToolbar(); renderFeed();
+      });
+      bar.appendChild(chip);
+    });
+
+    bar.appendChild(el("span", "tool-sep"));
+
+    // مرتب‌سازی
+    var sortLabel = state.sort === "soonest" ? "نزدیک‌ترین مراسم" : "جدیدترین";
+    var sort = el("button", "tool-chip",
+      '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 4v16M7 20l-3-3M7 4l3 3M17 20V4M17 4l-3 3M17 20l3-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + sortLabel);
+    sort.type = "button";
+    sort.addEventListener("click", function () { state.sort = state.sort === "newest" ? "soonest" : "newest"; renderToolbar(); renderFeed(); });
+    bar.appendChild(sort);
+  }
+
+  /* «نزدیک من»: نزدیک‌ترین شهر بر اساس GPS */
+  function useNearMe() {
+    if (!navigator.geolocation) { alert("موقعیت‌یابی در این مرورگر پشتیبانی نمی‌شود."); return; }
+    var chip = document.querySelector(".tool-gps");
+    if (chip) chip.textContent = "در حال یافتن…";
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var la = pos.coords.latitude, lo = pos.coords.longitude, best = null, bestD = Infinity;
+      DATA.cities.forEach(function (c) {
+        if (c.lat == null) return;
+        var d = Math.pow(c.lat - la, 2) + Math.pow(c.lng - lo, 2);
+        if (d < bestD) { bestD = d; best = c; }
+      });
+      if (best) { state.city = best.slug; state.year = null; state.sort = "soonest"; renderCities(); renderToolbar(); renderFeed(); }
+    }, function () {
+      alert("دسترسی به موقعیت داده نشد. لطفاً شهر را دستی انتخاب کنید.");
+      renderToolbar();
+    }, { timeout: 8000 });
+  }
+
+  /* جستجوی صوتی فارسی (Web Speech API) */
+  function bindVoice() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var mic = document.getElementById("micBtn");
+    if (!SR || !mic) return;
+    mic.hidden = false;
+    var rec = new SR();
+    rec.lang = "fa-IR"; rec.interimResults = false; rec.maxAlternatives = 1;
+    mic.addEventListener("click", function () {
+      try { rec.start(); mic.classList.add("is-listening"); } catch (e) {}
+    });
+    rec.onresult = function (e) {
+      var text = e.results[0][0].transcript;
+      var input = document.getElementById("searchInput");
+      input.value = text; state.query = text; state.year = null; renderFeed();
+    };
+    rec.onend = function () { mic.classList.remove("is-listening"); };
+    rec.onerror = function () { mic.classList.remove("is-listening"); };
+  }
+
   /* ---------- کارت آگهی ---------- */
   function listingCard(item) {
     var card = el("article", "listing-card");
@@ -131,6 +236,8 @@
       t.dataset.type = item.ceremony_type;
       tags.appendChild(t);
     });
+    var actions = el("div", "card-actions");
+    actions.style.cssText = "display:flex;align-items:flex-start;gap:2px;order:2";
     var saved = SogStore.isSaved(item.id);
     var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
     bm.type = "button";
@@ -142,8 +249,22 @@
       bm.classList.toggle("is-saved", now);
       bm.innerHTML = bookmarkSvg(now);
     });
+    var following = SogStore.isFollowing(item.id);
+    var fb = el("button", "follow-btn" + (following ? " is-following" : ""));
+    fb.type = "button";
+    fb.setAttribute("aria-label", "دنبال‌کردن مراسم‌های بعدی");
+    fb.innerHTML = followSvg(following);
+    fb.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var now = SogStore.toggleFollow(item.id);
+      fb.classList.toggle("is-following", now);
+      fb.innerHTML = followSvg(now);
+      renderToolbar();
+    });
+    actions.appendChild(bm);
+    actions.appendChild(fb);
     top.appendChild(tags);
-    top.appendChild(bm);
+    top.appendChild(actions);
 
     var name = el("h3", "listing-name", item.deceased_name);
     var divider = el("div", "listing-divider");
@@ -176,6 +297,10 @@
       '<path d="M6 3h12v18l-6-4-6 4V3z" ' +
       (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
       ' stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  }
+  function followSvg(f) {
+    return '<svg viewBox="0 0 24 24" width="19" height="19"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" ' +
+      (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.7" stroke-linejoin="round"/></svg>';
   }
   function calendarSvg() {
     return '<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-2px">' +
@@ -220,11 +345,16 @@
 
   /* ---------- بنر فیلتر فعال ---------- */
   function filterBanner() {
-    if (state.year == null && state.city === "all" && !state.query) return null;
+    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly) return null;
     var label = [];
+    if (state.followOnly) label.push("دنبال‌شده‌ها");
     if (state.city !== "all") {
       var c = DATA.cities.filter(function (x) { return x.slug === state.city; })[0];
       if (c) label.push("شهر: " + c.name);
+    }
+    if (state.ceremony) {
+      var ct = CEREMONY_TYPES.filter(function (x) { return x.type === state.ceremony; })[0];
+      if (ct) label.push(ct.label);
     }
     if (state.year != null) label.push("سال فوت: " + toFa(state.year));
     if (state.query) label.push("جستجو: «" + state.query + "»");
@@ -233,9 +363,9 @@
     var btn = el("button", null, "حذف فیلتر");
     btn.type = "button";
     btn.addEventListener("click", function () {
-      state.city = "all"; state.year = null; state.query = "";
+      state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false;
       var s = document.getElementById("searchInput"); if (s) s.value = "";
-      renderCities(); renderFeed();
+      renderCities(); renderToolbar(); renderFeed();
     });
     b.appendChild(btn);
     return b;
@@ -250,7 +380,7 @@
     var banner = filterBanner();
     if (banner) feed.appendChild(banner);
 
-    var items = DATA.listings.filter(matchesFilters);
+    var items = sortItems(DATA.listings.filter(matchesFilters));
 
     if (items.length === 0) {
       empty.hidden = false;
@@ -258,8 +388,8 @@
     }
     empty.hidden = true;
 
-    // آیا کالکشن سال را نشان بدهیم؟ فقط در نمای پیش‌فرض (بدون فیلتر سال/جستجو)
-    var showCollection = (state.year == null && !state.query);
+    // آیا کالکشن سال را نشان بدهیم؟ فقط در نمای پیش‌فرض
+    var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly);
     var collection = showCollection ? buildYearCollection() : null;
 
     items.forEach(function (item, i) {
@@ -293,8 +423,10 @@
   Promise.all([load(), minDelay]).then(function () {
     document.getElementById("cityBar").classList.remove("is-loading");
     renderCities();
+    renderToolbar();
     renderFeed();
     bindSearch();
+    bindVoice();
   }).catch(function (err) {
     document.getElementById("cityBar").classList.remove("is-loading");
     document.getElementById("feed").innerHTML =

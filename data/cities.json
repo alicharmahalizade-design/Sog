@@ -1,16 +1,16 @@
 {
   "cities": [
     { "slug": "all", "name": "کل ایران", "total_label": "+۴۰۰/۰۰۰", "featured": true },
-    { "slug": "ahvaz", "name": "اهواز" },
-    { "slug": "fooladshahr", "name": "فولادشهر" },
-    { "slug": "behbahan", "name": "بهبهان" },
-    { "slug": "ramhormoz", "name": "رامهرمز" },
-    { "slug": "bavi", "name": "باوی" },
-    { "slug": "shooshtar", "name": "شوشتر" },
-    { "slug": "shoosh", "name": "شوش" },
-    { "slug": "roosta-jayzan", "name": "روستای جایزان" },
-    { "slug": "isfahan", "name": "اصفهان" },
-    { "slug": "sari", "name": "ساری" },
-    { "slug": "masjed-soleyman", "name": "مسجد سلیمان" }
+    { "slug": "ahvaz", "name": "اهواز", "lat": 31.32, "lng": 48.67 },
+    { "slug": "fooladshahr", "name": "فولادشهر", "lat": 32.49, "lng": 51.42 },
+    { "slug": "behbahan", "name": "بهبهان", "lat": 30.60, "lng": 50.24 },
+    { "slug": "ramhormoz", "name": "رامهرمز", "lat": 31.28, "lng": 49.60 },
+    { "slug": "bavi", "name": "باوی", "lat": 31.42, "lng": 48.90 },
+    { "slug": "shooshtar", "name": "شوشتر", "lat": 32.05, "lng": 48.86 },
+    { "slug": "shoosh", "name": "شوش", "lat": 32.19, "lng": 48.24 },
+    { "slug": "roosta-jayzan", "name": "روستای جایزان", "lat": 30.75, "lng": 49.90 },
+    { "slug": "isfahan", "name": "اصفهان", "lat": 32.65, "lng": 51.67 },
+    { "slug": "sari", "name": "ساری", "lat": 36.56, "lng": 53.06 },
+    { "slug": "masjed-soleyman", "name": "مسجد سلیمان", "lat": 31.93, "lng": 49.30 }
   ]
 }
