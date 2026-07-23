@@ -8,6 +8,8 @@
   var FOLLOW_KEY = "sog:follow";    // آرایه‌ی id آگهی‌های دنبال‌شده
   var SALAVAT_KEY = "sog:salavat";  // نگاشت id → تعداد صلوات کاربر
   var GUEST_KEY = "sog:guest";      // نگاشت id → آرایه‌ی پیام‌های دفتر یادبود
+  var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
+  var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -69,7 +71,16 @@
     addGuestbook: function (id, entry) {
       var m = readMap(GUEST_KEY); if (!m[id]) m[id] = [];
       m[id].unshift(entry); writeMap(GUEST_KEY, m); return m[id];
-    }
+    },
+
+    /* ----- کاربر ----- */
+    getUser: function () { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; } },
+    setUser: function (u) { writeMap(USER_KEY, u); },
+    clearUser: function () { try { localStorage.removeItem(USER_KEY); } catch (e) {} },
+
+    /* ----- تنظیمات ----- */
+    getPrefs: function () { var p = readMap(PREFS_KEY); return { notify: p.notify !== false, privacy: !!p.privacy }; },
+    setPref: function (k, v) { var p = readMap(PREFS_KEY); p[k] = v; writeMap(PREFS_KEY, p); }
   };
 
   global.SogStore = Store;

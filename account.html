@@ -8,41 +8,27 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/account.css">
 </head>
 <body data-nav="account">
   <div class="app-frame">
     <header class="app-header">
-      <a class="logo" href="index.html" aria-label="سوگ" style="margin-inline-start:auto"><img src="assets/img/logo.svg" alt="سوگ" width="52" height="34"></a>
+      <span style="flex:1 1 auto;font-weight:700;font-size:16px;color:var(--accent)">حساب کاربری</span>
+      <a class="logo" href="index.html" aria-label="سوگ"><img src="assets/img/logo.svg" alt="سوگ" width="52" height="34"></a>
     </header>
-    <div class="account-hero">
-      <div class="acc-avatar">
-        <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </div>
-      <p class="acc-hint">برای مدیریت آگهی‌ها، ذخیره‌ها و سفارش‌ها وارد شوید.</p>
-      <button class="acc-login" id="loginBtn">ورود / ثبت‌نام با شماره موبایل</button>
-      <p class="acc-note">در نسخه‌ی نهایی، ورود با کد پیامکی (OTP) انجام می‌شود.</p>
-    </div>
-    <div class="acc-menu" id="accMenu"></div>
+    <main id="account"></main>
   </div>
+
+  <!-- بۀ‌شیت ورود -->
+  <div class="sheet-backdrop" id="loginBackdrop" hidden></div>
+  <div class="login-sheet" id="loginSheet" hidden role="dialog" aria-modal="true">
+    <div class="sheet-handle"></div>
+    <div id="loginBody"></div>
+  </div>
+
+  <script src="assets/js/util.js"></script>
   <script src="assets/js/storage.js"></script>
-  <script>
-    (function () {
-      var items = [
-        { label: "ذخیره‌شده‌ها", href: "index.html?view=saved", icon: "M6 3h12v18l-6-4-6 4V3z" },
-        { label: "آگهی‌های من", href: "#", icon: "M4 5h16v14H4z M4 9h16" },
-        { label: "سفارش‌های من", href: "#", icon: "M6 6h15l-1.5 9h-12z" },
-        { label: "ثبت سوگ جدید", href: "register.html", icon: "M12 5v14M5 12h14" }
-      ];
-      var menu = document.getElementById("accMenu");
-      items.forEach(function (it) {
-        var a = document.createElement("a");
-        a.className = "acc-row"; a.href = it.href;
-        a.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="' + it.icon + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>' + it.label + '</span><span class="acc-go">›</span>';
-        menu.appendChild(a);
-      });
-      document.getElementById("loginBtn").addEventListener("click", function () { alert("ورود با کد پیامکی — در نسخه‌ی وردپرس فعال می‌شود."); });
-    })();
-  </script>
+  <script src="assets/js/account.js"></script>
   <script src="assets/js/nav.js"></script>
 </body>
 </html>
