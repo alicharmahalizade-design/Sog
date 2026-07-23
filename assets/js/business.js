@@ -39,6 +39,13 @@
     });
   }
 
+  /* ---------- رتبه‌بندی: همکارها بالا، سپس تأییدشده‌ها، سپس امتیاز ---------- */
+  function rank(a, b) {
+    var pa = a.partner ? 2 : (a.verified ? 1 : 0), pb = b.partner ? 2 : (b.verified ? 1 : 0);
+    if (pa !== pb) return pb - pa;
+    return parseFloat(SogUtil.toEn(b.rating)) - parseFloat(SogUtil.toEn(a.rating));
+  }
+
   /* ---------- فیلتر ---------- */
   function matches(b) {
     if (state.city !== "all" && b.city_slug !== state.city) return false;
@@ -88,14 +95,14 @@
     var items = DATA.businesses.filter(function (b) { return b.featured; });
     if (!items.length || state.category || state.query) { sec.hidden = true; return; }
     sec.hidden = false; track.innerHTML = "";
-    items.forEach(function (b) {
+    items.sort(rank).forEach(function (b) {
       var card = el("div", "featured-card");
       var logo = el("div", "f-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
       card.appendChild(logo);
-      card.appendChild(el("div", "f-name", esc(b.name) + (b.verified ? ' <span class="verified">' + CHECK + '</span>' : "")));
+      card.appendChild(el("div", "f-name", esc(b.name) + " " + SogUtil.badge(b)));
       card.appendChild(el("div", "f-cat", esc(b.category_name)));
       card.appendChild(el("div", "f-rating", STAR + " " + esc(b.rating) + " (" + esc(b.reviews) + ")"));
-      card.addEventListener("click", function () { openOrder(b); });
+      card.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
       track.appendChild(card);
     });
   }
@@ -104,9 +111,11 @@
   function bizCard(b) {
     var card = el("article", "biz-card");
     var main = el("div", "biz-main");
+    main.style.cursor = "pointer";
+    main.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
     var logo = el("div", "biz-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
     var info = el("div", "biz-info");
-    info.appendChild(el("div", "biz-name", esc(b.name) + (b.verified ? ' <span class="verified">' + CHECK + '</span>' : "")));
+    info.appendChild(el("div", "biz-name", esc(b.name) + " " + SogUtil.badge(b)));
     var sub = el("div", "biz-sub");
     sub.innerHTML = esc(b.category_name) + ' <span class="dot"></span> ' + esc(b.city);
     info.appendChild(sub);
@@ -162,7 +171,7 @@
     list.innerHTML = "";
     var banner = filterBanner();
     if (banner) list.appendChild(banner);
-    var items = DATA.businesses.filter(matches);
+    var items = DATA.businesses.filter(matches).sort(rank);
     if (!items.length) { empty.hidden = false; return; }
     empty.hidden = true;
     items.forEach(function (b) { list.appendChild(bizCard(b)); });
@@ -192,16 +201,22 @@
   document.getElementById("sheetClose").addEventListener("click", closeOrder);
   backdrop.addEventListener("click", closeOrder);
 
-  // ارسال فرم — با delegation تا بعد از بازسازی هم کار کند
+  // ارسال فرم → باز کردن واتساپ با پیام آماده (بدون بک‌اند)
   sheet.addEventListener("submit", function (e) {
     if (!e.target.matches("#orderForm")) return;
     e.preventDefault();
-    // نمونه‌ی پیش‌نمایش؛ در وردپرس این‌جا به REST API / واتساپ ارسال می‌شود
-    var form = e.target;
-    var wrap = el("div", "order-success",
+    var fd = new FormData(e.target);
+    var msg = "سلام، سفارش از اپلیکیشن سوگ:\n" +
+      "• خدمت: " + fd.get("service") + "\n" +
+      "• نام: " + fd.get("name") + "\n" +
+      "• تماس: " + fd.get("phone") + "\n" +
+      (fd.get("note") ? "• توضیحات: " + fd.get("note") + "\n" : "") +
+      "کسب‌وکار: " + currentBiz.name;
+    var link = SogUtil.waLink(currentBiz.whatsapp || currentBiz.phone, msg);
+    e.target.replaceWith(el("div", "order-success",
       '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-      '<p>سفارش شما برای «' + esc(currentBiz.name) + '» ثبت شد.<br>به‌زودی با شماره‌ی شما تماس می‌گیریم.</p>');
-    form.replaceWith(wrap);
+      '<p>در حال انتقال به واتساپ برای ارسال سفارش به «' + esc(currentBiz.name) + '»…</p>'));
+    window.open(link, "_blank");
     setTimeout(closeOrder, 2200);
   });
 

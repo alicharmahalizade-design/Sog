@@ -47,13 +47,20 @@
   }
 
   /* ---------- بارگذاری ---------- */
+  var BUSINESSES = [];
+  var deceasedCitySlug = null, deceasedCity = null;
+
   Promise.all([
     fetch("data/details.json").then(function (r) { return r.json(); }),
     fetch("data/listings.json").then(function (r) { return r.json(); }).catch(function () { return { listings: [] }; }),
+    fetch("data/businesses.json").then(function (r) { return r.json(); }).catch(function () { return { businesses: [] }; }),
     new Promise(function (r) { setTimeout(r, 450); })
   ]).then(function (res) {
     var details = res[0] || {};
     var listings = (res[1] && res[1].listings) || [];
+    BUSINESSES = (res[2] && res[2].businesses) || [];
+    var lst = listings.filter(function (x) { return String(x.id) === String(id); })[0];
+    if (lst) { deceasedCitySlug = lst.city_slug; deceasedCity = lst.city; }
     var d = details[id];
     if (!d) d = fallbackFromListing(listings, id);
     render(d);
@@ -98,6 +105,9 @@
       root.appendChild(contactRow(d.contacts));
     }
     if ((d.condolences || []).length) root.appendChild(condolenceSection(d));
+
+    var suggest = smartSuggest();
+    if (suggest) root.appendChild(suggest);
 
     root.appendChild(needsBanner());
     bindAccordions();
@@ -180,10 +190,7 @@
   /* ---------- دکمه‌های عمل ---------- */
   function actionRow(d) {
     var row = el("div", "action-row");
-    row.appendChild(actionItem(ICON.share, "اشتراک", function () {
-      if (navigator.share) navigator.share({ title: d.deceased_name, url: location.href }).catch(function () {});
-      else alert("لینک آگهی کپی شد (نمونه).");
-    }));
+    row.appendChild(actionItem(ICON.share, "اشتراک", function () { shareCard(d); }));
     if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { alert("نمایش استوری (نمونه)."); }));
     if (d.has_audio) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
@@ -378,6 +385,110 @@
     inner.appendChild(msg); body.appendChild(inner);
     item.appendChild(head); item.appendChild(body);
     return item;
+  }
+
+  /* ---------- اشتراک‌گذاری کارت زیبا (تصویر) ---------- */
+  function fitText(ctx, text, maxW, baseSize) {
+    var size = baseSize;
+    do { ctx.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    while (ctx.measureText(text).width > maxW && size > 30);
+    return ctx.font;
+  }
+  function candleOn(x, cx, cy) {
+    var rg = x.createRadialGradient(cx, cy - 40, 0, cx, cy - 40, 200);
+    rg.addColorStop(0, "rgba(255,180,80,.55)"); rg.addColorStop(1, "rgba(255,160,60,0)");
+    x.fillStyle = rg; x.beginPath(); x.arc(cx, cy - 40, 200, 0, 7); x.fill();
+    x.fillStyle = "#e6d8bc"; x.fillRect(cx - 26, cy, 52, 150); // بدنه شمع
+    x.fillStyle = "#5a4a2c"; x.fillRect(cx - 3, cy - 26, 6, 26); // فتیله
+    var fg = x.createLinearGradient(cx, cy - 90, cx, cy - 26);
+    fg.addColorStop(0, "#fff3c4"); fg.addColorStop(.5, "#ffb43d"); fg.addColorStop(1, "#ff6a00");
+    x.fillStyle = fg; x.beginPath();
+    x.moveTo(cx, cy - 96); x.quadraticCurveTo(cx + 24, cy - 60, cx, cy - 26); x.quadraticCurveTo(cx - 24, cy - 60, cx, cy - 96); x.fill();
+  }
+  function makeCard(d) {
+    var W = 1080, H = 1350, x = document.createElement("canvas").getContext("2d");
+    x.canvas.width = W; x.canvas.height = H;
+    var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#181410"); g.addColorStop(1, "#0a0a0a");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    // قاب
+    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80);
+    x.direction = "rtl"; x.textAlign = "center";
+    // برند
+    x.fillStyle = "#d99a5b"; x.font = "700 46px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 150);
+    // شمع
+    candleOn(x, W / 2, 360);
+    // به یاد
+    x.fillStyle = "#9a9a9a"; x.font = "400 42px Vazirmatn, Tahoma"; x.fillText("به یادِ", W / 2, 640);
+    // نام
+    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 82); x.fillText(d.deceased_name, W / 2, 740);
+    // زیرعنوان
+    if (d.subtitle) { x.fillStyle = "#bdbdbd"; x.font = "400 40px Vazirmatn, Tahoma"; x.fillText(d.subtitle, W / 2, 812); }
+    // خط
+    x.strokeStyle = "#333"; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 160, 872); x.lineTo(W / 2 + 160, 872); x.stroke();
+    // تاریخ‌ها
+    x.fillStyle = "#d9d9d9"; x.font = "400 44px Vazirmatn, Tahoma";
+    var line = "";
+    if (d.birth && d.birth.date) line += d.birth.date;
+    if (d.death && d.death.date) line += (line ? "  —  " : "") + d.death.date;
+    if (line) x.fillText(line, W / 2, 940);
+    // شهر
+    var city = (d.death && d.death.place) || deceasedCity || "";
+    if (city) { x.fillStyle = "#9a9a9a"; x.font = "400 38px Vazirmatn, Tahoma"; x.fillText(city, W / 2, 1004); }
+    // پاورقی
+    x.fillStyle = "#7a6a4f"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText("مشاهده‌ی آگهی و مراسم‌ها در اپلیکیشن سوگ", W / 2, H - 110);
+    return x.canvas;
+  }
+  function shareCard(d) {
+    var run = function () {
+      var canvas = makeCard(d);
+      canvas.toBlob(function (blob) {
+        var file = new File([blob], "sog-" + d.deceased_name + ".png", { type: "image/png" });
+        var payload = { title: d.deceased_name, text: "به یادِ " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share(Object.assign({ files: [file] }, payload)).catch(function () {});
+        } else {
+          var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+          a.download = "sog-" + d.deceased_name + ".png"; a.click();
+          if (navigator.share) navigator.share(payload).catch(function () {});
+        }
+      }, "image/png");
+    };
+    if (document.fonts && document.fonts.load) {
+      Promise.all([document.fonts.load("700 82px Vazirmatn"), document.fonts.load("400 44px Vazirmatn")]).then(run).catch(run);
+    } else run();
+  }
+
+  /* ---------- پیشنهاد هوشمند کسب‌وکار (بر اساس شهر متوفی) ---------- */
+  function smartSuggest() {
+    if (!BUSINESSES.length) return null;
+    var inCity = BUSINESSES.filter(function (b) { return deceasedCitySlug && b.city_slug === deceasedCitySlug; });
+    var pool = inCity.length ? inCity : BUSINESSES;
+    // مرتب‌سازی: همکار > تأییدشده > امتیاز
+    pool = pool.slice().sort(function (a, b) {
+      var pa = a.partner ? 2 : (a.verified ? 1 : 0), pb = b.partner ? 2 : (b.verified ? 1 : 0);
+      if (pa !== pb) return pb - pa;
+      return parseFloat((b.rating + "").replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); })) -
+             parseFloat((a.rating + "").replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }));
+    });
+    var picks = pool.slice(0, 3);
+    if (!picks.length) return null;
+
+    var wrap = el("section", "smart-suggest");
+    var title = inCity.length && deceasedCity ? "خدمات پیشنهادی در " + esc(deceasedCity) : "خدمات پیشنهادی مراسم";
+    wrap.appendChild(el("h2", null, title));
+    picks.forEach(function (b) {
+      var a = document.createElement("a");
+      a.className = "suggest-card";
+      a.href = "business-detail.html?id=" + b.id;
+      var badge = (window.SogUtil && SogUtil.badge) ? SogUtil.badge(b) : "";
+      a.innerHTML =
+        '<span class="s-logo" style="background-image:url(&quot;' + b.logo + '&quot;)"></span>' +
+        '<span class="s-info"><span class="s-name">' + esc(b.name) + ' ' + badge + '</span>' +
+        '<span class="s-sub">' + esc(b.category_name) + ' • ' + esc(b.city) + ' • ⭐ ' + esc(b.rating) + '</span></span>' +
+        '<span class="s-go"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+      wrap.appendChild(a);
+    });
+    return wrap;
   }
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
