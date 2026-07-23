@@ -1,9 +1,10 @@
 name: Deploy preview to GitHub Pages
 
 on:
+  # حالت پیش‌فرض پیش‌نمایش: «Deploy from a branch» در تنظیمات Pages استفاده می‌شود
+  # (به مجوز خاصی نیاز ندارد). این workflow فقط برای انتشار از شاخه‌ی اصلی است.
   push:
     branches:
-      - claude/wordpress-template-sogh-4z7omp
       - main
   workflow_dispatch:
 
@@ -28,8 +29,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
