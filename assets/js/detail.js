@@ -21,6 +21,10 @@
     report: '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
     candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
+    route: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
+    calAdd: '<svg viewBox="0 0 24 24" width="17" height="17"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    qr: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" fill="currentColor"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
     call: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
     sms: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 5h16v11H8l-4 3V5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
     whatsapp: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 8c0 4 3 7 7 7 .7 0 1-1 .6-1.6l-1.7-.9-1 .9c-1.3-.5-2.3-1.5-2.8-2.8l.9-1-.9-1.7C11 7.1 9.7 7.3 9 8z" fill="currentColor"/></svg>',
@@ -31,6 +35,7 @@
 
   /* ---------- کمک ---------- */
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[+d]; }); }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function fmtDesc(s) { // ⟪...⟫ → لینک خیریه
     return esc(s).replace(/⟪(.+?)⟫/g, '<span class="charity">$1</span>');
@@ -86,6 +91,7 @@
   function render(d) {
     root.classList.remove("detail-skeleton");
     root.innerHTML = "";
+    currentName = d.deceased_name;
     document.title = d.deceased_name + " | سوگ";
 
     root.appendChild(hero(d));
@@ -105,6 +111,11 @@
       root.appendChild(contactRow(d.contacts));
     }
     if ((d.condolences || []).length) root.appendChild(condolenceSection(d));
+
+    root.appendChild(guestbookAccordion());
+
+    var qr = qrSection();
+    if (qr) root.appendChild(qr);
 
     var suggest = smartSuggest();
     if (suggest) root.appendChild(suggest);
@@ -282,6 +293,22 @@
       wrap.appendChild(ll);
     }
     if (c.map) { var m = el("div", "event-map"); m.style.backgroundImage = 'url("' + c.map + '")'; wrap.appendChild(m); }
+    if (c.location || c.date) {
+      var eb = el("div", "event-btns");
+      if (c.location) {
+        var route = el("a", "event-btn route", ICON.route + " مسیر تا مراسم");
+        route.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(c.location);
+        route.target = "_blank"; route.rel = "noopener";
+        eb.appendChild(route);
+      }
+      if (c.date) {
+        var cal = el("button", "event-btn cal", ICON.calAdd + " یادآوری مراسم");
+        cal.type = "button";
+        cal.addEventListener("click", function () { downloadICS(c); });
+        eb.appendChild(cal);
+      }
+      wrap.appendChild(eb);
+    }
     if (c.chips && c.chips.length) {
       var cc = el("div", "chips-col");
       c.chips.forEach(function (t) { cc.appendChild(el("span", "event-chip", esc(t))); });
@@ -363,11 +390,22 @@
     var reg = el("div", "cond-action");
     var rb = el("button", "ca-btn", ICON.plus); rb.addEventListener("click", function () { alert("ثبت همدردی (نمونه)."); });
     reg.appendChild(rb); reg.appendChild(el("span", null, "ثبت همدردی"));
+
+    // شمع مجازی / صلوات‌شمار تعاملی
+    var baseCount = parseInt(toEnNum(d.condolence_count || "0").replace(/\D/g, ""), 10) || 0;
     var cnt = el("div", "cond-action");
-    cnt.appendChild(el("button", "ca-btn candle", ICON.candle));
-    cnt.appendChild(el("span", null, esc(d.condolence_count || "۰")));
+    var cb = el("button", "ca-btn candle", ICON.candle);
+    var cntLabel = el("span", null, faNum(baseCount + SogStore.getSalavat(id)));
+    cb.setAttribute("aria-label", "روشن‌کردن شمع / صلوات");
+    cb.addEventListener("click", function () {
+      var mine = SogStore.addSalavat(id);
+      cntLabel.textContent = faNum(baseCount + mine);
+      cb.classList.remove("lit"); void cb.offsetWidth; cb.classList.add("lit");
+    });
+    cnt.appendChild(cb); cnt.appendChild(cntLabel);
     actions.appendChild(reg); actions.appendChild(cnt);
     inner.appendChild(actions);
+    inner.appendChild(el("p", "candle-hint", "روی شمع بزنید تا به یادش شمعی روشن کنید 🕯️"));
 
     var acc = accordion("همدردی با خانواده سوگوار", inner, { open: true });
     return acc;
@@ -489,6 +527,111 @@
       wrap.appendChild(a);
     });
     return wrap;
+  }
+
+  /* ---------- افزودن به تقویم گوشی (.ics) ---------- */
+  var JMONTHS = { "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4, "مرداد": 5, "شهریور": 6, "مهر": 7, "آبان": 8, "آذر": 9, "دی": 10, "بهمن": 11, "اسفند": 12 };
+  function toEnNum(s) { return String(s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }); }
+  function j2g(jy, jm, jd) {
+    var gy = jy > 979 ? 1600 : 621; jy -= jy > 979 ? 979 : 0;
+    var days = 365 * jy + Math.floor(jy / 33) * 8 + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+    gy += 400 * Math.floor(days / 146097); days %= 146097;
+    if (days > 36524) { gy += 100 * Math.floor(--days / 36524); days %= 36524; if (days >= 365) days++; }
+    gy += 4 * Math.floor(days / 1461); days %= 1461;
+    if (days > 365) { gy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+    var gd = days + 1;
+    var leap = (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0);
+    var sal = [0, 31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var gm = 1; for (; gm <= 12 && gd > sal[gm]; gm++) gd -= sal[gm];
+    return [gy, gm, gd];
+  }
+  function parseJalali(dateText, timeText) {
+    var t = toEnNum(dateText || "");
+    var year = (t.match(/\b(1[34]\d{2})\b/) || [])[1];
+    var day = (t.match(/\b([0-3]?\d)\b/) || [])[1];
+    var month = null;
+    for (var k in JMONTHS) if (t.indexOf(k) !== -1) { month = JMONTHS[k]; break; }
+    if (!year || !month || !day) return null;
+    var g = j2g(parseInt(year, 10), month, parseInt(day, 10));
+    var hh = 9, mm = 0;
+    var tm = toEnNum(timeText || "").match(/(\d{1,2}):(\d{2})/);
+    if (tm) { hh = parseInt(tm[1], 10); mm = parseInt(tm[2], 10); }
+    return { gy: g[0], gm: g[1], gd: g[2], hh: hh, mm: mm };
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function downloadICS(c) {
+    var dt = parseJalali(c.date, c.time_from);
+    if (!dt) { alert("تاریخ مراسم قابل تبدیل نبود."); return; }
+    var start = dt.gy + pad(dt.gm) + pad(dt.gd) + "T" + pad(dt.hh) + pad(dt.mm) + "00";
+    var endH = (dt.hh + 2) % 24;
+    var end = dt.gy + pad(dt.gm) + pad(dt.gd) + "T" + pad(endH) + pad(dt.mm) + "00";
+    var title = (c.title || "مراسم") + " — " + (currentName || "");
+    var ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Sog//fa", "BEGIN:VEVENT",
+      "UID:sog-" + id + "-" + (c.title || "") + "@sog",
+      "DTSTART:" + start, "DTEND:" + end,
+      "SUMMARY:" + title,
+      "LOCATION:" + (c.location || "").replace(/\n/g, " "),
+      "DESCRIPTION:" + (c.date || "") + " " + (c.time_from || ""),
+      "BEGIN:VALARM", "TRIGGER:-PT3H", "ACTION:DISPLAY", "DESCRIPTION:" + title, "END:VALARM",
+      "END:VEVENT", "END:VCALENDAR"
+    ].join("\r\n");
+    var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = "sog-" + (c.title || "event") + ".ics"; a.click();
+  }
+  var currentName = "";
+
+  /* ---------- دفتر یادبود دیجیتال ---------- */
+  function guestbookAccordion() {
+    var wrap = el("div", "guestbook");
+    var form = el("form", "gb-form");
+    form.innerHTML =
+      '<input name="name" type="text" placeholder="نام شما" required>' +
+      '<textarea name="msg" rows="2" placeholder="یادبود، خاطره یا پیام تسلیت خود را بنویسید…" required></textarea>' +
+      '<button type="submit" class="btn-gb">' + ICON.pen + ' ثبت در دفتر یادبود</button>';
+    var list = el("div", "gb-list");
+    function paint() {
+      list.innerHTML = "";
+      var entries = SogStore.getGuestbook(id);
+      if (!entries.length) { list.appendChild(el("p", "gb-empty", "هنوز پیامی ثبت نشده؛ اولین نفر باشید.")); return; }
+      entries.forEach(function (e) {
+        var it = el("div", "gb-item");
+        it.innerHTML = '<div class="gb-head"><span class="gb-name">' + esc(e.name) + '</span><span class="gb-date">' + esc(e.date) + '</span></div><p>' + esc(e.msg) + '</p>';
+        list.appendChild(it);
+      });
+    }
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var fd = new FormData(form);
+      SogStore.addGuestbook(id, { name: fd.get("name"), msg: fd.get("msg"), date: faToday() });
+      form.reset(); paint();
+    });
+    wrap.appendChild(form); wrap.appendChild(list); paint();
+    return accordion("دفتر یادبود", wrap, { open: false });
+  }
+  function faToday() {
+    // تاریخ نمایشی ساده (میلادی به فارسی) — در وردپرس با تاریخ سرور جایگزین می‌شود
+    var d = new Date();
+    return String(d.getFullYear()) + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate());
+  }
+
+  /* ---------- QR یادبود سنگ قبر ---------- */
+  function qrSection() {
+    if (typeof qrcode === "undefined") return null;
+    var sec = el("section", "qr-section");
+    sec.appendChild(el("h2", "section-title", "یادبود دیجیتال (QR سنگ قبر)"));
+    var card = el("div", "qr-card");
+    var qr = qrcode(0, "M"); qr.addData(location.href); qr.make();
+    var img = qr.createDataURL(6, 12);
+    card.innerHTML =
+      '<img class="qr-img" src="' + img + '" alt="QR">' +
+      '<div class="qr-info"><p>این کد را روی سنگ قبر نصب کنید؛ با اسکن، همین صفحه‌ی یادبود باز می‌شود.</p></div>';
+    var dl = el("a", "qr-download", ICON.qr + " دانلود QR");
+    dl.href = img; dl.download = "sog-qr-" + id + ".png";
+    card.appendChild(dl);
+    sec.appendChild(card);
+    return sec;
   }
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
