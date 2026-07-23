@@ -1,0 +1,114 @@
+/* ===== صفحه کسب‌وکارها ===== */
+.block-title { font-size: 16px; font-weight: 700; margin: 16px 14px 12px; color: var(--text); }
+
+/* گرید دسته‌بندی */
+.cat-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  padding: 0 14px;
+}
+.cat-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: none; color: var(--text); cursor: pointer;
+}
+.cat-icon {
+  width: 54px; height: 54px; border-radius: 16px;
+  display: grid; place-items: center;
+  background: var(--surface-2); border: 1px solid #2c2c2c; color: var(--accent);
+  transition: border-color .15s, background .15s;
+}
+.cat-item.is-active .cat-icon { border-color: var(--accent); background: var(--accent-soft); }
+.cat-label { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.3; }
+.cat-item.is-active .cat-label { color: var(--text); }
+
+/* کسب‌وکارهای ویژه (اسکرول افقی) */
+.featured-track {
+  display: flex; gap: 12px; overflow-x: auto; padding: 0 14px 6px;
+  scrollbar-width: none;
+}
+.featured-track::-webkit-scrollbar { display: none; }
+.featured-card {
+  flex: 0 0 172px; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 14px; text-align: center; cursor: pointer;
+}
+.featured-card .f-logo { width: 66px; height: 66px; border-radius: 18px; margin: 0 auto 10px; background: #222 center/cover no-repeat; }
+.featured-card .f-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; justify-content: center; }
+.featured-card .f-cat { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+.featured-card .f-rating { font-size: 12px; color: var(--accent); margin-top: 8px; }
+
+/* لیست کسب‌وکار */
+.biz-list { padding: 6px 14px 90px; display: flex; flex-direction: column; gap: 14px; }
+.biz-card {
+  display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 14px; gap: 12px;
+}
+.biz-main { display: flex; gap: 12px; }
+.biz-logo { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 16px; background: #222 center/cover no-repeat; }
+.biz-info { flex: 1 1 auto; min-width: 0; }
+.biz-name { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 700; }
+.verified {
+  display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
+  background: #3f9d6d; color: #fff; flex: 0 0 auto;
+}
+.biz-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+.biz-sub .dot { width: 3px; height: 3px; border-radius: 50%; background: #666; }
+.biz-metrics { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 12.5px; }
+.biz-rating { color: var(--accent); display: flex; align-items: center; gap: 4px; }
+.biz-price { color: var(--text-dim); }
+
+.biz-services { display: flex; flex-wrap: wrap; gap: 6px; }
+.svc-chip {
+  font-size: 11.5px; color: var(--text-dim);
+  background: var(--surface-2); border: 1px solid #2c2c2c;
+  border-radius: 8px; padding: 4px 10px;
+}
+.biz-actions { display: flex; gap: 10px; }
+.biz-actions .btn-order {
+  flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  background: var(--accent); color: #1a1206; border: none;
+  border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.biz-actions .btn-call {
+  flex: 0 0 auto; width: 46px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid #2f2f2f; color: #6ec07f;
+  display: grid; place-items: center; cursor: pointer;
+}
+
+/* فیلتر بنر (اشتراکی با استایل صفحه اصلی) */
+.filter-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin: 0 14px 10px;
+  background: var(--surface-2); border: 1px solid #2c2c2c;
+  border-radius: 12px; padding: 8px 14px; font-size: 13px; color: var(--text-dim);
+}
+.filter-banner button { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 700; cursor: pointer; }
+
+/* ===== بۀ‌شیت سفارش ===== */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 90; }
+.order-sheet {
+  position: fixed; z-index: 100; left: 50%; bottom: 0; transform: translateX(-50%) translateY(0);
+  width: 100%; max-width: var(--frame-w);
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  border: 1px solid #2c2c2c; border-bottom: none;
+  padding: 8px 16px calc(18px + env(safe-area-inset-bottom));
+  animation: sheet-up .25s ease;
+}
+@keyframes sheet-up { from { transform: translateX(-50%) translateY(100%); } to { transform: translateX(-50%) translateY(0); } }
+.sheet-handle { width: 42px; height: 4px; border-radius: 3px; background: #444; margin: 6px auto 12px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sheet-head span { font-weight: 700; font-size: 16px; }
+.sheet-body { display: flex; flex-direction: column; gap: 12px; }
+.sheet-body label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-dim); }
+.sheet-body input, .sheet-body select, .sheet-body textarea {
+  background: #0e0e0e; border: 1px solid #2a2a2a; border-radius: 10px;
+  padding: 11px 12px; color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+}
+.sheet-body input:focus, .sheet-body select:focus, .sheet-body textarea:focus { border-color: var(--accent); }
+.sheet-body textarea { resize: none; }
+.btn-primary {
+  background: var(--accent); color: #1a1206; border: none; border-radius: 12px;
+  padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px;
+}
+.order-success { text-align: center; padding: 20px 6px; }
+.order-success .ok-ico { width: 60px; height: 60px; border-radius: 50%; background: #3f9d6d; color: #fff; display: grid; place-items: center; margin: 0 auto 14px; }
+.order-success p { color: var(--text); font-size: 15px; line-height: 1.9; }

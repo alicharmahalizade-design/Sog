@@ -383,7 +383,7 @@
   /* ---------- فوتر نیازمندی‌ها ---------- */
   function needsBanner() {
     var a = el("a", "needs-banner", "<b>نیازمندی‌های مراسمات</b><small>چاپ بنر - گل‌فروشی - سنگ مزار و ...</small>");
-    a.href = "#"; // بعداً به صفحه‌ی کسب‌وکارها
+    a.href = "business.html";
     return a;
   }
 

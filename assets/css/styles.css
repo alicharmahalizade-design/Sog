@@ -95,6 +95,18 @@ input { font-family: inherit; }
 .logo { flex: 0 0 auto; display: block; }
 .logo img { height: 34px; width: auto; }
 
+/* ===== تب‌های بخش (مشترک صفحه اصلی و کسب‌وکار) ===== */
+.page-tabs {
+  display: flex; gap: 8px; padding: 10px 14px 0;
+  background: var(--surface);
+}
+.page-tabs .tab {
+  flex: 1 1 0; text-align: center; padding: 10px 8px;
+  color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 700;
+  border-bottom: 2px solid transparent;
+}
+.page-tabs .tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+
 /* ===== نوار شهرها (تک‌ردیفه، اسکرول افقی) ===== */
 .city-bar {
   display: flex; flex-wrap: nowrap; gap: 10px;

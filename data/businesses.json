@@ -1,0 +1,124 @@
+{
+  "categories": [
+    { "slug": "qari",      "name": "قاری قرآن",        "icon": "quran" },
+    { "slug": "sang",      "name": "سنگ قبر",          "icon": "stone" },
+    { "slug": "chap",      "name": "چاپ بنر و تراکت",  "icon": "print" },
+    { "slug": "gol",       "name": "گل و تاج گل",       "icon": "flower" },
+    { "slug": "tashrifat", "name": "تشریفات و پذیرایی", "icon": "chair" },
+    { "slug": "halva",     "name": "حلوا و خرما",       "icon": "dates" },
+    { "slug": "catering",  "name": "کترینگ و غذا",      "icon": "food" },
+    { "slug": "taxi",      "name": "تاکسی و نقلیه",     "icon": "car" },
+    { "slug": "hejle",     "name": "حجله و یادبود",     "icon": "candle" },
+    { "slug": "maddah",    "name": "مداح و سخنران",     "icon": "mic" }
+  ],
+  "businesses": [
+    {
+      "id": 501, "name": "تاج گل بهشت", "category_slug": "gol", "category_name": "گل و تاج گل",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-gol.svg",
+      "rating": "۴.۹", "reviews": "۲۱۰", "verified": true, "featured": true,
+      "price_from": "از ۴۵۰٬۰۰۰ تومان",
+      "services": ["تاج گل ترحیم", "دسته گل", "گل‌آرایی مجلس"],
+      "phone": "۰۹۱۳۰۰۰۱۱۲۲", "whatsapp": "۰۹۱۳۰۰۰۱۱۲۲",
+      "description": "تهیه و ارسال تاج گل و گل‌آرایی مجالس ترحیم در سراسر اصفهان با ارسال فوری."
+    },
+    {
+      "id": 502, "name": "سنگ‌تراشی ماندگار", "category_slug": "sang", "category_name": "سنگ قبر",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-sang.svg",
+      "rating": "۴.۷", "reviews": "۱۳۴", "verified": true, "featured": true,
+      "price_from": "از ۳٬۵۰۰٬۰۰۰ تومان",
+      "services": ["سنگ گرانیت", "سنگ مرمر", "حکاکی و طراحی"],
+      "phone": "۰۹۱۳۰۰۰۲۲۳۳", "whatsapp": "۰۹۱۳۰۰۰۲۲۳۳",
+      "description": "ساخت و نصب انواع سنگ قبر گرانیت و مرمر با طراحی و حکاکی اختصاصی."
+    },
+    {
+      "id": 503, "name": "قاری استاد کریمی", "category_slug": "qari", "category_name": "قاری قرآن",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-qari.svg",
+      "rating": "۵.۰", "reviews": "۹۸", "verified": true, "featured": true,
+      "price_from": "از ۳۰۰٬۰۰۰ تومان",
+      "services": ["قرائت مجلس", "قرائت سر مزار", "تلاوت آنلاین"],
+      "phone": "۰۹۱۳۰۰۰۳۳۴۴", "whatsapp": "۰۹۱۳۰۰۰۳۳۴۴",
+      "description": "قرائت قرآن کریم در مجالس ترحیم، سر مزار و به‌صورت آنلاین."
+    },
+    {
+      "id": 504, "name": "چاپ سریع نقش", "category_slug": "chap", "category_name": "چاپ بنر و تراکت",
+      "city": "اهواز", "city_slug": "ahvaz", "logo": "assets/img/biz/logo-chap.svg",
+      "rating": "۴.۶", "reviews": "۷۲", "verified": false, "featured": false,
+      "price_from": "از ۸۰٬۰۰۰ تومان",
+      "services": ["بنر ترحیم", "تراکت", "کارت دعوت"],
+      "phone": "۰۹۱۶۰۰۰۴۴۵۵", "whatsapp": "۰۹۱۶۰۰۰۴۴۵۵",
+      "description": "چاپ فوری بنر، تراکت و کارت ترحیم با طراحی رایگان و تحویل در کمترین زمان."
+    },
+    {
+      "id": 505, "name": "تشریفات آرامش", "category_slug": "tashrifat", "category_name": "تشریفات و پذیرایی",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-tashrifat.svg",
+      "rating": "۴.۸", "reviews": "۱۵۶", "verified": true, "featured": false,
+      "price_from": "از ۱٬۲۰۰٬۰۰۰ تومان",
+      "services": ["پذیرایی", "صندلی و میز", "خدمه مجلس"],
+      "phone": "۰۹۱۳۰۰۰۵۵۶۶", "whatsapp": "۰۹۱۳۰۰۰۵۵۶۶",
+      "description": "برگزاری کامل تشریفات و پذیرایی مجالس ترحیم با کادر مجرب."
+    },
+    {
+      "id": 506, "name": "حلوا و خرمای برکت", "category_slug": "halva", "category_name": "حلوا و خرما",
+      "city": "اهواز", "city_slug": "ahvaz", "logo": "assets/img/biz/logo-halva.svg",
+      "rating": "۴.۹", "reviews": "۱۸۸", "verified": true, "featured": false,
+      "price_from": "از ۱۲۰٬۰۰۰ تومان",
+      "services": ["حلوا", "خرمای شکلاتی", "شیرینی زعفرانی"],
+      "phone": "۰۹۱۶۰۰۰۶۶۷۷", "whatsapp": "۰۹۱۶۰۰۰۶۶۷۷",
+      "description": "تهیه حلوا، خرما و شیرینی مخصوص مجالس ترحیم با بسته‌بندی شکیل."
+    },
+    {
+      "id": 507, "name": "کترینگ مهر", "category_slug": "catering", "category_name": "کترینگ و غذا",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-catering.svg",
+      "rating": "۴.۵", "reviews": "۱۱۰", "verified": false, "featured": false,
+      "price_from": "از ۹۵٬۰۰۰ تومان",
+      "services": ["شام ترحیم", "نهار", "آش و حلیم"],
+      "phone": "۰۹۱۳۰۰۰۷۷۸۸", "whatsapp": "۰۹۱۳۰۰۰۷۷۸۸",
+      "description": "طبخ و سرو غذای مجالس ترحیم با کیفیت رستورانی و قیمت مناسب."
+    },
+    {
+      "id": 508, "name": "نقلیه تشییع پارس", "category_slug": "taxi", "category_name": "تاکسی و نقلیه",
+      "city": "بهبهان", "city_slug": "behbahan", "logo": "assets/img/biz/logo-taxi.svg",
+      "rating": "۴.۴", "reviews": "۵۴", "verified": false, "featured": false,
+      "price_from": "از ۲۰۰٬۰۰۰ تومان",
+      "services": ["ون تشییع", "سرویس مهمانان", "اتوبوس"],
+      "phone": "۰۹۱۶۰۰۰۸۸۹۹", "whatsapp": "۰۹۱۶۰۰۰۸۸۹۹",
+      "description": "خدمات نقلیه مراسم تشییع و جابجایی مهمانان با ون و اتوبوس."
+    },
+    {
+      "id": 509, "name": "حجله یادبود نور", "category_slug": "hejle", "category_name": "حجله و یادبود",
+      "city": "ساری", "city_slug": "sari", "logo": "assets/img/biz/logo-hejle.svg",
+      "rating": "۴.۷", "reviews": "۴۱", "verified": true, "featured": false,
+      "price_from": "از ۶۰۰٬۰۰۰ تومان",
+      "services": ["حجله", "یادبود عکس", "بنر یادبود"],
+      "phone": "۰۹۱۱۰۰۰۹۹۰۰", "whatsapp": "۰۹۱۱۰۰۰۹۹۰۰",
+      "description": "طراحی و نصب حجله و یادبود با امکان چاپ عکس و بنر اختصاصی."
+    },
+    {
+      "id": 510, "name": "مداح حاج محمود", "category_slug": "maddah", "category_name": "مداح و سخنران",
+      "city": "اصفهان", "city_slug": "isfahan", "logo": "assets/img/biz/logo-maddah.svg",
+      "rating": "۵.۰", "reviews": "۱۳۲", "verified": true, "featured": true,
+      "price_from": "از ۴۰۰٬۰۰۰ تومان",
+      "services": ["مداحی", "سخنرانی", "نوحه‌خوانی"],
+      "phone": "۰۹۱۳۰۰۰۱۰۱۰", "whatsapp": "۰۹۱۳۰۰۰۱۰۱۰",
+      "description": "مداحی و سخنرانی مجالس ترحیم و ختم با سابقه‌ی درخشان."
+    },
+    {
+      "id": 511, "name": "گل‌آرایی یاس", "category_slug": "gol", "category_name": "گل و تاج گل",
+      "city": "رامهرمز", "city_slug": "ramhormoz", "logo": "assets/img/biz/logo-gol.svg",
+      "rating": "۴.۶", "reviews": "۶۳", "verified": false, "featured": false,
+      "price_from": "از ۳۸۰٬۰۰۰ تومان",
+      "services": ["تاج گل", "دسته گل", "گل‌آرایی سالن"],
+      "phone": "۰۹۱۶۰۰۰۲۰۲۰", "whatsapp": "۰۹۱۶۰۰۰۲۰۲۰",
+      "description": "تهیه‌ی تاج گل و گل‌آرایی مجالس در رامهرمز و حومه."
+    },
+    {
+      "id": 512, "name": "سنگ قبر هنر", "category_slug": "sang", "category_name": "سنگ قبر",
+      "city": "باوی", "city_slug": "bavi", "logo": "assets/img/biz/logo-sang.svg",
+      "rating": "۴.۸", "reviews": "۸۷", "verified": true, "featured": false,
+      "price_from": "از ۴٬۰۰۰٬۰۰۰ تومان",
+      "services": ["سنگ گرانیت", "سنگ هوشمند", "حکاکی لیزری"],
+      "phone": "۰۹۱۶۰۰۰۳۰۳۰", "whatsapp": "۰۹۱۶۰۰۰۳۰۳۰",
+      "description": "ساخت سنگ قبر با حکاکی لیزری و امکان نصب سنگ هوشمند (QR یادبود)."
+    }
+  ]
+}
