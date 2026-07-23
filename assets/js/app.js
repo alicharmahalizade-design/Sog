@@ -20,6 +20,27 @@
     return e;
   }
 
+  /* ---------- اسکلتون لودینگ ---------- */
+  function renderSkeletons() {
+    var bar = document.getElementById("cityBar");
+    bar.classList.add("is-loading");
+    bar.innerHTML = "";
+    for (var i = 0; i < 6; i++) bar.appendChild(el("div", "skeleton sk-chip"));
+
+    var feed = document.getElementById("feed");
+    feed.innerHTML = "";
+    for (var j = 0; j < 5; j++) {
+      var card = el("div", "sk-card");
+      card.appendChild(el("div", "skeleton sk-photo"));
+      var body = el("div", "sk-body");
+      body.appendChild(el("div", "skeleton sk-line tag"));
+      body.appendChild(el("div", "skeleton sk-line name"));
+      body.appendChild(el("div", "skeleton sk-line meta"));
+      card.appendChild(body);
+      feed.appendChild(card);
+    }
+  }
+
   /* ---------- بارگذاری داده ---------- */
   function load() {
     return Promise.all([
@@ -139,8 +160,8 @@
     body.appendChild(divider);
     body.appendChild(meta);
 
-    card.appendChild(body);
     card.appendChild(photo);
+    card.appendChild(body);
 
     card.addEventListener("click", function () {
       SogStore.markSeen(item.id);
@@ -267,11 +288,15 @@
   }
 
   /* ---------- راه‌اندازی ---------- */
-  load().then(function () {
+  renderSkeletons();
+  var minDelay = new Promise(function (r) { setTimeout(r, 550); }); // حداقل نمایش اسکلتون
+  Promise.all([load(), minDelay]).then(function () {
+    document.getElementById("cityBar").classList.remove("is-loading");
     renderCities();
     renderFeed();
     bindSearch();
   }).catch(function (err) {
+    document.getElementById("cityBar").classList.remove("is-loading");
     document.getElementById("feed").innerHTML =
       '<p style="color:#c66;text-align:center;padding:30px">خطا در بارگذاری داده‌ها.</p>';
     console.error(err);

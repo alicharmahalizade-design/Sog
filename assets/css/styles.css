@@ -95,15 +95,23 @@ input { font-family: inherit; }
 .logo { flex: 0 0 auto; display: block; }
 .logo img { height: 34px; width: auto; }
 
-/* ===== نوار شهرها ===== */
+/* ===== نوار شهرها (تک‌ردیفه، اسکرول افقی) ===== */
 .city-bar {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  padding: 14px 14px 10px;
+  display: flex; flex-wrap: nowrap; gap: 10px;
+  padding: 14px 14px 12px;
   background: var(--surface);
   border-bottom: 1px solid #000;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
+.city-bar::-webkit-scrollbar { display: none; }
 .city-chip {
   position: relative;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 16px;
   background: var(--surface-2);
@@ -240,6 +248,34 @@ input { font-family: inherit; }
   background: rgba(0,0,0,.55); color: #eee;
   font-size: 11px; padding: 2px 8px; border-radius: 999px;
 }
+
+/* ===== اسکلتون لودینگ ===== */
+@keyframes sog-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #1a1a1a 25%, #262626 37%, #1a1a1a 63%);
+  background-size: 200% 100%;
+  animation: sog-shimmer 1.3s ease-in-out infinite;
+  border-radius: 8px;
+}
+/* اسکلتون چیپ شهر */
+.city-bar.is-loading { overflow: hidden; }
+.sk-chip { flex: 0 0 auto; height: 34px; width: 92px; border-radius: 999px; }
+.sk-chip:nth-child(2){ width: 68px; } .sk-chip:nth-child(4){ width: 110px; }
+/* اسکلتون کارت آگهی */
+.sk-card {
+  display: flex; min-height: 132px;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.sk-photo { flex: 0 0 118px; align-self: stretch; }
+.sk-body { flex: 1 1 auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.sk-line { height: 12px; }
+.sk-line.tag  { width: 64px; height: 22px; border-radius: 8px; }
+.sk-line.name { width: 70%; height: 20px; }
+.sk-line.meta { width: 55%; margin-top: auto; }
 
 /* حالت خالی */
 .empty-state { text-align: center; color: var(--text-dim); padding: 40px 20px; }
