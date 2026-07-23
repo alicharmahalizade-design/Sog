@@ -165,7 +165,7 @@
 
     card.addEventListener("click", function () {
       SogStore.markSeen(item.id);
-      renderCities(); // به‌روزرسانی نشانگر مشاهده‌نشده
+      location.href = "listing.html?id=" + encodeURIComponent(item.id);
     });
 
     return card;
