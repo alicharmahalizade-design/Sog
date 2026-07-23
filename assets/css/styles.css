@@ -46,7 +46,11 @@ body {
 }
 img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; }
-input { font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+/* راست‌چین کردن همه‌ی فیلدها (RTL) */
+input, textarea { text-align: right; }
+select { text-align: right; text-align-last: right; direction: rtl; }
+option { direction: rtl; text-align: right; }
 ::selection { background: var(--accent-soft); }
 
 /* ===== قاب موبایل (وسط‌چین در دسکتاپ) ===== */
