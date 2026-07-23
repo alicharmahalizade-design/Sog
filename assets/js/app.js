@@ -5,7 +5,8 @@
   "use strict";
 
   var DATA = { listings: [], cities: [] };
-  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false };
+  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false };
+  if (new URLSearchParams(location.search).get("view") === "saved") state.savedOnly = true;
 
   var CARDS_BEFORE_COLLECTION = 5; // بعد از ۵ کارت، کالکشن سال‌ها
 
@@ -72,6 +73,7 @@
     if (state.year != null && item.death_year !== state.year) return false;
     if (state.ceremony && item.ceremony_type !== state.ceremony) return false;
     if (state.followOnly && !SogStore.isFollowing(item.id)) return false;
+    if (state.savedOnly && !SogStore.isSaved(item.id)) return false;
     if (state.query) {
       var q = state.query.trim();
       var hay = (item.deceased_name + " " + item.city + " " + (item.ceremony_labels || []).join(" "));
@@ -345,8 +347,9 @@
 
   /* ---------- بنر فیلتر فعال ---------- */
   function filterBanner() {
-    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly) return null;
+    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly) return null;
     var label = [];
+    if (state.savedOnly) label.push("ذخیره‌شده‌ها");
     if (state.followOnly) label.push("دنبال‌شده‌ها");
     if (state.city !== "all") {
       var c = DATA.cities.filter(function (x) { return x.slug === state.city; })[0];
@@ -363,7 +366,7 @@
     var btn = el("button", null, "حذف فیلتر");
     btn.type = "button";
     btn.addEventListener("click", function () {
-      state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false;
+      state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false; state.savedOnly = false;
       var s = document.getElementById("searchInput"); if (s) s.value = "";
       renderCities(); renderToolbar(); renderFeed();
     });
@@ -389,7 +392,7 @@
     empty.hidden = true;
 
     // آیا کالکشن سال را نشان بدهیم؟ فقط در نمای پیش‌فرض
-    var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly);
+    var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly);
     var collection = showCollection ? buildYearCollection() : null;
 
     items.forEach(function (item, i) {

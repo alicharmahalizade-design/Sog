@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>ثبت سوگ | سوگ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body data-nav="register">
+  <div class="app-frame">
+    <header class="app-header">
+      <a class="logo" href="index.html" aria-label="سوگ" style="margin-inline-start:auto"><img src="assets/img/logo.svg" alt="سوگ" width="52" height="34"></a>
+    </header>
+
+    <div class="reg-intro">
+      <div class="reg-candle">
+        <svg viewBox="0 0 24 24" width="46" height="46"><path d="M12 3c1.7 2.2 1.5 3.7 0 4.8C10.5 6.7 10.3 5.2 12 3z" fill="#ffb43d"/><rect x="9" y="8.5" width="6" height="12" rx="1.4" fill="none" stroke="#e9c88a" stroke-width="1.6"/></svg>
+      </div>
+      <h1>ثبت آگهی سوگ</h1>
+      <p>در چند مرحله‌ی ساده، آگهی سوگ عزیزتان را ثبت کنید تا در مرجع سوگ ایران منتشر شود.</p>
+      <a class="reg-start" href="#" id="startBtn">شروع ثبت آگهی</a>
+      <div class="reg-or">یا</div>
+      <a class="reg-operator" id="opBtn" href="#">ثبت با کمک پشتیبانی (واتساپ) — برایم ثبت کنید</a>
+      <p class="reg-note">فرم گام‌به‌گام مطابق طرح در حال ساخت است.</p>
+    </div>
+  </div>
+  <script src="assets/js/util.js"></script>
+  <script>
+    document.getElementById("opBtn").addEventListener("click", function (e) {
+      e.preventDefault();
+      var msg = "سلام، می‌خواهم یک آگهی سوگ ثبت کنم. لطفاً راهنمایی کنید.";
+      location.href = SogUtil.waLink("۰۹۱۲۰۰۰۰۰۰۰", msg);
+    });
+    document.getElementById("startBtn").addEventListener("click", function (e) {
+      e.preventDefault();
+      alert("فرم گام‌به‌گام ثبت آگهی مطابق طرح فیگما به‌زودی اضافه می‌شود.");
+    });
+  </script>
+  <script src="assets/js/nav.js"></script>
+</body>
+</html>
