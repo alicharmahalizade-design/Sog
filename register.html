@@ -8,37 +8,163 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/register.css">
 </head>
-<body data-nav="register">
+<body>
   <div class="app-frame">
-    <header class="app-header">
-      <a class="logo" href="index.html" aria-label="سوگ" style="margin-inline-start:auto"><img src="assets/img/logo.svg" alt="سوگ" width="52" height="34"></a>
-    </header>
+    <main class="reg">
+      <!-- هدر -->
+      <header class="reg-header">
+        <div class="reg-title">
+          <h1>ثبت سوگ</h1>
+          <p>ثبت آگهی سوگواری</p>
+        </div>
+        <button class="reg-back" id="backBtn" aria-label="بازگشت">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 7l-4 4 4 4M5 11h9a5 5 0 010 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="reg-book" id="draftBtn" aria-label="ذخیره پیش‌نویس">
+          <svg viewBox="0 0 24 24" width="40" height="46"><path d="M5 2h14v20l-7-5-7 5V2z" fill="#5a4632"/><path d="M12 7v6M9 10h6" stroke="#e9c88a" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </header>
 
-    <div class="reg-intro">
-      <div class="reg-candle">
-        <svg viewBox="0 0 24 24" width="46" height="46"><path d="M12 3c1.7 2.2 1.5 3.7 0 4.8C10.5 6.7 10.3 5.2 12 3z" fill="#ffb43d"/><rect x="9" y="8.5" width="6" height="12" rx="1.4" fill="none" stroke="#e9c88a" stroke-width="1.6"/></svg>
+      <!-- استپر -->
+      <div class="reg-steps">
+        <button class="reg-step is-active" data-step="1">۱. عمومی</button>
+        <button class="reg-step" data-step="2">۲. مراسم</button>
+        <button class="reg-step" data-step="3">۳. توضیحات</button>
       </div>
-      <h1>ثبت آگهی سوگ</h1>
-      <p>در چند مرحله‌ی ساده، آگهی سوگ عزیزتان را ثبت کنید تا در مرجع سوگ ایران منتشر شود.</p>
-      <a class="reg-start" href="#" id="startBtn">شروع ثبت آگهی</a>
-      <div class="reg-or">یا</div>
-      <a class="reg-operator" id="opBtn" href="#">ثبت با کمک پشتیبانی (واتساپ) — برایم ثبت کنید</a>
-      <p class="reg-note">فرم گام‌به‌گام مطابق طرح در حال ساخت است.</p>
-    </div>
+
+      <form id="regForm" novalidate>
+        <!-- ===== مرحله ۱: عمومی ===== -->
+        <section class="reg-panel is-active" data-panel="1">
+          <div class="field">
+            <div class="field-label"><span class="info" title="الزامی">ⓘ</span> تصویر مرحوم <span class="req">*</span></div>
+            <label class="upload-box" id="uploadBox">
+              <span class="up-inner"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> افزودن تصویر</span>
+              <input type="file" name="photo" accept="image/*" hidden id="photoInput">
+            </label>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> نام مرحوم <span class="req">*</span></div>
+            <input type="text" name="name" placeholder="نام و نام خانوادگی مرحوم را بنویسید" required>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> نوع مراسم <span class="req">*</span></div>
+            <select name="ceremony" required>
+              <option value="" disabled selected>نوع مراسم را انتخاب کنید</option>
+              <option>تشییع</option><option>خاکسپاری</option><option>سالگرد</option>
+              <option>بزرگداشت</option><option>چهلم</option><option>ختم</option>
+            </select>
+          </div>
+          <div class="field-row" style="margin-bottom:18px">
+            <div class="field">
+              <div class="field-label"><span class="info">ⓘ</span> استان <span class="req">*</span></div>
+              <select name="province" id="provinceSel" required><option value="" disabled selected>استان مراسم</option></select>
+            </div>
+            <div class="field">
+              <div class="field-label"><span class="info">ⓘ</span> شهر <span class="req">*</span></div>
+              <select name="city" id="citySel" required><option value="" disabled selected>شهر مراسم</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> تاریخ درگذشت <span class="req">*</span></div>
+            <div class="date-row">
+              <select name="death_day" class="sel-day"></select>
+              <select name="death_month" class="sel-month"></select>
+              <select name="death_year" class="sel-year"></select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> سن مرحوم <span class="req">*</span></div>
+            <input type="number" name="age" inputmode="numeric" placeholder="سن مرحوم را بنویسید">
+          </div>
+        </section>
+
+        <!-- ===== مرحله ۲: مراسم ===== -->
+        <section class="reg-panel" data-panel="2">
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> تاریخ مراسم خاکسپاری <span class="req">*</span></div>
+            <div class="date-row">
+              <select name="event_day" class="sel-day"></select>
+              <select name="event_month" class="sel-month"></select>
+              <select name="event_year" class="sel-year"></select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> ساعت برگزاری مراسم <span class="req">*</span></div>
+            <input type="text" name="event_time" placeholder="ساعت برگزاری مراسم را بنویسید">
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> نکات مراسم <span class="req">*</span></div>
+            <div class="check-grid" id="noteGrid"></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> آدرس مراسم <span class="req">*</span></div>
+            <input type="text" name="address" placeholder="آدرس مراسم را بنویسید">
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="info">ⓘ</span> لوکیشن مراسم <span class="req">*</span></div>
+            <div class="loc-map" style="background-image:url('assets/img/map.svg')"></div>
+          </div>
+          <div class="exp-row" id="bozorgRow">
+            <div class="exp-head"><span class="lbl">نیاز به تکمیل اطلاعات مراسم بزرگداشت دارید؟</span><span class="box">✓</span></div>
+          </div>
+        </section>
+
+        <!-- ===== مرحله ۳: توضیحات ===== -->
+        <section class="reg-panel" data-panel="3">
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">افزودن بیوگرافی</span><span class="box">✓</span></div>
+            <div class="exp-body"><textarea rows="4" name="bio" placeholder="بیوگرافی و شرح زندگی مرحوم…"></textarea></div>
+          </div>
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">افزودن توضیحات تکمیلی</span><span class="box">✓</span></div>
+            <div class="exp-body"><textarea rows="3" name="extra" placeholder="توضیحات تکمیلی…"></textarea></div>
+          </div>
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">انتخاب موزیک دلخواه</span><span class="box">✓</span></div>
+            <div class="exp-body"><label class="upload-music">آپلود موزیک دلخواه<input type="file" accept="audio/*" hidden></label></div>
+          </div>
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">افزودن لایو (پخش زنده مراسم)</span><span class="box">✓</span></div>
+            <div class="exp-body"><input type="url" name="live" placeholder="لینک پخش زنده…"></div>
+          </div>
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">وابستگی قومی و خانوادگی (ایل/طایفه/خاندان)</span><span class="box">✓</span></div>
+            <div class="exp-body"><div class="exp-triple">
+              <input type="text" name="il" placeholder="ایل"><input type="text" name="tayefe" placeholder="طایفه"><input type="text" name="khandan" placeholder="خاندان">
+            </div></div>
+          </div>
+          <div class="exp-row">
+            <div class="exp-head"><span class="lbl">ارتباط با من (سوشال مدیا و تماس)</span><span class="box">✓</span></div>
+            <div class="exp-body">
+              <input type="tel" name="contact_phone" placeholder="شماره موبایل" style="margin-bottom:10px">
+              <div class="sms-only" id="smsOnly"><span>فقط پیامک</span><span class="box">✓</span></div>
+              <div class="social-grid">
+                <button type="button" class="social-btn" data-social="whatsapp">واتساپ</button>
+                <button type="button" class="social-btn" data-social="instagram">اینستاگرام</button>
+                <button type="button" class="social-btn" data-social="eitaa">ایتا</button>
+                <button type="button" class="social-btn" data-social="igap">آیگپ</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <!-- نوار اکشن -->
+    <div class="reg-actions" id="regActions"></div>
   </div>
+
+  <!-- موفقیت -->
+  <div class="reg-success" id="regSuccess">
+    <div class="ok"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2>آگهی سوگ ثبت شد</h2>
+    <p>آگهی شما با موفقیت ثبت شد و پس از تأیید، در مرجع سوگ ایران منتشر می‌شود.</p>
+    <a href="index.html">بازگشت به خانه</a>
+  </div>
+
   <script src="assets/js/util.js"></script>
-  <script>
-    document.getElementById("opBtn").addEventListener("click", function (e) {
-      e.preventDefault();
-      var msg = "سلام، می‌خواهم یک آگهی سوگ ثبت کنم. لطفاً راهنمایی کنید.";
-      location.href = SogUtil.waLink("۰۹۱۲۰۰۰۰۰۰۰", msg);
-    });
-    document.getElementById("startBtn").addEventListener("click", function (e) {
-      e.preventDefault();
-      alert("فرم گام‌به‌گام ثبت آگهی مطابق طرح فیگما به‌زودی اضافه می‌شود.");
-    });
-  </script>
-  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/register.js"></script>
 </body>
 </html>
