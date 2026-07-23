@@ -1,0 +1,258 @@
+/* ===== فونت وزیرمتن ===== */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+/* ===== متغیرهای تم ===== */
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface-2: #1e1e1e;
+  --card: #141414;
+  --card-border: #2c2c2c;
+  --text: #f2f2f2;
+  --text-dim: #9a9a9a;
+  --text-mute: #6f6f6f;
+  --divider: #333;
+  --accent: #d99a5b;         /* برنز/کهربایی برچسب‌ها */
+  --accent-soft: rgba(217,154,91,0.16);
+  --badge: #e23b3b;          /* نشانگر قرمز مشاهده‌نشده */
+  --frame-w: 480px;
+  --radius: 16px;
+  --header-h: 62px;
+  font-family: "Vazirmatn", Tahoma, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #000;
+  color: var(--text);
+  font-family: "Vazirmatn", Tahoma, sans-serif;
+  line-height: 1.6;
+  overscroll-behavior-y: none;
+}
+img { max-width: 100%; display: block; }
+button { font-family: inherit; cursor: pointer; }
+input { font-family: inherit; }
+::selection { background: var(--accent-soft); }
+
+/* ===== قاب موبایل (وسط‌چین در دسکتاپ) ===== */
+.app-frame {
+  max-width: var(--frame-w);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+}
+
+/* ===== هدر ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 50;
+  height: var(--header-h);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 12px;
+  background: var(--surface);
+  border-bottom: 1px solid #000;
+}
+.icon-btn {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  background: transparent; border: none; color: var(--text);
+  border-radius: 10px;
+}
+.icon-btn:active { background: var(--surface-2); }
+.search-box {
+  flex: 1 1 auto;
+  display: flex; align-items: center; gap: 8px;
+  background: #0e0e0e;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 0 12px; height: 40px;
+  min-width: 0;
+}
+.search-icon { color: var(--text-mute); flex: 0 0 auto; }
+.search-box input {
+  flex: 1 1 auto; min-width: 0;
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-size: 14px;
+}
+.search-box input::placeholder { color: var(--text-mute); }
+.logo { flex: 0 0 auto; display: block; }
+.logo img { height: 34px; width: auto; }
+
+/* ===== نوار شهرها ===== */
+.city-bar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 14px 14px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid #000;
+}
+.city-chip {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid #2f2f2f;
+  border-radius: 999px;
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.city-chip.is-active {
+  background: #2b2b2b;
+  border-color: #555;
+}
+.city-chip.is-add {
+  background: transparent;
+  color: var(--text-dim);
+  border-style: dashed;
+}
+.city-chip .add-plus {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #333; display: grid; place-items: center;
+  font-size: 15px; line-height: 1; color: #ddd;
+}
+.chip-badge {
+  min-width: 20px; height: 20px; padding: 0 6px;
+  display: inline-grid; place-items: center;
+  background: var(--badge); color: #fff;
+  font-size: 11px; font-weight: 700;
+  border-radius: 999px;
+}
+.chip-badge.badge-featured {
+  background: var(--accent); color: #1a1206;
+}
+
+/* ===== لیست آگهی‌ها ===== */
+.feed { padding: 14px 14px 90px; display: flex; flex-direction: column; gap: 14px; }
+
+/* کارت آگهی */
+.listing-card {
+  position: relative;
+  display: flex;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 132px;
+}
+.listing-photo {
+  flex: 0 0 118px;
+  align-self: stretch;
+  background: #0a0a0a center/cover no-repeat;
+}
+.listing-body {
+  flex: 1 1 auto;
+  padding: 12px 14px;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.listing-top {
+  display: flex; align-items: flex-start; gap: 8px;
+  justify-content: space-between;
+}
+.bookmark-btn {
+  flex: 0 0 auto; order: 2;
+  background: transparent; border: none; color: var(--text-dim);
+  width: 30px; height: 30px; display: grid; place-items: center;
+  margin: -4px -6px 0 0;
+}
+.bookmark-btn.is-saved { color: var(--accent); }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; order: 1; }
+.tag {
+  padding: 3px 12px; border-radius: 8px;
+  font-size: 12px; font-weight: 500;
+  background: var(--accent-soft); color: var(--accent);
+}
+.tag[data-type="salgard"]     { background: rgba(122,162,214,.16); color: #8fb4e0; }
+.tag[data-type="bozorgdasht"] { background: rgba(160,140,214,.16); color: #b6a6e0; }
+.tag[data-type="chehelom"]    { background: rgba(120,190,150,.15); color: #93cdaa; }
+
+.listing-name {
+  font-size: 19px; font-weight: 700;
+  margin: 10px 0 0; color: var(--text);
+  line-height: 1.5;
+}
+.listing-divider { height: 1px; background: var(--divider); margin: 12px 0 10px; }
+.listing-meta {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--text-dim);
+}
+.listing-meta .meta-date { display: flex; align-items: center; gap: 6px; }
+.listing-meta .sep { width: 1px; height: 14px; background: #3a3a3a; }
+.meta-ico { color: var(--text-mute); }
+
+/* ===== کالکشن سال‌های گذشته ===== */
+.year-collection {
+  margin: 6px 0;
+}
+.collection-title {
+  text-align: center;
+  color: var(--accent);
+  font-size: 17px; font-weight: 700;
+  margin: 8px 0 14px;
+}
+.year-track {
+  display: flex; gap: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scrollbar-width: none;
+}
+.year-track::-webkit-scrollbar { display: none; }
+.year-card {
+  position: relative;
+  flex: 0 0 46%;
+  aspect-ratio: 3/2;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #262626;
+  background: #000 center/cover no-repeat;
+  display: grid; place-items: end center;
+}
+.year-card::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,0) 55%);
+}
+.year-label {
+  position: relative; z-index: 1;
+  color: #fff; font-weight: 700; font-size: 20px;
+  padding-bottom: 12px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.7);
+}
+.year-count {
+  position: absolute; top: 8px; inset-inline-start: 8px; z-index: 1;
+  background: rgba(0,0,0,.55); color: #eee;
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+}
+
+/* حالت خالی */
+.empty-state { text-align: center; color: var(--text-dim); padding: 40px 20px; }
+
+/* فیلتر فعال بنر */
+.filter-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 4px;
+  background: var(--surface-2); border: 1px solid #2c2c2c;
+  border-radius: 12px; padding: 8px 14px;
+  font-size: 13px; color: var(--text-dim);
+}
+.filter-banner button {
+  background: transparent; border: none; color: var(--accent);
+  font-size: 13px; font-weight: 700;
+}

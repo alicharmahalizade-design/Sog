@@ -1,0 +1,16 @@
+{
+  "cities": [
+    { "slug": "all", "name": "کل ایران", "total_label": "+۴۰۰/۰۰۰", "featured": true },
+    { "slug": "ahvaz", "name": "اهواز" },
+    { "slug": "fooladshahr", "name": "فولادشهر" },
+    { "slug": "behbahan", "name": "بهبهان" },
+    { "slug": "ramhormoz", "name": "رامهرمز" },
+    { "slug": "bavi", "name": "باوی" },
+    { "slug": "shooshtar", "name": "شوشتر" },
+    { "slug": "shoosh", "name": "شوش" },
+    { "slug": "roosta-jayzan", "name": "روستای جایزان" },
+    { "slug": "isfahan", "name": "اصفهان" },
+    { "slug": "sari", "name": "ساری" },
+    { "slug": "masjed-soleyman", "name": "مسجد سلیمان" }
+  ]
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>سوگ | مرجع آگهی‌های سوگ ایران</title>
+  <meta name="description" content="سوگ؛ مرجع ثبت و مشاهده‌ی آگهی‌های سوگ ایران و سفارش سریع خدمات سوگواری.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/icon-192.png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app-frame">
+    <!-- ===== هدر ===== -->
+    <header class="app-header">
+      <button class="icon-btn" id="menuBtn" aria-label="منو">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <button class="icon-btn" id="profileBtn" aria-label="حساب کاربری">
+        <svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="search" id="searchInput" placeholder="جستجو در همه‌ی آگهی‌ها" aria-label="جستجو">
+      </div>
+      <a class="logo" href="./" aria-label="سوگ">
+        <img src="assets/img/logo.svg" alt="سوگ" width="52" height="34">
+      </a>
+    </header>
+
+    <!-- ===== نوار انتخاب شهر ===== -->
+    <nav class="city-bar" id="cityBar" aria-label="انتخاب شهر"></nav>
+
+    <!-- ===== محتوای اصلی (آگهی‌ها) ===== -->
+    <main id="feed" class="feed" aria-live="polite"></main>
+
+    <div id="emptyState" class="empty-state" hidden>
+      <p>آگهی‌ای برای این بخش یافت نشد.</p>
+    </div>
+  </div>
+
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
