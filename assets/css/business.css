@@ -35,12 +35,23 @@
 }
 .featured-track::-webkit-scrollbar { display: none; }
 .featured-card {
-  flex: 0 0 172px; background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 16px; padding: 14px; text-align: center; cursor: pointer;
+  position: relative; overflow: hidden;
+  flex: 0 0 176px; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 18px 12px 14px; text-align: center; cursor: pointer;
 }
+/* نشان «همکار سوگ» در گوشهٔ بالای کارت */
+.featured-card .f-badge { position: absolute; top: 0; right: 0; z-index: 2; line-height: 0; }
+.featured-card .f-badge .sog-badge.partner {
+  font-size: 10px; padding: 3px 8px 3px 9px;
+  border-radius: 0 15px 0 10px; line-height: 1.5;
+}
+.featured-card .f-badge .verified { margin: 6px 6px 0 0; }
 .featured-card .f-logo { width: 66px; height: 66px; border-radius: 18px; margin: 0 auto 10px; background: #222 center/cover no-repeat; }
-.featured-card .f-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; justify-content: center; }
-.featured-card .f-cat { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+.featured-card .f-name {
+  font-weight: 700; font-size: 14px; line-height: 1.6;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.featured-card .f-cat { font-size: 12px; color: var(--text-dim); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .featured-card .f-rating { font-size: 12px; color: var(--accent); margin-top: 8px; }
 
 /* لیست کسب‌وکار */
@@ -53,7 +64,8 @@
 .biz-main { display: flex; gap: 12px; }
 .biz-logo { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 16px; background: #222 center/cover no-repeat; }
 .biz-info { flex: 1 1 auto; min-width: 0; }
-.biz-name { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 700; }
+.biz-name { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 700; min-width: 0; }
+.biz-name .sog-badge.partner { flex: 0 0 auto; }
 .verified {
   display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
   background: #3f9d6d; color: #fff; flex: 0 0 auto;

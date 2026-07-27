@@ -97,9 +97,11 @@
     sec.hidden = false; track.innerHTML = "";
     items.sort(rank).forEach(function (b) {
       var card = el("div", "featured-card");
+      var flag = SogUtil.badge(b);
+      if (flag) card.appendChild(el("div", "f-badge", flag));
       var logo = el("div", "f-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
       card.appendChild(logo);
-      card.appendChild(el("div", "f-name", esc(b.name) + " " + SogUtil.badge(b)));
+      card.appendChild(el("div", "f-name", esc(b.name)));
       card.appendChild(el("div", "f-cat", esc(b.category_name)));
       card.appendChild(el("div", "f-rating", STAR + " " + esc(b.rating) + " (" + esc(b.reviews) + ")"));
       card.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
