@@ -5,8 +5,12 @@
   "use strict";
 
   var DATA = { listings: [], cities: [] };
-  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false };
-  if (new URLSearchParams(location.search).get("view") === "saved") state.savedOnly = true;
+  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false, tayefe: null, il: null };
+  var PARAMS = new URLSearchParams(location.search);
+  if (PARAMS.get("view") === "saved") state.savedOnly = true;
+  // ورود از لینک «طایفه» / «ایل» در صفحه‌ی آگهی
+  state.tayefe = PARAMS.get("tayefe") || null;
+  state.il = PARAMS.get("il") || null;
 
   var CARDS_BEFORE_COLLECTION = 5; // بعد از ۵ کارت، کالکشن سال‌ها
 
@@ -72,11 +76,13 @@
     if (state.city !== "all" && item.city_slug !== state.city) return false;
     if (state.year != null && item.death_year !== state.year) return false;
     if (state.ceremony && item.ceremony_type !== state.ceremony) return false;
+    if (state.tayefe && item.tayefe !== state.tayefe) return false;
+    if (state.il && item.il !== state.il) return false;
     if (state.followOnly && !SogStore.isFollowing(item.id)) return false;
     if (state.savedOnly && !SogStore.isSaved(item.id)) return false;
     if (state.query) {
       var q = state.query.trim();
-      var hay = (item.deceased_name + " " + item.city + " " + (item.ceremony_labels || []).join(" "));
+      var hay = (item.deceased_name + " " + item.city + " " + (item.tayefe || "") + " " + (item.il || "") + " " + (item.ceremony_labels || []).join(" "));
       if (hay.indexOf(q) === -1) return false;
     }
     return true;
@@ -347,10 +353,12 @@
 
   /* ---------- بنر فیلتر فعال ---------- */
   function filterBanner() {
-    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly) return null;
+    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il) return null;
     var label = [];
     if (state.savedOnly) label.push("ذخیره‌شده‌ها");
     if (state.followOnly) label.push("دنبال‌شده‌ها");
+    if (state.tayefe) label.push("طایفه: " + state.tayefe);
+    if (state.il) label.push("ایل: " + state.il);
     if (state.city !== "all") {
       var c = DATA.cities.filter(function (x) { return x.slug === state.city; })[0];
       if (c) label.push("شهر: " + c.name);
@@ -367,6 +375,9 @@
     btn.type = "button";
     btn.addEventListener("click", function () {
       state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false; state.savedOnly = false;
+      state.tayefe = null; state.il = null;
+      // پارامترهای فیلتر را از URL هم پاک کن تا رفرش دوباره فیلتر نکند
+      if (history.replaceState) history.replaceState(null, "", location.pathname);
       var s = document.getElementById("searchInput"); if (s) s.value = "";
       renderCities(); renderToolbar(); renderFeed();
     });
@@ -392,7 +403,7 @@
     empty.hidden = true;
 
     // آیا کالکشن سال را نشان بدهیم؟ فقط در نمای پیش‌فرض
-    var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly);
+    var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
     var collection = showCollection ? buildYearCollection() : null;
 
     items.forEach(function (item, i) {

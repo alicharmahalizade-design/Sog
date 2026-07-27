@@ -65,6 +65,14 @@
 .family-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
 .family-row .lbl { color: var(--accent); font-weight: 700; }
 .family-row .val { color: var(--text); }
+.family-grid.is-single { grid-template-columns: 1fr; }
+/* طایفه و ایل قابل کلیک‌اند و به فهرست آگهی‌های همان طایفه/ایل می‌روند */
+.family-row .clan-link {
+  color: var(--text); text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  padding-bottom: 1px;
+}
+.family-row .clan-link:active { color: var(--accent); }
 
 /* ---- دکمه‌های عمل ---- */
 .action-row {

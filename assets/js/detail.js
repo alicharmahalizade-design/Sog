@@ -134,7 +134,8 @@
       photos: [l.photo],
       birth: null,
       death: deathYear ? { date: deathYear, place: city } : null,
-      family: null,
+      // نامِ پدر/مادر در داده‌ی آگهی نیست؛ فقط طایفه و ایل نمایش داده می‌شود.
+      family: (l.tayefe || l.il) ? { father: { tayefe: l.tayefe, il: l.il }, mother: null } : null,
       biography: {
         text: "یاد و خاطره‌ی " + l.deceased_name + " برای خانواده، دوستان و همشهریانش گرامی است. " +
               "این صفحه به‌یاد ایشان ساخته شده تا آشنایان بتوانند زمان و مکان مراسم را ببینند و پیام همدردی خود را ثبت کنند.",
@@ -175,7 +176,7 @@
 
     root.appendChild(hero(d));
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
-    if (d.family) root.appendChild(familyGrid(d.family));
+    if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
     root.appendChild(reportError());
 
@@ -253,18 +254,38 @@
   }
 
   /* ---------- خانواده ---------- */
+  /* «طایفه» و «ایل» لینک هستند و به فهرست آگهی‌های همان طایفه/ایل می‌روند. */
+  var CLAN_KEYS = { "طایفه": "tayefe", "ایل": "il" };
+
   function familyGrid(f) {
     var grid = el("div", "family-grid");
-    grid.appendChild(familyCard([["پدر", f.father.name], ["طایفه", f.father.tayefe], ["ایل", f.father.il]]));
-    grid.appendChild(familyCard([["مادر", f.mother.name], ["طایفه", f.mother.tayefe], ["ایل", f.mother.il]]));
+    var p = f.father || {}, m = f.mother || {};
+    var cards = [
+      familyCard([["پدر", p.name], ["طایفه", p.tayefe], ["ایل", p.il]]),
+      familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]])
+    ].filter(Boolean);
+    if (!cards.length) return null;
+    // اگر فقط یک کارت داریم، تمام عرض را بگیرد
+    if (cards.length === 1) grid.classList.add("is-single");
+    cards.forEach(function (c) { grid.appendChild(c); });
     return grid;
   }
   function familyCard(rows) {
+    rows = rows.filter(function (r) { return r[1]; });
+    if (!rows.length) return null;
     var card = el("div", "family-card");
     rows.forEach(function (r) {
       var row = el("div", "family-row");
       row.appendChild(el("span", "lbl", r[0]));
-      row.appendChild(el("span", "val", esc(r[1])));
+      var key = CLAN_KEYS[r[0]];
+      if (key) {
+        var a = el("a", "val clan-link", esc(r[1]));
+        a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
+        a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
+        row.appendChild(a);
+      } else {
+        row.appendChild(el("span", "val", esc(r[1])));
+      }
       card.appendChild(row);
     });
     return card;

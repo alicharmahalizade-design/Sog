@@ -5,12 +5,17 @@
       "deceased_name": "استاد محمود فرشچیان",
       "photo": "assets/img/portrait-1.svg",
       "ceremony_type": "khaksepari",
-      "ceremony_labels": ["تشییع", "خاکسپاری"],
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
       "death_year": 1405,
       "event_date_jalali": "۱۴۰۵/۱۱/۲۹",
       "event_weekday": "شنبه",
       "city": "اصفهان",
       "city_slug": "isfahan",
+      "tayefe": "چهارمحالی",
+      "il": "بختیاری",
       "location": "اصفهان",
       "created_at": "2026-02-18"
     },
@@ -19,12 +24,16 @@
       "deceased_name": "استاد محمود فرشچیان",
       "photo": "assets/img/portrait-2.svg",
       "ceremony_type": "salgard",
-      "ceremony_labels": ["سالگرد"],
+      "ceremony_labels": [
+        "سالگرد"
+      ],
       "death_year": 1404,
       "event_date_jalali": "۱۴۰۴/۱۲/۱۵",
       "event_weekday": "پنجشنبه",
       "city": "اصفهان",
       "city_slug": "isfahan",
+      "tayefe": "چهارمحالی",
+      "il": "بختیاری",
       "location": "اصفهان",
       "created_at": "2026-03-05"
     },
@@ -33,12 +42,17 @@
       "deceased_name": "استاد محمود فرشچیان",
       "photo": "assets/img/portrait-1.svg",
       "ceremony_type": "khaksepari",
-      "ceremony_labels": ["تشییع", "خاکسپاری"],
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
       "death_year": 1404,
       "event_date_jalali": "۱۴۰۴/۱۰/۱۸",
       "event_weekday": "سه‌شنبه",
       "city": "اصفهان",
       "city_slug": "isfahan",
+      "tayefe": "چهارمحالی",
+      "il": "بختیاری",
       "location": "اصفهان",
       "created_at": "2026-01-07"
     },
@@ -47,12 +61,16 @@
       "deceased_name": "علی انصاریان",
       "photo": "assets/img/portrait-3.svg",
       "ceremony_type": "bozorgdasht",
-      "ceremony_labels": ["بزرگداشت"],
+      "ceremony_labels": [
+        "بزرگداشت"
+      ],
       "death_year": 1399,
       "event_date_jalali": "۱۴۰۵/۰۱/۱۴",
       "event_weekday": "چهارشنبه",
       "city": "مسجد سلیمان",
       "city_slug": "masjed-soleyman",
+      "tayefe": "انصاری",
+      "il": "بختیاری",
       "location": "مسجد سلیمان",
       "created_at": "2026-04-02"
     },
@@ -61,12 +79,16 @@
       "deceased_name": "ژاله علو",
       "photo": "assets/img/portrait-4.svg",
       "ceremony_type": "chehelom",
-      "ceremony_labels": ["چهلم"],
+      "ceremony_labels": [
+        "چهلم"
+      ],
       "death_year": 1405,
       "event_date_jalali": "۱۴۰۵/۰۳/۲۱",
       "event_weekday": "سه‌شنبه",
       "city": "ساری",
       "city_slug": "sari",
+      "tayefe": "علوی",
+      "il": "مازندرانی",
       "location": "ساری",
       "created_at": "2026-05-20"
     },
@@ -75,12 +97,16 @@
       "deceased_name": "حجه‌الاسلام احمدرضا راجی",
       "photo": "assets/img/portrait-5.svg",
       "ceremony_type": "salgard",
-      "ceremony_labels": ["سالگرد"],
+      "ceremony_labels": [
+        "سالگرد"
+      ],
       "death_year": 1403,
       "event_date_jalali": "۱۴۰۵/۱۰/۱۶",
       "event_weekday": "یکشنبه",
       "city": "اصفهان",
       "city_slug": "isfahan",
+      "tayefe": "سادات حسینی",
+      "il": "قشقایی",
       "location": "اصفهان",
       "created_at": "2026-01-25"
     },
@@ -89,12 +115,16 @@
       "deceased_name": "آتیلا پسیانی",
       "photo": "assets/img/portrait-6.svg",
       "ceremony_type": "salgard",
-      "ceremony_labels": ["سالگرد"],
+      "ceremony_labels": [
+        "سالگرد"
+      ],
       "death_year": 1402,
       "event_date_jalali": "۱۴۰۲/۱۲/۲۶",
       "event_weekday": "شنبه",
       "city": "اصفهان",
       "city_slug": "isfahan",
+      "tayefe": "پسیان",
+      "il": "خراسانی",
       "location": "اصفهان",
       "created_at": "2025-12-30"
     },
@@ -103,12 +133,17 @@
       "deceased_name": "حاج محمد اکبری",
       "photo": "assets/img/portrait-2.svg",
       "ceremony_type": "khaksepari",
-      "ceremony_labels": ["تشییع", "خاکسپاری"],
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
       "death_year": 1405,
       "event_date_jalali": "۱۴۰۵/۱۱/۰۳",
       "event_weekday": "دوشنبه",
       "city": "اهواز",
       "city_slug": "ahvaz",
+      "tayefe": "اکبری",
+      "il": "بنی‌کعب",
       "location": "اهواز",
       "created_at": "2026-01-22"
     },
@@ -117,12 +152,16 @@
       "deceased_name": "بانو فاطمه رضایی",
       "photo": "assets/img/portrait-4.svg",
       "ceremony_type": "chehelom",
-      "ceremony_labels": ["چهلم"],
+      "ceremony_labels": [
+        "چهلم"
+      ],
       "death_year": 1404,
       "event_date_jalali": "۱۴۰۵/۰۲/۱۰",
       "event_weekday": "جمعه",
       "city": "اهواز",
       "city_slug": "ahvaz",
+      "tayefe": "رضایی",
+      "il": "بنی‌طرف",
       "location": "اهواز",
       "created_at": "2026-04-29"
     },
@@ -131,12 +170,16 @@
       "deceased_name": "کربلایی حسن دهقان",
       "photo": "assets/img/portrait-5.svg",
       "ceremony_type": "khaksepari",
-      "ceremony_labels": ["تشییع"],
+      "ceremony_labels": [
+        "تشییع"
+      ],
       "death_year": 1405,
       "event_date_jalali": "۱۴۰۵/۱۱/۱۵",
       "event_weekday": "پنجشنبه",
       "city": "بهبهان",
       "city_slug": "behbahan",
+      "tayefe": "دهقان",
+      "il": "بهبهانی",
       "location": "بهبهان",
       "created_at": "2026-02-04"
     },
@@ -145,12 +188,16 @@
       "deceased_name": "استاد پرویز مشکاتیان",
       "photo": "assets/img/portrait-3.svg",
       "ceremony_type": "bozorgdasht",
-      "ceremony_labels": ["بزرگداشت"],
+      "ceremony_labels": [
+        "بزرگداشت"
+      ],
       "death_year": 1388,
       "event_date_jalali": "۱۴۰۵/۰۷/۲۱",
       "event_weekday": "شنبه",
       "city": "رامهرمز",
       "city_slug": "ramhormoz",
+      "tayefe": "مشکات",
+      "il": "نیشابوری",
       "location": "رامهرمز",
       "created_at": "2026-03-13"
     },
@@ -159,12 +206,16 @@
       "deceased_name": "حاجیه خانم زهرا موسوی",
       "photo": "assets/img/portrait-6.svg",
       "ceremony_type": "salgard",
-      "ceremony_labels": ["سالگرد"],
+      "ceremony_labels": [
+        "سالگرد"
+      ],
       "death_year": 1403,
       "event_date_jalali": "۱۴۰۵/۰۹/۰۹",
       "event_weekday": "دوشنبه",
       "city": "باوی",
       "city_slug": "bavi",
+      "tayefe": "موسوی",
+      "il": "بنی‌تمیم",
       "location": "باوی",
       "created_at": "2026-02-27"
     }
