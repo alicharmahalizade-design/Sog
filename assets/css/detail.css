@@ -103,7 +103,8 @@
 /* padding روی .acc-pad است نه .acc-inner؛ وگرنه در حالت بسته
    همان padding به‌صورت یک نوار باریک زیر سربرگ دیده می‌شود. */
 .acc-body > .acc-inner { overflow: hidden; min-height: 0; padding: 0; }
-.accordion.is-open .acc-body { grid-template-rows: 1fr; }
+/* ترکیب‌کننده‌ی فرزند لازم است؛ وگرنه بازشدنِ آکاردیون بیرونی، آکاردیون‌های تودرتوی داخلش را هم باز می‌کند. */
+.accordion.is-open > .acc-body { grid-template-rows: 1fr; }
 .acc-pad { padding: 16px; }
 
 /* ---- بلوک رویداد (زمان/مکان/نقشه/چیپ/توضیحات) ---- */
@@ -172,9 +173,16 @@
 /* ---- سالگردهای فشرده ---- */
 .acc-empty .acc-pad { color: var(--text-mute); font-size: 13px; text-align: center; padding: 18px; }
 
+/* سالگردهای سال‌های پیش، تودرتو در انتهای سالگرد جاری */
+.anniv-older { margin-top: 18px; border-top: 1px solid #262626; padding-top: 14px; }
+.anniv-older-title { color: var(--text-dim); font-weight: 700; font-size: 13.5px; margin: 0 0 10px; text-align: start; }
+.acc-pad .accordion { margin-inline: 0; }
+.acc-pad .accordion:last-child { margin-bottom: 0; }
+.acc-pad .acc-head { font-size: 14.5px; padding: 12px 14px; }
+
 /* ---- ارتباط با خانواده ---- */
 /* فاصله‌ی بالا و پایینِ عنوان و ردیف آیکون‌ها برابر است */
-.section-title { text-align: center; color: var(--accent); font-weight: 700; font-size: 16px; margin: 24px 14px; }
+.section-title { text-align: start; color: var(--accent); font-weight: 700; font-size: 16px; margin: 24px 14px; }
 .contact-row {
   display: flex; gap: 14px; overflow-x: auto; padding: 0 14px 4px;
   scrollbar-width: none; justify-content: flex-start;
@@ -204,7 +212,7 @@
 .cond-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .cond-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; }
 .cond-body > div { overflow: hidden; }
-.condolence-item.is-open .cond-body { grid-template-rows: 1fr; }
+.condolence-item.is-open > .cond-body { grid-template-rows: 1fr; }
 .cond-message { padding: 0 4px 14px 56px; }
 .cond-message p { font-size: 13.5px; line-height: 2; color: var(--text-dim); margin: 0 0 8px; text-align: justify; }
 .cond-message time { font-size: 12px; color: var(--text-mute); }

@@ -183,7 +183,8 @@
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
     if (d.acknowledgment) root.appendChild(ackAccordion(d.acknowledgment));
     if (d.chehelom) root.appendChild(eventAccordion(d.chehelom));
-    (d.anniversaries || []).forEach(function (a) { root.appendChild(anniversaryAccordion(a)); });
+    var anniv = anniversariesSection(d.anniversaries);
+    if (anniv) root.appendChild(anniv);
 
     if ((d.contacts || []).length) {
       root.appendChild(el("h2", "section-title", "ارتباط با خانواده سوگوار"));
@@ -306,12 +307,12 @@
   }
 
   /* ---------- آکاردیون پایه ---------- */
-  /* همه‌ی آکاردیون‌ها بسته باز می‌شوند؛ باز/بسته‌شدن فقط با کلیک کاربر. */
+  /* آکاردیون‌ها به‌صورت پیش‌فرض بسته‌اند مگر opts.open صراحتاً داده شود. */
   function accordion(title, bodyNode, opts) {
     opts = opts || {};
-    var acc = el("section", "accordion" + (opts.empty ? " acc-empty" : ""));
+    var acc = el("section", "accordion" + (opts.open ? " is-open" : "") + (opts.empty ? " acc-empty" : ""));
     var head = el("button", "acc-head");
-    head.setAttribute("aria-expanded", "false");
+    head.setAttribute("aria-expanded", opts.open ? "true" : "false");
     head.innerHTML = "<span>" + esc(title) + "</span>" + ICON.chevron;
     var body = el("div", "acc-body");
     var inner = el("div", "acc-inner");  // پوشش بدون padding تا ارتفاعِ حالت بسته دقیقاً صفر شود
@@ -404,12 +405,31 @@
   }
   function eventAccordion(c) { return accordion(c.title, eventBody(c)); }
 
+  function anniversaryBody(a) {
+    if (a.empty) return el("div", null, "اطلاعاتی برای این سالگرد ثبت نشده است.");
+    return eventBody(Object.assign({}, a, { title: "سالگرد " + a.year }));
+  }
   function anniversaryAccordion(a) {
-    if (a.empty) {
-      return accordion("سالگرد " + a.year, el("div", null, "اطلاعاتی برای این سالگرد ثبت نشده است."), { empty: true });
+    return accordion("سالگرد " + a.year, anniversaryBody(a), { empty: !!a.empty });
+  }
+
+  /* سالگرد جاری (آخرین سالگرد) در بیرون است و سالگردهای سال‌های پیش
+     به‌صورت تودرتو در انتهای همان آکاردیون قرار می‌گیرند. */
+  function anniversariesSection(list) {
+    list = list || [];
+    if (!list.length) return null;
+    var latest = list[0], older = list.slice(1);
+
+    var wrap = el("div");
+    wrap.appendChild(anniversaryBody(latest));
+
+    if (older.length) {
+      var nest = el("div", "anniv-older");
+      nest.appendChild(el("h3", "anniv-older-title", "سالگردهای سال‌های پیش"));
+      older.forEach(function (a) { nest.appendChild(anniversaryAccordion(a)); });
+      wrap.appendChild(nest);
     }
-    var c = Object.assign({}, a, { title: "سالگرد " + a.year });
-    return accordion("سالگرد " + a.year, eventBody(c));
+    return accordion("سالگرد " + latest.year, wrap, { empty: !!latest.empty && !older.length });
   }
 
   /* ---------- سپاسگزاری ---------- */
@@ -481,7 +501,7 @@
     actions.appendChild(reg); actions.appendChild(cnt);
     inner.appendChild(actions);
 
-    return accordion("همدردی با خانواده سوگوار", inner);
+    return accordion("همدردی با خانواده سوگوار", inner, { open: true });
   }
   function condolenceItem(cd) {
     var item = el("div", "condolence-item");
