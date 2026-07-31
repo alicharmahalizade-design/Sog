@@ -101,11 +101,22 @@
     }).length;
   }
 
+  /* شهرها به ترتیب تعداد آگهی‌های جدید (مشاهده‌نشده) — بیشتر، جلوتر.
+     شهر ویژه («کل ایران») همیشه اول می‌ماند و ترتیب اصلی، تساوی‌ها را می‌شکند. */
+  function orderedCities() {
+    return DATA.cities.map(function (c, i) {
+      return { city: c, idx: i, unseen: c.featured ? Infinity : unseenCountForCity(c.slug) };
+    }).sort(function (a, b) {
+      if (a.unseen !== b.unseen) return b.unseen - a.unseen;
+      return a.idx - b.idx;
+    }).map(function (x) { return x.city; });
+  }
+
   /* ---------- رندر نوار شهرها ---------- */
   function renderCities() {
     var bar = document.getElementById("cityBar");
     bar.innerHTML = "";
-    DATA.cities.forEach(function (c, idx) {
+    orderedCities().forEach(function (c, idx) {
       var chip = el("button", "city-chip");
       chip.type = "button";
       chip.dataset.slug = c.slug;
@@ -142,7 +153,7 @@
     });
   }
 
-  /* ---------- نوار ابزار (فیلتر نوع مراسم، نزدیک‌من، دنبال‌شده‌ها، مرتب‌سازی) ---------- */
+  /* ---------- نوار ابزار (نزدیک‌من، فیلتر نوع مراسم، مرتب‌سازی) ---------- */
   function renderToolbar() {
     var bar = document.getElementById("toolbar");
     if (!bar) return;
@@ -154,14 +165,6 @@
     gps.type = "button";
     gps.addEventListener("click", useNearMe);
     bar.appendChild(gps);
-
-    // دنبال‌شده‌ها
-    var follows = SogStore.getFollows().length;
-    var fol = el("button", "tool-chip tool-follow" + (state.followOnly ? " is-active" : ""),
-      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" fill="' + (state.followOnly ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="1.8"/></svg> دنبال‌شده‌ها' + (follows ? " (" + toFa(follows) + ")" : ""));
-    fol.type = "button";
-    fol.addEventListener("click", function () { state.followOnly = !state.followOnly; renderToolbar(); renderFeed(); });
-    bar.appendChild(fol);
 
     bar.appendChild(el("span", "tool-sep"));
 
@@ -245,7 +248,7 @@
       tags.appendChild(t);
     });
     var actions = el("div", "card-actions");
-    actions.style.cssText = "display:flex;align-items:flex-start;gap:2px;order:2";
+    actions.style.cssText = "display:flex;align-items:flex-start;order:2";
     var saved = SogStore.isSaved(item.id);
     var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
     bm.type = "button";
@@ -257,20 +260,7 @@
       bm.classList.toggle("is-saved", now);
       bm.innerHTML = bookmarkSvg(now);
     });
-    var following = SogStore.isFollowing(item.id);
-    var fb = el("button", "follow-btn" + (following ? " is-following" : ""));
-    fb.type = "button";
-    fb.setAttribute("aria-label", "دنبال‌کردن مراسم‌های بعدی");
-    fb.innerHTML = followSvg(following);
-    fb.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var now = SogStore.toggleFollow(item.id);
-      fb.classList.toggle("is-following", now);
-      fb.innerHTML = followSvg(now);
-      renderToolbar();
-    });
     actions.appendChild(bm);
-    actions.appendChild(fb);
     top.appendChild(tags);
     top.appendChild(actions);
 
@@ -279,7 +269,7 @@
 
     var meta = el("div", "listing-meta");
     meta.innerHTML =
-      '<span class="meta-date"><span class="meta-ico">' + calendarSvg() + '</span>' +
+      '<span class="meta-date">' +
       (item.event_weekday ? item.event_weekday + " " : "") + item.event_date_jalali + '</span>' +
       '<span class="sep"></span>' +
       '<span class="meta-city">' + item.city + '</span>';
@@ -305,15 +295,6 @@
       '<path d="M6 3h12v18l-6-4-6 4V3z" ' +
       (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
       ' stroke-width="1.8" stroke-linejoin="round"/></svg>';
-  }
-  function followSvg(f) {
-    return '<svg viewBox="0 0 24 24" width="19" height="19"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" ' +
-      (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.7" stroke-linejoin="round"/></svg>';
-  }
-  function calendarSvg() {
-    return '<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-2px">' +
-      '<rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-      '<path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
   }
 
   /* ---------- کالکشن سال‌های گذشته (خودکار) ---------- */

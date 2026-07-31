@@ -10,7 +10,7 @@
     business: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 9l1-4h14l1 4M5 9v10h14V9M4 9h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
     saved: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 3h12v18l-6-4-6 4V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     account: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    register: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3c1.7 2.2 1.5 3.7 0 4.8C10.5 6.7 10.3 5.2 12 3z" fill="currentColor"/><rect x="9" y="8.5" width="6" height="12" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>'
+    register: '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
   };
 
   var items = [
@@ -33,4 +33,17 @@
   });
   document.body.appendChild(nav);
   document.body.classList.add("has-bottom-nav");
+
+  /* هنگام اسکرول، نوار پایین پنهان می‌شود و پس از توقف اسکرول برمی‌گردد */
+  var idleTimer = null;
+  var lastY = window.pageYOffset;
+  window.addEventListener("scroll", function () {
+    var y = window.pageYOffset;
+    if (Math.abs(y - lastY) > 4) {
+      lastY = y;
+      if (y > 40) nav.classList.add("is-hidden");
+    }
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { nav.classList.remove("is-hidden"); }, 220);
+  }, { passive: true });
 })();
