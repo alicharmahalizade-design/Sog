@@ -20,5 +20,69 @@
     return "";
   }
 
-  g.SogUtil = { toEn: toEn, waLink: waLink, badge: badge };
+  /* ---------- تقویم شمسی ---------- */
+  var J_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  var J_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"]; // ایندکس = Date#getDay
+
+  function gregorianToJalali(gy, gm, gd) {
+    var gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    var jy = (gy <= 1600) ? 0 : 979;
+    gy -= (gy <= 1600) ? 621 : 1600;
+    var gy2 = (gm > 2) ? (gy + 1) : gy;
+    var days = (365 * gy) + ((gy2 + 3) / 4 | 0) - ((gy2 + 99) / 100 | 0) + ((gy2 + 399) / 400 | 0) - 80 + gd + gdm[gm - 1];
+    jy += 33 * (days / 12053 | 0); days %= 12053;
+    jy += 4 * (days / 1461 | 0); days %= 1461;
+    if (days > 365) { jy += ((days - 1) / 365 | 0); days = (days - 1) % 365; }
+    var jm = (days < 186) ? 1 + (days / 31 | 0) : 7 + ((days - 186) / 30 | 0);
+    var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+    return { y: jy, m: jm, d: jd };
+  }
+
+  function jalaliToGregorian(jy, jm, jd) {
+    var gy = (jy <= 979) ? 621 : 1600;
+    jy -= (jy <= 979) ? 0 : 979;
+    var days = (365 * jy) + ((jy / 33 | 0) * 8) + (((jy % 33) + 3) / 4 | 0) + 78 + jd +
+      ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+    gy += 400 * (days / 146097 | 0); days %= 146097;
+    if (days > 36524) { days--; gy += 100 * (days / 36524 | 0); days %= 36524; if (days >= 365) days++; }
+    gy += 4 * (days / 1461 | 0); days %= 1461;
+    if (days > 365) { gy += ((days - 1) / 365 | 0); days = (days - 1) % 365; }
+    var gd = days + 1;
+    var leap = (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0);
+    var ml = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var gm = 0;
+    while (gm < 12 && gd > ml[gm]) { gd -= ml[gm]; gm++; }
+    return { y: gy, m: gm + 1, d: gd };
+  }
+
+  // تاریخ شمسی امروز
+  function todayJalali() {
+    var n = new Date();
+    return gregorianToJalali(n.getFullYear(), n.getMonth() + 1, n.getDate());
+  }
+
+  // شمار روزهای یک ماه شمسی (اسفند کبیسه با رفت‌وبرگشت تبدیل سنجیده می‌شود)
+  function jalaliMonthLength(jy, jm) {
+    if (jm <= 6) return 31;
+    if (jm <= 11) return 30;
+    var g = jalaliToGregorian(jy, 12, 30);
+    var back = gregorianToJalali(g.y, g.m, g.d);
+    return (back.y === jy && back.m === 12 && back.d === 30) ? 30 : 29;
+  }
+
+  // نام روز هفته‌ی یک تاریخ شمسی
+  function jalaliWeekday(jy, jm, jd) {
+    var g = jalaliToGregorian(jy, jm, jd);
+    return J_WEEKDAYS[new Date(g.y, g.m - 1, g.d).getDay()];
+  }
+
+  g.SogUtil = {
+    toEn: toEn, waLink: waLink, badge: badge,
+    jMonths: J_MONTHS,
+    gregorianToJalali: gregorianToJalali,
+    jalaliToGregorian: jalaliToGregorian,
+    todayJalali: todayJalali,
+    jalaliMonthLength: jalaliMonthLength,
+    jalaliWeekday: jalaliWeekday
+  };
 })(window);

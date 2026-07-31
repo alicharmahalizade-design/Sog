@@ -4,24 +4,70 @@
   function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[+d]; }); }
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
 
-  var MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  var MONTHS = SogUtil.jMonths;
   var PROVINCES = ["آذربایجان شرقی", "آذربایجان غربی", "اردبیل", "اصفهان", "البرز", "ایلام", "بوشهر", "تهران", "چهارمحال و بختیاری", "خوزستان", "فارس", "کرمان", "گیلان", "مازندران", "همدان", "یزد"];
   var NOTES = ["به صرف ناهار", "به صرف شام", "به صرف افطار", "ایاب و ذهاب", "انجام پذیرایی", "وسیله نقلیه"];
 
-  /* پر کردن سلکت‌های تاریخ */
+  /* ---------- تاریخ و ساعت (پیش‌فرض: همین حالا) ---------- */
+  var TODAY = SogUtil.todayJalali();
+
+  function pad2(n) { return faNum(n < 10 ? "0" + n : String(n)); }
+
+  // روزهای ماهِ انتخاب‌شده را می‌سازد و انتخاب قبلی را تا حد ممکن نگه می‌دارد
+  function fillDays(box) {
+    var day = box.querySelector(".sel-day");
+    var jy = +box.querySelector(".sel-year").value || TODAY.y;
+    var jm = +box.querySelector(".sel-month").value || TODAY.m;
+    var len = SogUtil.jalaliMonthLength(jy, jm);
+    var want = Math.min(+day.value || TODAY.d, len);
+    day.innerHTML = "";
+    for (var d = 1; d <= len; d++) day.appendChild(new Option(faNum(d), d));
+    day.value = want;
+  }
+
+  // خط پیش‌نمایش: «جمعه ۹ مرداد ۱۴۰۵ ساعت ۱۰:۳۰»
+  function updatePreview(box) {
+    var out = box.querySelector(".dt-preview");
+    if (!out) return;
+    var jy = +box.querySelector(".sel-year").value;
+    var jm = +box.querySelector(".sel-month").value;
+    var jd = +box.querySelector(".sel-day").value;
+    var hour = box.querySelector(".sel-hour"), min = box.querySelector(".sel-minute");
+    var txt = SogUtil.jalaliWeekday(jy, jm, jd) + " " + faNum(jd) + " " + MONTHS[jm - 1] + " " + faNum(jy);
+    if (hour && min) txt += " ساعت " + pad2(+hour.value) + ":" + pad2(+min.value);
+    out.textContent = txt;
+  }
+
+  /* پر کردن سلکت‌های تاریخ و ساعت با مقدار پیش‌فرضِ امروز/اکنون */
   function fillDates() {
-    document.querySelectorAll(".sel-day").forEach(function (s) {
-      for (var d = 1; d <= 31; d++) s.appendChild(new Option(faNum(d), d));
-    });
+    var now = new Date();
     document.querySelectorAll(".sel-month").forEach(function (s) {
       MONTHS.forEach(function (m, i) { s.appendChild(new Option(m, i + 1)); });
-      s.selectedIndex = 8; // آذر مطابق طرح
+      s.value = TODAY.m;
     });
     document.querySelectorAll(".sel-year").forEach(function (s) {
-      for (var y = 1405; y >= 1360; y--) s.appendChild(new Option(faNum(y), y));
+      for (var y = TODAY.y + 1; y >= TODAY.y - 45; y--) s.appendChild(new Option(faNum(y), y));
+      s.value = TODAY.y;
     });
-    document.querySelectorAll(".sel-day").forEach(function (s) { s.value = 13; });
-    document.querySelectorAll(".sel-year").forEach(function (s) { s.value = 1404; });
+    document.querySelectorAll(".sel-hour").forEach(function (s) {
+      for (var h = 0; h <= 23; h++) s.appendChild(new Option(pad2(h), h));
+      s.value = now.getHours();
+    });
+    document.querySelectorAll(".sel-minute").forEach(function (s) {
+      for (var m = 0; m < 60; m += 5) s.appendChild(new Option(pad2(m), m));
+      s.value = Math.floor(now.getMinutes() / 5) * 5;
+    });
+
+    document.querySelectorAll(".datetime-box").forEach(function (box) {
+      fillDays(box);
+      updatePreview(box);
+      box.querySelectorAll("select").forEach(function (s) {
+        s.addEventListener("change", function () {
+          if (s.classList.contains("sel-month") || s.classList.contains("sel-year")) fillDays(box);
+          updatePreview(box);
+        });
+      });
+    });
   }
 
   /* استان و شهر */

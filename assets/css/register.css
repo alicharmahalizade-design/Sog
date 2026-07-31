@@ -70,6 +70,31 @@
 /* تاریخ سه‌تایی */
 .date-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
+/* انتخاب تاریخ و ساعت در یک کادر */
+.datetime-box {
+  background: #131313; border: 1px solid #2e2e2e; border-radius: 14px; padding: 12px;
+}
+.datetime-box .field-label { margin-bottom: 0; }
+.datetime-box select {
+  width: 100%; background: #171717; border: 1px solid #2e2e2e; border-radius: 10px;
+  padding: 12px 10px; color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: left 10px center;
+}
+.datetime-box select:focus { border-color: var(--accent); }
+.dt-preview {
+  margin: 0 0 10px; text-align: center;
+  color: var(--accent); font-size: 14px; font-weight: 700;
+}
+.time-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding-top: 10px; border-top: 1px dashed #2e2e2e;
+}
+.time-row .dt-sep { flex: 0 0 auto; color: var(--text-dim); font-size: 13px; }
+.time-row .dt-colon { flex: 0 0 auto; color: var(--text-dim); font-weight: 700; }
+.time-row select { flex: 1 1 0; text-align: center; text-align-last: center; }
+
 /* چیپ‌های چک‌باکسی (نکات مراسم) */
 .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .check-chip {
