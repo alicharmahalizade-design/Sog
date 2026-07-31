@@ -229,6 +229,20 @@
     rec.onerror = function () { mic.classList.remove("is-listening"); };
   }
 
+  /* متن‌های طولانی کارت: همیشه تک‌خطی؛ اگر جا نشد، آرام رفت‌وبرگشت حرکت می‌کنند. */
+  function marquee(node) {
+    node.classList.add("mq");
+    requestAnimationFrame(function () {
+      var inner = node.querySelector(".mq-inner");
+      if (!inner) return;
+      var over = inner.scrollWidth - node.clientWidth;
+      if (over <= 4) return;
+      node.classList.add("is-marquee");
+      node.style.setProperty("--mq-shift", over + "px");
+      node.style.setProperty("--mq-dur", Math.max(5, over / 16).toFixed(1) + "s");
+    });
+  }
+
   /* ---------- کارت آگهی ---------- */
   function listingCard(item) {
     var card = el("article", "listing-card");
@@ -264,15 +278,16 @@
     top.appendChild(tags);
     top.appendChild(actions);
 
-    var name = el("h3", "listing-name", item.deceased_name);
+    var name = el("h3", "listing-name", '<span class="mq-inner">' + item.deceased_name + '</span>');
     var divider = el("div", "listing-divider");
 
     var meta = el("div", "listing-meta");
-    meta.innerHTML =
+    meta.innerHTML = '<span class="mq-inner">' +
       '<span class="meta-date">' +
       (item.event_weekday ? item.event_weekday + " " : "") + item.event_date_jalali + '</span>' +
       '<span class="sep"></span>' +
-      '<span class="meta-city">' + item.city + '</span>';
+      '<span class="meta-city">' + item.city + '</span></span>';
+    marquee(name); marquee(meta);
 
     body.appendChild(top);
     body.appendChild(name);

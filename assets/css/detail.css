@@ -62,9 +62,17 @@
   border-radius: 14px; padding: 12px 14px;
   display: flex; flex-direction: column; gap: 7px;
 }
-.family-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
-.family-row .lbl { color: var(--accent); font-weight: 700; }
-.family-row .val { color: var(--text); }
+/* ستون‌ها راست‌چین‌اند و با یک خط عمودی از هم جدا می‌شوند */
+.family-row { display: grid; grid-template-columns: 40px 1fr; align-items: center; font-size: 13px; }
+.family-row .lbl {
+  color: var(--accent); font-weight: 700;
+  display: flex; align-items: center;
+  border-inline-end: 1px solid #3a3a3a;
+  padding-inline-end: 10px; margin-inline-end: 10px;
+  align-self: stretch;
+}
+.family-row .val { color: var(--text); justify-self: start; text-align: start; min-width: 0; overflow-wrap: anywhere; }
+.family-row .val.is-empty { color: var(--text-mute); }
 .family-grid.is-single { grid-template-columns: 1fr; }
 /* طایفه و ایل قابل کلیک‌اند و به فهرست آگهی‌های همان طایفه/ایل می‌روند */
 .family-row .clan-link {

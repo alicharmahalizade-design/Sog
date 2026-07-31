@@ -260,25 +260,22 @@
   function familyGrid(f) {
     var grid = el("div", "family-grid");
     var p = f.father || {}, m = f.mother || {};
-    var cards = [
-      familyCard([["پدر", p.name], ["طایفه", p.tayefe], ["ایل", p.il]]),
-      familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]])
-    ].filter(Boolean);
-    if (!cards.length) return null;
-    // اگر فقط یک کارت داریم، تمام عرض را بگیرد
-    if (cards.length === 1) grid.classList.add("is-single");
-    cards.forEach(function (c) { grid.appendChild(c); });
+    // ردیف‌ها همیشه ساخته می‌شوند؛ فیلدِ پرنشده جای خالی نشان می‌دهد تا برچسب حذف نشود.
+    grid.appendChild(familyCard([["پدر", p.name], ["طایفه", p.tayefe], ["ایل", p.il]]));
+    grid.appendChild(familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]]));
     return grid;
   }
   function familyCard(rows) {
-    rows = rows.filter(function (r) { return r[1]; });
-    if (!rows.length) return null;
     var card = el("div", "family-card");
     rows.forEach(function (r) {
       var row = el("div", "family-row");
       row.appendChild(el("span", "lbl", r[0]));
       var key = CLAN_KEYS[r[0]];
-      if (key) {
+      if (!r[1]) {
+        var empty = el("span", "val is-empty", "—");
+        empty.setAttribute("aria-label", "ثبت‌نشده");
+        row.appendChild(empty);
+      } else if (key) {
         var a = el("a", "val clan-link", esc(r[1]));
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];

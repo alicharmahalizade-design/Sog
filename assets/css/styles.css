@@ -235,6 +235,19 @@ option { direction: rtl; text-align: right; }
   margin: 10px 0 0; color: var(--text);
   line-height: 1.5;
 }
+
+/* متن‌های تک‌خطی با حرکت آرام در صورت طولانی‌بودن */
+.mq { overflow: hidden; white-space: nowrap; }
+.mq .mq-inner { display: inline-block; will-change: transform; }
+.listing-meta.mq .mq-inner { display: inline-flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.mq.is-marquee .mq-inner {
+  animation: mq-slide var(--mq-dur, 8s) ease-in-out infinite alternate;
+}
+@keyframes mq-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--mq-shift, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { .mq.is-marquee .mq-inner { animation: none; } }
 .listing-divider { height: 1px; background: var(--divider); margin: 12px 0 10px; }
 .listing-meta {
   display: flex; align-items: center; gap: 12px;
