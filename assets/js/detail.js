@@ -178,7 +178,8 @@
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
-    root.appendChild(reportError());
+    root.appendChild(reportError(d));
+    root.appendChild(privateNote(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
@@ -318,10 +319,120 @@
     item.appendChild(b); item.appendChild(el("span", null, label));
     return item;
   }
-  function reportError() {
+  function reportError(d) {
     var b = el("button", "report-error", ICON.report + " گزارش خطا");
-    b.addEventListener("click", function () { alert("ثبت گزارش خطا (نمونه)."); });
+    b.addEventListener("click", function () { openReportSheet(d); });
     return b;
+  }
+
+  /* ---------- بۀ‌شیت گزارش خطا ---------- */
+  var REPORT_TYPES = [
+    "اطلاعات متوفی نادرست است",
+    "تاریخ یا ساعت مراسم اشتباه است",
+    "آدرس یا محل مراسم اشتباه است",
+    "شماره تماس خانواده نادرست است",
+    "تصویر نامناسب یا اشتباه است",
+    "این آگهی تکراری است",
+    "محتوای توهین‌آمیز یا نامرتبط",
+    "سایر موارد"
+  ];
+
+  function openReportSheet(d) {
+    closeReportSheet();
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "report-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-label", "گزارش خطا");
+
+    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button";
+    close.setAttribute("aria-label", "بستن");
+
+    var form = el("form", "report-form");
+    form.innerHTML =
+      '<h3 class="report-title">گزارش خطا</h3>' +
+      '<label class="report-field"><span>نوع خطا</span>' +
+      '<select name="type" required>' + REPORT_TYPES.map(function (t) {
+        return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+      }).join("") + '</select></label>' +
+      '<label class="report-field"><span>توضیحات</span>' +
+      '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
+      '<div class="report-field"><span>بارگذاری تصویر (اختیاری)</span>' +
+      '<label class="report-upload"><input type="file" name="photo" accept="image/png,image/jpeg" hidden>' +
+      '<span class="up-ico"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 7l1.4-2.4h3.2L15 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>' +
+      '<span class="up-hint">فرمت قابل پذیرش: png، jpg، jpeg</span></label></div>' +
+      '<div class="report-actions">' +
+      '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
+      '<button type="submit" class="btn-primary">ثبت و ارسال</button>' +
+      '</div>';
+
+    sheet.appendChild(close);
+    sheet.appendChild(form);
+    document.body.appendChild(back);
+    document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+
+    /* نام فایل انتخاب‌شده زیر کادر نشان داده می‌شود */
+    var file = form.querySelector('input[name="photo"]');
+    file.addEventListener("change", function () {
+      var hint = form.querySelector(".up-hint");
+      hint.textContent = file.files && file.files[0] ? file.files[0].name : "فرمت قابل پذیرش: png، jpg، jpeg";
+    });
+
+    back.addEventListener("click", closeReportSheet);
+    close.addEventListener("click", closeReportSheet);
+    form.querySelector("[data-cancel]").addEventListener("click", closeReportSheet);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      /* بدون بک‌اند: گزارش به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس به سرور ارسال شود */
+      try {
+        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
+        box.push({ id: d && d.id, type: fd.get("type"), note: fd.get("note") || "", at: Date.now() });
+        localStorage.setItem("sog:reports", JSON.stringify(box));
+      } catch (err) {}
+      form.replaceWith(el("div", "report-done",
+        '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+        '<p>گزارش شما ثبت شد. با تشکر از همراهی‌تان.</p>'));
+      setTimeout(closeReportSheet, 1800);
+    });
+  }
+
+  function closeReportSheet() {
+    var s = document.querySelector(".report-sheet");
+    var b = document.querySelector(".sheet-backdrop");
+    if (s) s.remove();
+    if (b) b.remove();
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeReportSheet(); });
+
+  /* ---------- یادداشت خصوصی کاربر ---------- */
+  function privateNote(d) {
+    var wrap = el("section", "note-box");
+    wrap.appendChild(el("h2", "note-title", "یادداشت من"));
+    var ta = el("textarea", "note-input");
+    ta.rows = 3;
+    ta.placeholder = "یادداشت شما…";
+    ta.value = SogStore.getNote(d.id) || "";
+    var hint = el("p", "note-hint", "این یادداشت تنها برای شما روی همین دستگاه قابل دیدن است و برای خانواده یا دیگران نمایش داده نمی‌شود.");
+    var status = el("span", "note-status", "");
+    var t;
+    ta.addEventListener("input", function () {
+      clearTimeout(t);
+      status.textContent = "در حال ذخیره…";
+      t = setTimeout(function () {
+        SogStore.setNote(d.id, ta.value);
+        status.textContent = ta.value.trim() ? "ذخیره شد" : "";
+        setTimeout(function () { if (status.textContent === "ذخیره شد") status.textContent = ""; }, 2000);
+      }, 400);
+    });
+    hint.appendChild(status);
+    wrap.appendChild(ta); wrap.appendChild(hint);
+    return wrap;
   }
 
   /* ---------- آکاردیون پایه ---------- */

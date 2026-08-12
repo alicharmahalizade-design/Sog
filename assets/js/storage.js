@@ -8,6 +8,8 @@
   var FOLLOW_KEY = "sog:follow";    // آرایه‌ی id آگهی‌های دنبال‌شده
   var SALAVAT_KEY = "sog:salavat";  // نگاشت id → تعداد صلوات کاربر
   var GUEST_KEY = "sog:guest";      // نگاشت id → آرایه‌ی پیام‌های دفتر یادبود
+  var NOTE_KEY = "sog:notes";       // نگاشت id → یادداشت خصوصی کاربر
+  var CITY_ORDER_KEY = "sog:cityOrder"; // ترتیب دلخواه کاربر برای شهرها (آرایه‌ی slug)
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
@@ -27,6 +29,18 @@
   }
 
   var Store = {
+    /* ----- یادداشت خصوصی روی آگهی ----- */
+    getNote: function (id) { return readMap(NOTE_KEY)[id] || ""; },
+    setNote: function (id, text) {
+      var m = readMap(NOTE_KEY);
+      if (text && text.trim()) m[id] = text; else delete m[id];
+      writeMap(NOTE_KEY, m);
+    },
+
+    /* ----- ترتیب دلخواه شهرها ----- */
+    getCityOrder: function () { return read(CITY_ORDER_KEY); },
+    setCityOrder: function (slugs) { write(CITY_ORDER_KEY, slugs || []); },
+
     /* ----- دیده‌شده‌ها ----- */
     getSeen: function () { return read(SEEN_KEY); },
     isSeen: function (id) { return this.getSeen().indexOf(id) !== -1; },

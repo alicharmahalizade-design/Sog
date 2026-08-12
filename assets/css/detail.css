@@ -97,9 +97,85 @@
 .action-item span { font-size: 12px; color: var(--text-dim); }
 
 .report-error {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin: 0 14px 14px; color: var(--text-mute); font-size: 12.5px;
+  display: flex; align-items: center; gap: 6px;
+  width: fit-content;
+  margin-inline-start: auto;   /* در چیدمان راست‌چین یعنی چسبیده به سمت چپ */
+  margin-inline-end: 14px;
+  margin-bottom: 14px;
+  color: var(--text-mute); font-size: 12.5px;
   background: none; border: none;
+}
+
+/* ===== یادداشت خصوصی کاربر ===== */
+.note-box {
+  margin: 0 14px 14px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+}
+.note-title { font-size: 14px; font-weight: 700; color: var(--accent); margin: 0 0 8px; }
+.note-input {
+  width: 100%; min-height: 84px; resize: vertical;
+  background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 12px;
+  color: var(--text); font-size: 14px; padding: 10px 12px; outline: none;
+}
+.note-input:focus { border-color: var(--accent); }
+.note-hint {
+  display: flex; justify-content: space-between; gap: 10px;
+  font-size: 11.5px; color: var(--text-mute); margin: 8px 2px 0;
+}
+.note-status { color: var(--accent); white-space: nowrap; }
+
+/* ===== بۀ‌شیت گزارش خطا ===== */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 70;
+  background: rgba(0,0,0,.6); opacity: 0; transition: opacity .2s;
+}
+.sheet-backdrop.is-in { opacity: 1; }
+.report-sheet {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 71;
+  max-width: var(--frame-w); margin: 0 auto;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height: 88vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform .25s ease;
+}
+.report-sheet.is-in { transform: translateY(0); }
+.report-close {
+  position: absolute; top: 12px; inset-inline-start: 12px;
+  background: none; border: none; color: var(--text-dim); padding: 4px;
+}
+.report-title { font-size: 16px; font-weight: 700; text-align: center; margin: 2px 0 16px; }
+.report-field { display: block; margin-bottom: 14px; }
+.report-field > span { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.report-field select, .report-field textarea {
+  width: 100%; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 11px 12px; font-size: 14px; outline: none;
+}
+.report-field select:focus, .report-field textarea:focus { border-color: var(--accent); }
+.report-upload {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  border: 1.5px dashed #3d3d3d; border-radius: 14px; padding: 18px; cursor: pointer;
+}
+.report-upload .up-ico {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim);
+}
+.report-upload .up-hint { font-size: 12px; color: var(--text-mute); }
+.report-actions { display: flex; gap: 10px; margin-top: 4px; }
+.report-actions .btn-primary, .report-actions .btn-ghost {
+  flex: 1 1 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+}
+.report-actions .btn-primary {
+  background: var(--accent); border: 1px solid var(--accent); color: #1c1206;
+}
+.report-actions .btn-ghost {
+  background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+}
+.report-done { text-align: center; padding: 26px 10px; }
+.report-done .ok-ico {
+  width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 12px;
+  display: grid; place-items: center; background: rgba(63,157,109,.15); color: #3f9d6d;
 }
 
 /* ===== آکاردیون ===== */
