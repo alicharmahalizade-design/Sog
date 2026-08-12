@@ -318,6 +318,12 @@
 .cond-action { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .cond-action .ca-btn { width: 58px; height: 58px; border-radius: 50%; background: var(--surface-2); border: 1px solid #2f2f2f; color: var(--text); display: grid; place-items: center; }
 .cond-action .ca-btn.candle { color: var(--accent); }
+/* شمع بزرگ‌تر و پرنورتر از سایر آیکون‌ها */
+.cond-action .ca-btn.candle svg { width: 36px; height: 36px; }
+.cond-action .ca-btn.candle {
+  box-shadow: inset 0 0 22px rgba(217,154,91,.18);
+  border-color: rgba(217,154,91,.45);
+}
 .cond-action span { font-size: 13px; color: var(--text-dim); font-weight: 700; }
 
 /* ---- فوتر نیازمندی‌ها ---- */
@@ -347,3 +353,34 @@
 /* صلوات‌شمار */
 .ca-btn.candle.lit { animation: candle-pop .5s ease; color: #ffb43d; }
 @keyframes candle-pop { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+
+/* ===== پیش‌نمایش استوری ===== */
+.story-modal {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 71;
+  max-width: var(--frame-w); margin: 0 auto;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height: 92vh; overflow-y: auto; text-align: center;
+  transform: translateY(100%); transition: transform .25s ease;
+}
+.story-modal.is-in { transform: translateY(0); }
+.story-close {
+  position: absolute; top: 12px; inset-inline-end: 12px;   /* گوشه‌ی چپ در راست‌چین */
+  background: none; border: none; color: var(--text-dim); padding: 4px;
+}
+.story-img {
+  width: auto; max-width: 100%; max-height: 62vh;
+  margin: 26px auto 10px; border-radius: 14px; border: 1px solid var(--card-border);
+}
+.story-hint { font-size: 12px; color: var(--text-mute); margin: 0 0 14px; }
+.story-actions { display: flex; gap: 10px; }
+.story-actions .btn-primary, .story-actions .btn-ghost {
+  flex: 1 1 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+  text-decoration: none; display: grid; place-items: center;
+}
+.story-actions .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
+.story-actions .btn-ghost {
+  background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+}

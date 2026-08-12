@@ -172,6 +172,7 @@
     root.classList.remove("detail-skeleton");
     root.innerHTML = "";
     currentName = d.deceased_name;
+    currentDetail = d;
     document.title = d.deceased_name + " | سوگ";
 
     root.appendChild(hero(d));
@@ -293,7 +294,7 @@
   function actionRow(d) {
     var row = el("div", "action-row");
     row.appendChild(actionItem(ICON.share, "اشتراک", function () { shareCard(d); }));
-    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { alert("نمایش استوری (نمونه)."); }));
+    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { openStory(d); }));
     if (d.has_audio) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
       var on = true, b = soundBtn.querySelector("button");
@@ -568,7 +569,7 @@
     var foot = el("div", "ack-foot");
     if (ack.has_story) {
       var st = el("div", "ack-story");
-      var b = el("button", null, ICON.story); b.addEventListener("click", function () { alert("نمایش استوری (نمونه)."); });
+      var b = el("button", null, ICON.story); b.addEventListener("click", function () { openStory(currentDetail); });
       st.appendChild(b); st.appendChild(el("span", null, "استوری"));
       foot.appendChild(st);
     } else { foot.appendChild(el("div")); }
@@ -677,7 +678,10 @@
 
   /* کادر نوع مراسم — جای عبارت «به یادِ» */
   function drawCeremonyBadge(x, label, cx, cy) {
-    x.font = "700 40px Vazirmatn, Tahoma";
+    /* اندازه‌ی متن کم می‌شود تا کادر از عرض کارت بیرون نزند */
+    var size = 40, maxW = x.canvas.width - 260;
+    do { x.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    while (x.measureText(label).width > maxW && size > 26);
     var w = x.measureText(label).width + 76, h = 78, r = 20;
     var left = cx - w / 2, top = cy - h / 2;
     x.beginPath();
@@ -700,7 +704,7 @@
     if (d.chehelom && d.chehelom.title) names.push(d.chehelom.title);
     var uniq = [];
     names.forEach(function (n) { if (uniq.indexOf(n) === -1) uniq.push(n); });
-    return uniq.length ? uniq.slice(0, 3).join(" / ") : "مراسم یادبود";
+    return uniq.length ? uniq.slice(0, 2).join(" / ") : "مراسم یادبود";
   }
 
   /* فقط نام طایفه‌ی پدری و مادری */
@@ -760,6 +764,182 @@
       img.onerror = function () { resolve(null); };
       img.src = src;
     });
+  }
+
+  /* ---------- ساخت تصویر استوری (۱۰۸۰×۱۹۲۰) ---------- */
+  /* متن بلند را در چند خط می‌شکند و ارتفاع مصرف‌شده را برمی‌گرداند */
+  function wrapText(x, text, cx, y, maxW, lineH) {
+    var words = String(text).split(/\s+/), line = "", lines = [];
+    words.forEach(function (w) {
+      var test = line ? line + " " + w : w;
+      if (x.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    });
+    if (line) lines.push(line);
+    lines.forEach(function (l, i) { x.fillText(l, cx, y + i * lineH); });
+    return lines.length * lineH;
+  }
+
+  /* نزدیک‌ترین مراسم برای نمایش روی استوری */
+  function mainCeremony(d) {
+    var list = (d.ceremonies || []).slice();
+    if (d.chehelom) list.push(d.chehelom);
+    return list.filter(Boolean)[0] || null;
+  }
+
+  function makeStory(d, portrait) {
+    var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
+    x.canvas.width = W; x.canvas.height = H;
+
+    /* پس‌زمینه */
+    var g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    var glow = x.createRadialGradient(W / 2, 560, 80, W / 2, 560, 700);
+    glow.addColorStop(0, "rgba(217,154,91,.14)"); glow.addColorStop(1, "rgba(217,154,91,0)");
+    x.fillStyle = glow; x.fillRect(0, 0, W, H);
+
+    /* قاب */
+    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3;
+    x.strokeRect(48, 48, W - 96, H - 96);
+
+    x.direction = "rtl"; x.textAlign = "center";
+
+    /* برند */
+    x.fillStyle = "#d99a5b"; x.font = "700 52px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 190);
+    x.fillStyle = "#6f6f6f"; x.font = "400 30px Vazirmatn, Tahoma"; x.fillText("آگهی ترحیم", W / 2, 240);
+
+    /* تصویر متوفی */
+    drawPortrait(x, portrait, W / 2, 560, 230);
+
+    /* کادر نوع مراسم */
+    drawCeremonyBadge(x, ceremonyLabel(d), W / 2, 880);
+
+    /* نام و زیرعنوان */
+    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 180, 92);
+    x.fillText(d.deceased_name, W / 2, 1010);
+    if (d.subtitle) {
+      x.fillStyle = "#bdbdbd"; x.font = "400 40px Vazirmatn, Tahoma";
+      x.fillText(d.subtitle, W / 2, 1076);
+    }
+
+    /* خط جداکننده */
+    x.strokeStyle = "#333"; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W / 2 - 180, 1130); x.lineTo(W / 2 + 180, 1130); x.stroke();
+
+    /* تاریخ تولد و وفات */
+    var line = "";
+    if (d.birth && d.birth.date) line += d.birth.date;
+    if (d.death && d.death.date) line += (line ? "  —  " : "") + d.death.date;
+    if (line) { x.fillStyle = "#d9d9d9"; x.font = "400 44px Vazirmatn, Tahoma"; x.fillText(line, W / 2, 1200); }
+
+    /* شهر */
+    var city = (d.death && d.death.place) || deceasedCity || "";
+    if (city) { x.fillStyle = "#9a9a9a"; x.font = "400 38px Vazirmatn, Tahoma"; x.fillText(city, W / 2, 1262); }
+
+    /* طایفه‌ی پدری و مادری */
+    var tribes = tribesLine(d);
+    if (tribes) { x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText(tribes, W / 2, 1322); }
+
+    /* جزئیات مراسم */
+    var c = mainCeremony(d);
+    if (c) {
+      var top = 1390, pad = 34, boxW = W - 200, left = (W - boxW) / 2;
+      x.font = "400 34px Vazirmatn, Tahoma";
+      /* ارتفاع کادر بر اساس متن آدرس محاسبه می‌شود */
+      var addrLines = c.location ? Math.ceil(x.measureText(c.location).width / (boxW - 2 * pad)) : 0;
+      var boxH = 150 + addrLines * 46;
+      x.beginPath();
+      var r = 28;
+      x.moveTo(left + r, top);
+      x.arcTo(left + boxW, top, left + boxW, top + boxH, r);
+      x.arcTo(left + boxW, top + boxH, left, top + boxH, r);
+      x.arcTo(left, top + boxH, left, top, r);
+      x.arcTo(left, top, left + boxW, top, r);
+      x.closePath();
+      x.fillStyle = "rgba(255,255,255,.04)"; x.fill();
+      x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 2; x.stroke();
+
+      x.fillStyle = "#d99a5b"; x.font = "700 38px Vazirmatn, Tahoma";
+      x.fillText(c.title || "مراسم", W / 2, top + 62);
+
+      var when = [c.date, (c.time_from ? "ساعت " + c.time_from + (c.time_to ? " تا " + c.time_to : "") : "")]
+        .filter(Boolean).join("  •  ");
+      if (when) { x.fillStyle = "#e2e2e2"; x.font = "400 36px Vazirmatn, Tahoma"; x.fillText(when, W / 2, top + 116); }
+      if (c.location) {
+        x.fillStyle = "#a6a6a6"; x.font = "400 32px Vazirmatn, Tahoma";
+        wrapText(x, c.location, W / 2, top + 166, boxW - 2 * pad, 44);
+      }
+    }
+
+    /* پاورقی */
+    x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
+    x.fillText("مشاهده‌ی کامل آگهی و مراسم‌ها در اپلیکیشن سوگ", W / 2, H - 150);
+    x.fillStyle = "#5c5245"; x.font = "400 28px Vazirmatn, Tahoma";
+    x.fillText(location.host + location.pathname.replace(/^\//, "/"), W / 2, H - 100);
+
+    return x.canvas;
+  }
+
+  /* پیش‌نمایش استوری + دکمه‌های ذخیره و اشتراک */
+  function openStory(d) {
+    var run = function () {
+      loadPortrait(d).then(function (portrait) {
+        var canvas = makeStory(d, portrait);
+        canvas.toBlob(function (blob) {
+          var url = URL.createObjectURL(blob);
+          var fileName = "sog-story-" + d.deceased_name + ".png";
+
+          var back = el("div", "sheet-backdrop");
+          var box = el("div", "story-modal");
+          box.setAttribute("role", "dialog");
+          box.setAttribute("aria-modal", "true");
+          box.setAttribute("aria-label", "استوری آگهی");
+
+          var close = el("button", "story-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+          close.type = "button"; close.setAttribute("aria-label", "بستن");
+
+          var img = el("img", "story-img"); img.src = url; img.alt = "استوری " + d.deceased_name;
+          var hint = el("p", "story-hint", "ابعاد ۱۰۸۰×۱۹۲۰ — مناسب استوری اینستاگرام و واتساپ");
+
+          var actions = el("div", "story-actions");
+          var save = el("a", "btn-primary", "ذخیره‌ی تصویر");
+          save.href = url; save.download = fileName;
+          var share = el("button", "btn-ghost", "اشتراک‌گذاری"); share.type = "button";
+          share.addEventListener("click", function () {
+            var file = new File([blob], fileName, { type: "image/png" });
+            var payload = { title: d.deceased_name, text: "آگهی ترحیم " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              navigator.share(Object.assign({ files: [file] }, payload)).catch(function () {});
+            } else if (navigator.share) {
+              navigator.share(payload).catch(function () {});
+            } else {
+              save.click();
+            }
+          });
+          actions.appendChild(save); actions.appendChild(share);
+
+          box.appendChild(close); box.appendChild(img); box.appendChild(hint); box.appendChild(actions);
+          document.body.appendChild(back); document.body.appendChild(box);
+          document.body.style.overflow = "hidden";
+          requestAnimationFrame(function () { back.classList.add("is-in"); box.classList.add("is-in"); });
+
+          function done() {
+            box.remove(); back.remove();
+            document.body.style.overflow = "";
+            URL.revokeObjectURL(url);
+          }
+          close.addEventListener("click", done);
+          back.addEventListener("click", done);
+        }, "image/png");
+      });
+    };
+    if (document.fonts && document.fonts.load) {
+      Promise.all([
+        document.fonts.load("700 92px Vazirmatn"),
+        document.fonts.load("400 44px Vazirmatn")
+      ]).then(run).catch(run);
+    } else run();
   }
 
   function shareCard(d) {
@@ -836,6 +1016,7 @@
     a.download = "sog-" + (c.title || "event") + ".ics"; a.click();
   }
   var currentName = "";
+  var currentDetail = null;
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
   function needsBanner() {
