@@ -58,20 +58,29 @@
 /* ---- خانواده ---- */
 .family-grid { margin: 0 14px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .family-card {
-  background: var(--surface); border: 1px solid var(--card-border);
+  position: relative;
+  background: var(--surface-2); border: none;
   border-radius: 14px; padding: 12px 14px;
   display: flex; flex-direction: column; gap: 7px;
 }
-/* ستون‌ها راست‌چین‌اند و با یک خط عمودی از هم جدا می‌شوند */
-.family-row { display: grid; grid-template-columns: 40px 1fr; align-items: center; font-size: 13px; }
+/* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
+.family-card::before {
+  content: ""; position: absolute; top: 12px; bottom: 12px;
+  inset-inline-start: 62px;            /* کمی به سمت چپِ برچسب‌ها */
+  width: 1px; background: #3a3a3a;
+}
+/* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
+.family-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; font-size: 13px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
-  border-inline-end: 1px solid #3a3a3a;
-  padding-inline-end: 10px; margin-inline-end: 10px;
   align-self: stretch;
 }
-.family-row .val { color: var(--text); justify-self: start; text-align: start; min-width: 0; overflow-wrap: anywhere; }
+.family-row .val {
+  color: var(--text); justify-self: start; text-align: start;
+  min-width: 0; overflow-wrap: anywhere;
+  padding-inline-start: 16px;          /* فاصله از خط جداکننده */
+}
 .family-row .val.is-empty { color: var(--text-mute); }
 .family-grid.is-single { grid-template-columns: 1fr; }
 /* طایفه و ایل قابل کلیک‌اند و به فهرست آگهی‌های همان طایفه/ایل می‌روند */
@@ -179,16 +188,17 @@
 }
 
 /* ===== آکاردیون ===== */
-.accordion { margin: 0 14px 14px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); }
+/* کارت تخت، بدون حاشیه (stroke) و با فاصله‌ی یکنواخت */
+.accordion { margin: 0 14px 10px; border-radius: 14px; overflow: hidden; border: none; background: var(--surface-2); }
 .acc-head {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; background: var(--surface-2); border: none;
+  padding: 18px 16px; background: var(--surface-2); border: none;
   color: var(--accent); font-size: 16px; font-weight: 700; text-align: start;
 }
 .acc-head .chev { transition: transform .25s; color: var(--text-dim); }
 .acc-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .acc-body {
-  background: var(--card);
+  background: var(--surface-2);
   display: grid; grid-template-rows: 0fr;
   transition: grid-template-rows .28s ease;
 }

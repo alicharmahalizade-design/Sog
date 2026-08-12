@@ -35,6 +35,8 @@
     root.appendChild(profileCard(user));
     root.appendChild(statsRow());
     root.appendChild(quickActions());
+    root.appendChild(sectionTitle("همدردی‌های من"));
+    root.appendChild(condolenceSection());
     root.appendChild(sectionTitle("آگهی‌ها و فعالیت‌های من"));
     root.appendChild(menuList([
       { icon: IC.listing, label: "آگهی‌های من", badge: "۰", onClick: function () { toast("هنوز آگهی ثبت نکرده‌اید."); } },
@@ -75,21 +77,83 @@
   }
 
   /* آمار */
+  /* همدردی‌های کاربر: شمع/صلوات و پیام‌های دفتر یادبود، به تفکیک آگهی */
+  function myCondolences() {
+    var salavat = {}, guest = {};
+    try { salavat = JSON.parse(localStorage.getItem("sog:salavat")) || {}; } catch (e) {}
+    try { guest = JSON.parse(localStorage.getItem("sog:guest")) || {}; } catch (e) {}
+
+    var ids = [];
+    Object.keys(salavat).forEach(function (k) { if (salavat[k] > 0 && ids.indexOf(k) === -1) ids.push(k); });
+    Object.keys(guest).forEach(function (k) { if ((guest[k] || []).length && ids.indexOf(k) === -1) ids.push(k); });
+
+    return ids.map(function (k) {
+      var item = LISTINGS.filter(function (l) { return String(l.id) === String(k); })[0];
+      return {
+        id: k,
+        name: item ? item.deceased_name : "آگهی #" + k,
+        city: item ? item.city : "",
+        photo: item ? item.photo : "",
+        candles: salavat[k] || 0,
+        messages: (guest[k] || []).length
+      };
+    }).sort(function (a, b) { return (b.candles + b.messages) - (a.candles + a.messages); });
+  }
+
   function statsRow() {
     var row = el("div", "stats-row");
-    var salavat = 0; try { var m = JSON.parse(localStorage.getItem("sog:salavat")) || {}; Object.keys(m).forEach(function (k) { salavat += m[k]; }); } catch (e) {}
+    var conds = myCondolences();
+    var salavat = conds.reduce(function (n, c) { return n + c.candles; }, 0);
     [
       { n: SogStore.getSaved().length, l: "ذخیره" },
       { n: SogStore.getFollows().length, l: "دنبال‌شده" },
-      { n: 0, l: "آگهی من" },
-      { n: salavat, l: "شمع" }
+      { n: conds.length, l: "همدردی", go: "condSection" },
+      { n: salavat, l: "شمع", go: "condSection" }
     ].forEach(function (s) {
-      var b = el("div", "stat-box");
+      var b = el("div", "stat-box" + (s.go ? " is-link" : ""));
       b.appendChild(el("div", "stat-n", faNum(s.n)));
       b.appendChild(el("div", "stat-l", s.l));
+      if (s.go) {
+        b.setAttribute("role", "button");
+        b.setAttribute("tabindex", "0");
+        b.addEventListener("click", function () {
+          var t = document.getElementById(s.go);
+          if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
       row.appendChild(b);
     });
     return row;
+  }
+
+  /* فهرست آگهی‌هایی که کاربر در آن‌ها همدردی ثبت کرده */
+  function condolenceSection() {
+    var wrap = el("section", "cond-list");
+    wrap.id = "condSection";
+    var items = myCondolences();
+
+    if (!items.length) {
+      wrap.appendChild(el("p", "cond-empty", "هنوز در هیچ آگهی‌ای شمع روشن نکرده یا پیام همدردی نگذاشته‌اید."));
+      return wrap;
+    }
+
+    items.forEach(function (c) {
+      var a = el("a", "cond-item");
+      a.href = "listing.html?id=" + encodeURIComponent(c.id);
+      var ph = el("span", "cond-photo");
+      if (c.photo) ph.style.backgroundImage = 'url("' + c.photo + '")';
+      var info = el("span", "cond-info");
+      info.appendChild(el("span", "cond-name", esc(c.name)));
+      var bits = [];
+      if (c.candles) bits.push(faNum(c.candles) + " شمع");
+      if (c.messages) bits.push(faNum(c.messages) + " پیام همدردی");
+      if (c.city) bits.push(esc(c.city));
+      info.appendChild(el("span", "cond-meta", bits.join(" • ")));
+      a.appendChild(ph); a.appendChild(info);
+      a.appendChild(el("span", "cond-chev", svg(IC.chev, 18)));
+      wrap.appendChild(a);
+    });
+    return wrap;
   }
 
   /* اکشن سریع */

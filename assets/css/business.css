@@ -216,21 +216,22 @@
 
 /* ===== نمایش آکاردئونی ===== */
 .acc-section { padding: 8px 0 90px; }
-.acc-list { display: flex; flex-direction: column; gap: 8px; padding: 0 14px; }
+.acc-list { display: flex; flex-direction: column; gap: 10px; padding: 0 14px; }
+/* کارت تخت، بدون حاشیه (stroke) — هم‌سبک با آکاردئون‌های صفحه‌ی آگهی */
 .acc-item {
-  background: var(--card); border: 1px solid var(--card-border);
+  background: var(--surface-2); border: none;
   border-radius: 14px; overflow: hidden;
 }
-.acc-item.is-open { border-color: #3a3a3a; background: #171717; }
+.acc-item.is-open { background: #232323; }
 .acc-head {
   width: 100%; display: flex; align-items: center; gap: 10px;
   background: none; border: none; color: var(--accent);
-  padding: 14px 14px; text-align: right;
+  padding: 16px 14px; text-align: right;
 }
 .acc-ico {
   flex: 0 0 40px; width: 40px; height: 40px; border-radius: 12px;
   display: grid; place-items: center;
-  background: var(--surface-2); border: 1px solid var(--card-border); color: var(--accent);
+  background: #2b2b2b; border: none; color: var(--accent);
 }
 .acc-ico svg { width: 22px; height: 22px; }
 .acc-head-text { flex: 1 1 auto; min-width: 0; }
@@ -259,10 +260,10 @@
 
 /* ردیف کسب‌وکار (آکاردئون تودرتو) */
 .acc-biz {
-  background: var(--surface-2); border: 1px solid var(--card-border);
+  background: #2b2b2b; border: none;
   border-radius: 12px; overflow: hidden;
 }
-.acc-biz.is-open { border-color: var(--accent); }
+.acc-biz.is-open { background: #313131; }
 .acc-biz-head {
   width: 100%; display: flex; align-items: center; gap: 10px;
   background: none; border: none; color: var(--text); padding: 10px; text-align: right;
@@ -289,7 +290,7 @@
 .acc-contact-ico {
   width: 52px; height: 52px; border-radius: 50%;
   display: grid; place-items: center;
-  background: #2e2e2e; color: var(--text); border: 1px solid #3a3a3a;
+  background: #3a3a3a; color: var(--text); border: none;
 }
 .acc-contact.is-off { opacity: .35; pointer-events: none; }
 .acc-more {
@@ -315,6 +316,7 @@
 .city-picker-btn svg { color: var(--accent); }
 
 /* بۀ‌شیت انتخاب شهر */
+.city-sheet[hidden] { display: none; }   /* بدون این، display:flex بر hidden غلبه می‌کند */
 .city-sheet {
   position: fixed; inset-inline: 0; bottom: 0; z-index: 60;
   max-width: var(--frame-w); margin: 0 auto;
