@@ -1,4 +1,17 @@
 /* اسپلش‌اسکرین ورود — یک‌بار در هر نشست نمایش داده می‌شود و پس از آماده‌شدن صفحه محو می‌شود. */
+/* وقتی نسخه‌ی جدید service worker کنترل صفحه را می‌گیرد، یک‌بار صفحه تازه می‌شود
+   تا کاربر هیچ‌وقت روی نسخه‌ی قدیمیِ کش‌شده گیر نکند. */
+(function () {
+  "use strict";
+  if (!("serviceWorker" in navigator)) return;
+  var reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (reloading || !navigator.serviceWorker.controller) return;
+    reloading = true;
+    location.reload();
+  });
+})();
+
 (function () {
   "use strict";
 
