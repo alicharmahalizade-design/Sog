@@ -318,7 +318,8 @@
 /* بۀ‌شیت انتخاب شهر */
 .city-sheet[hidden] { display: none; }   /* بدون این، display:flex بر hidden غلبه می‌کند */
 .city-sheet {
-  position: fixed; inset-inline: 0; bottom: 0; z-index: 60;
+  /* باید بالاتر از .sheet-backdrop (۹۰) باشد وگرنه کلیک روی شهرها به بک‌دراپ می‌خورد */
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 100;
   max-width: var(--frame-w); margin: 0 auto;
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: 20px 20px 0 0; padding: 8px 14px calc(18px + env(safe-area-inset-bottom));

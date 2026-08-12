@@ -180,7 +180,6 @@
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
     root.appendChild(reportError(d));
-    root.appendChild(privateNote(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
@@ -195,6 +194,7 @@
     }
     root.appendChild(condolenceSection(d));
 
+    root.appendChild(privateNote(d));
     root.appendChild(needsBanner());
     bindAccordions();
   }
@@ -414,11 +414,21 @@
   /* ---------- یادداشت خصوصی کاربر ---------- */
   function privateNote(d) {
     var wrap = el("section", "note-box");
-    wrap.appendChild(el("h2", "note-title", "یادداشت من"));
+    var saved = SogStore.getNote(d.id) || "";
+
+    /* پیش‌فرض بسته است؛ فقط اگر کاربر بخواهد باز می‌شود */
+    var head = el("button", "note-head"); head.type = "button";
+    head.setAttribute("aria-expanded", "false");
+    head.appendChild(el("span", "note-title", "یادداشت من"));
+    var badge = el("span", "note-badge", saved ? "ثبت‌شده" : "خالی");
+    head.appendChild(badge);
+    head.appendChild(el("span", "note-chev", ICON.chevron));
+
+    var body = el("div", "note-body");
     var ta = el("textarea", "note-input");
     ta.rows = 3;
     ta.placeholder = "یادداشت شما…";
-    ta.value = SogStore.getNote(d.id) || "";
+    ta.value = saved;
     var hint = el("p", "note-hint", "این یادداشت تنها برای شما روی همین دستگاه قابل دیدن است و برای خانواده یا دیگران نمایش داده نمی‌شود.");
     var status = el("span", "note-status", "");
     var t;
@@ -427,12 +437,21 @@
       status.textContent = "در حال ذخیره…";
       t = setTimeout(function () {
         SogStore.setNote(d.id, ta.value);
+        badge.textContent = ta.value.trim() ? "ثبت‌شده" : "خالی";
         status.textContent = ta.value.trim() ? "ذخیره شد" : "";
         setTimeout(function () { if (status.textContent === "ذخیره شد") status.textContent = ""; }, 2000);
       }, 400);
     });
     hint.appendChild(status);
-    wrap.appendChild(ta); wrap.appendChild(hint);
+    body.appendChild(ta); body.appendChild(hint);
+
+    head.addEventListener("click", function () {
+      var open = wrap.classList.toggle("is-open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) ta.focus();
+    });
+
+    wrap.appendChild(head); wrap.appendChild(body);
     return wrap;
   }
 
