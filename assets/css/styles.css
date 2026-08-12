@@ -97,7 +97,7 @@ option { direction: rtl; text-align: right; }
 }
 .search-box input::placeholder { color: var(--text-mute); }
 .logo { flex: 0 0 auto; display: block; }
-.logo img { height: 34px; width: auto; }
+.logo img { height: 38px; width: 38px; object-fit: contain; }
 .mic-btn {
   flex: 0 0 auto; width: 28px; height: 28px; border-radius: 8px;
   display: grid; place-items: center; background: transparent; border: none; color: var(--text-mute);

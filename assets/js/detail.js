@@ -213,7 +213,7 @@
     var back = el("button", "round-btn", ICON.back); back.setAttribute("aria-label", "بازگشت");
     back.addEventListener("click", function () { if (history.length > 1) history.back(); else location.href = "index.html"; });
     // در RTL: لوگو سمت راست، دکمه بازگشت سمت چپ
-    top.appendChild(el("a", "logo", '<img src="assets/img/logo.svg" alt="سوگ">'));
+    top.appendChild(el("a", "logo", '<img src="assets/img/logo.png" alt="سوگ">'));
     top.appendChild(back);
     photo.appendChild(top);
 
