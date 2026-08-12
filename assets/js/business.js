@@ -4,7 +4,8 @@
   "use strict";
 
   var DATA = { businesses: [], categories: [], cities: [] };
-  var state = { city: "all", category: null, query: null };
+  var state = { city: "all", category: null, query: null, view: "grid", open: null };
+  try { var sv = localStorage.getItem("sog_biz_view"); if (sv === "accordion" || sv === "grid") state.view = sv; } catch (e) {}
 
   /* آیکون‌های دسته */
   var CAT_ICON = {
@@ -65,7 +66,7 @@
       var chip = el("button", "city-chip" + (c.slug === state.city ? " is-active" : ""));
       chip.type = "button";
       chip.appendChild(el("span", "chip-label", c.name));
-      chip.addEventListener("click", function () { state.city = c.slug; renderCities(); renderList(); });
+      chip.addEventListener("click", function () { state.city = c.slug; renderCities(); applyView(); });
       bar.appendChild(chip);
     });
   }
@@ -143,6 +144,7 @@
     return card;
   }
   function toEn(s) { return String(s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }); }
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".charAt(+d); }); }
 
   /* ---------- بنر فیلتر ---------- */
   function filterBanner() {
@@ -157,7 +159,7 @@
     btn.addEventListener("click", function () {
       state.city = "all"; state.category = null; state.query = null;
       var s = document.getElementById("searchInput"); if (s) s.value = "";
-      renderCities(); renderCategories(); renderFeatured(); renderList();
+      renderCities(); renderCategories(); applyView();
     });
     b.appendChild(btn);
     return b;
@@ -175,6 +177,121 @@
     if (!items.length) { empty.hidden = false; return; }
     empty.hidden = true;
     items.forEach(function (b) { list.appendChild(bizCard(b)); });
+  }
+
+  /* ---------- نمایش آکاردئونی ---------- */
+  var CHEV = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* کسب‌وکارهای یک دسته با در نظر گرفتن شهر و جستجو */
+  function catItems(slug) {
+    return DATA.businesses.filter(function (b) {
+      if (b.category_slug !== slug) return false;
+      if (state.city !== "all" && b.city_slug !== state.city) return false;
+      if (state.query) {
+        var hay = b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" ");
+        if (hay.indexOf(state.query.trim()) === -1) return false;
+      }
+      return true;
+    }).sort(rank);
+  }
+
+  /* ردیف فشرده‌ی کسب‌وکار داخل آکاردئون */
+  function accRow(b) {
+    var row = el("div", "acc-biz");
+    var logo = el("div", "acc-biz-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
+    var info = el("div", "acc-biz-info");
+    info.appendChild(el("div", "acc-biz-name", esc(b.name) + " " + SogUtil.badge(b)));
+    info.appendChild(el("div", "acc-biz-sub", esc(b.city) + ' <span class="dot"></span> ' + esc(b.price_from)));
+    var open = el("div", "acc-biz-open");
+    open.appendChild(logo); open.appendChild(info);
+    open.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
+    row.appendChild(open);
+
+    var acts = el("div", "acc-biz-acts");
+    var rate = el("span", "acc-biz-rate", STAR + " " + esc(b.rating));
+    var call = el("button", "acc-call", CALL); call.type = "button";
+    call.addEventListener("click", function () { location.href = "tel:" + toEn(b.phone); });
+    var order = el("button", "acc-order", "سفارش سریع"); order.type = "button";
+    order.addEventListener("click", function () { openOrder(b); });
+    acts.appendChild(rate); acts.appendChild(order); acts.appendChild(call);
+    row.appendChild(acts);
+    return row;
+  }
+
+  function renderAccordion() {
+    var wrap = document.getElementById("accList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    /* دسته‌ها بر اساس تعداد کسب‌وکار مرتب می‌شوند (پرتعدادترین بالا) */
+    var rows = DATA.categories.map(function (cat) {
+      return { cat: cat, items: catItems(cat.slug) };
+    }).filter(function (r) { return r.items.length > 0; })
+      .sort(function (a, b) { return b.items.length - a.items.length; });
+
+    if (!rows.length) {
+      wrap.appendChild(el("p", "acc-empty", "کسب‌وکاری برای این بخش یافت نشد."));
+      return;
+    }
+
+    rows.forEach(function (r) {
+      var isOpen = state.open === r.cat.slug;
+      var item = el("div", "acc-item" + (isOpen ? " is-open" : ""));
+
+      var head = el("button", "acc-head"); head.type = "button";
+      head.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      head.appendChild(el("span", "acc-title", esc(r.cat.name)));
+      head.appendChild(el("span", "acc-count", "(" + faNum(r.items.length) + " مورد)"));
+      head.appendChild(el("span", "acc-chev", CHEV));
+
+      var body = el("div", "acc-body");
+      var inner = el("div", "acc-body-inner");
+      r.items.forEach(function (b) { inner.appendChild(accRow(b)); });
+      body.appendChild(inner);
+
+      head.addEventListener("click", function () {
+        state.open = isOpen ? null : r.cat.slug;
+        renderAccordion();
+      });
+
+      item.appendChild(head); item.appendChild(body);
+      wrap.appendChild(item);
+    });
+  }
+
+  /* ---------- سوییچ نمایش ---------- */
+  function applyView() {
+    var grid = document.getElementById("gridView");
+    var acc = document.getElementById("accView");
+    var list = document.getElementById("bizList");
+    var featured = document.getElementById("featuredSection");
+    var empty = document.getElementById("emptyState");
+    var isAcc = state.view === "accordion";
+
+    if (grid) grid.hidden = isAcc;
+    if (acc) acc.hidden = !isAcc;
+    if (list) list.hidden = isAcc;
+    if (isAcc) {
+      if (featured) featured.hidden = true;
+      if (empty) empty.hidden = true;
+      renderAccordion();
+    } else {
+      renderList();
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".vs-btn"), function (btn) {
+      btn.classList.toggle("is-active", btn.getAttribute("data-view") === state.view);
+    });
+  }
+
+  function bindViewSwitch() {
+    Array.prototype.forEach.call(document.querySelectorAll(".vs-btn"), function (btn) {
+      btn.addEventListener("click", function () {
+        state.view = btn.getAttribute("data-view");
+        try { localStorage.setItem("sog_biz_view", state.view); } catch (e) {}
+        applyView();
+      });
+    });
   }
 
   /* ---------- بۀ‌شیت سفارش ---------- */
@@ -226,13 +343,13 @@
     var t;
     input.addEventListener("input", function () {
       clearTimeout(t);
-      t = setTimeout(function () { state.query = input.value || null; renderFeatured(); renderList(); }, 180);
+      t = setTimeout(function () { state.query = input.value || null; applyView(); }, 180);
     });
   }
 
   /* ---------- راه‌اندازی ---------- */
   load().then(function () {
-    renderCities(); renderCategories(); renderFeatured(); renderList(); bindSearch();
+    renderCities(); renderCategories(); bindViewSwitch(); applyView(); bindSearch();
   }).catch(function (e) {
     document.getElementById("bizList").innerHTML = '<p style="color:#c66;text-align:center;padding:30px">خطا در بارگذاری کسب‌وکارها.</p>';
     console.error(e);

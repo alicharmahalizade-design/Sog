@@ -199,3 +199,70 @@
 .suggest-card .s-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 .suggest-card .s-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 .suggest-card .s-go { color: var(--accent); flex: 0 0 auto; }
+
+/* ===== سوییچ نمایش (شبکه‌ای / آکاردئونی) ===== */
+.view-switch {
+  display: flex; gap: 6px; margin: 14px 14px 4px;
+  background: var(--surface-2); border: 1px solid var(--card-border);
+  border-radius: 999px; padding: 4px;
+}
+.vs-btn {
+  flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 13px; font-weight: 700; padding: 8px 10px; border-radius: 999px;
+  transition: background .15s, color .15s;
+}
+.vs-btn.is-active { background: var(--accent-soft); color: var(--accent); }
+
+/* ===== نمایش آکاردئونی ===== */
+.acc-section { padding: 8px 0 90px; }
+.acc-list { display: flex; flex-direction: column; gap: 8px; padding: 0 14px; }
+.acc-item {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 14px; overflow: hidden;
+}
+.acc-item.is-open { border-color: var(--accent); }
+.acc-head {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  background: none; border: none; color: var(--accent);
+  padding: 16px 16px; text-align: right;
+}
+.acc-title { font-size: 16px; font-weight: 700; }
+.acc-count { font-size: 12px; color: var(--text-mute); font-weight: 400; }
+.acc-chev {
+  margin-inline-start: auto; display: inline-grid; place-items: center;
+  color: var(--text-dim); transition: transform .2s;
+}
+.acc-item.is-open .acc-chev { transform: rotate(180deg); color: var(--accent); }
+
+.acc-body { display: none; }
+.acc-item.is-open .acc-body { display: block; }
+.acc-body-inner {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 4px 12px 14px; border-top: 1px solid var(--divider);
+  margin-top: -1px; padding-top: 12px;
+}
+.acc-biz {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 10px;
+}
+.acc-biz-open { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; cursor: pointer; }
+.acc-biz-logo { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; background: #222 center/cover no-repeat; }
+.acc-biz-info { min-width: 0; }
+.acc-biz-name {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.acc-biz-sub { font-size: 12px; color: var(--text-dim); }
+.acc-biz-acts { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.acc-biz-rate { font-size: 12px; color: var(--accent); display: inline-flex; align-items: center; gap: 3px; }
+.acc-order {
+  background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent);
+  font-size: 12px; font-weight: 700; border-radius: 999px; padding: 6px 10px; white-space: nowrap;
+}
+.acc-call {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: #3f9d6d; border: none; color: #fff;
+}
+.acc-empty { color: var(--text-dim); text-align: center; padding: 30px 14px; }
