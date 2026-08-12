@@ -395,3 +395,11 @@ option { direction: rtl; text-align: right; }
 .reg-or { color: var(--text-mute); font-size: 13px; margin: 16px 0; }
 .reg-operator { display: block; background: #25d366; color: #08331b; text-decoration: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; }
 .reg-note { color: var(--text-mute); font-size: 12px; margin-top: 20px; }
+
+/* ===== جابه‌جایی دستی چیپ شهرها ===== */
+.city-bar.is-reordering { overflow-x: hidden; touch-action: none; }
+.city-chip.is-dragging {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+  transform: scale(1.06); box-shadow: 0 6px 18px rgba(0,0,0,.5);
+  transition: transform .12s;
+}

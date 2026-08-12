@@ -104,12 +104,93 @@
   /* شهرها به ترتیب تعداد آگهی‌های جدید (مشاهده‌نشده) — بیشتر، جلوتر.
      شهر ویژه («کل ایران») همیشه اول می‌ماند و ترتیب اصلی، تساوی‌ها را می‌شکند. */
   function orderedCities() {
-    return DATA.cities.map(function (c, i) {
+    var auto = DATA.cities.map(function (c, i) {
       return { city: c, idx: i, unseen: c.featured ? Infinity : unseenCountForCity(c.slug) };
     }).sort(function (a, b) {
       if (a.unseen !== b.unseen) return b.unseen - a.unseen;
       return a.idx - b.idx;
     }).map(function (x) { return x.city; });
+
+    /* اگر کاربر خودش ترتیب را جابه‌جا کرده باشد، همان ترتیب مقدم است
+       و شهرهای تازه (که در ترتیب ذخیره‌شده نیستند) به ترتیب خودکار در انتها می‌آیند. */
+    var saved = SogStore.getCityOrder();
+    if (!saved || !saved.length) return auto;
+    var out = [];
+    saved.forEach(function (slug) {
+      var c = auto.filter(function (x) { return x.slug === slug; })[0];
+      if (c) out.push(c);
+    });
+    auto.forEach(function (c) { if (out.indexOf(c) === -1) out.push(c); });
+    return out;
+  }
+
+  /* ---------- جابه‌جایی دستی چیپ شهرها (نگه‌داشتن + کشیدن) ---------- */
+  function saveCityOrder(bar) {
+    var slugs = [];
+    Array.prototype.forEach.call(bar.querySelectorAll(".city-chip[data-slug]"), function (n) {
+      slugs.push(n.dataset.slug);
+    });
+    SogStore.setCityOrder(slugs);
+  }
+
+  function makeChipDraggable(chip, bar) {
+    var timer = null, dragging = false, startX = 0;
+
+    function chipAt(x, y) {
+      var node = document.elementFromPoint(x, y);
+      while (node && node !== bar) {
+        if (node.classList && node.classList.contains("city-chip") && node.dataset.slug) return node;
+        node = node.parentNode;
+      }
+      return null;
+    }
+
+    function begin() {
+      dragging = true;
+      chip.classList.add("is-dragging");
+      bar.classList.add("is-reordering");
+      document.body.style.overflow = "hidden";
+      if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+    }
+
+    function end() {
+      clearTimeout(timer);
+      if (!dragging) return;
+      dragging = false;
+      chip.classList.remove("is-dragging");
+      bar.classList.remove("is-reordering");
+      document.body.style.overflow = "";
+      saveCityOrder(bar);
+    }
+
+    chip.addEventListener("pointerdown", function (e) {
+      startX = e.clientX;
+      clearTimeout(timer);
+      timer = setTimeout(begin, 380);   /* نگه‌داشتن ≈ ۰٫۴ ثانیه تا حالت جابه‌جایی فعال شود */
+    });
+
+    chip.addEventListener("pointermove", function (e) {
+      if (!dragging) {
+        /* اگر کاربر قبل از فعال‌شدن، نوار را اسکرول کند، جابه‌جایی لغو می‌شود */
+        if (Math.abs(e.clientX - startX) > 8) clearTimeout(timer);
+        return;
+      }
+      e.preventDefault();
+      var over = chipAt(e.clientX, e.clientY);
+      if (!over || over === chip) return;
+      var nodes = Array.prototype.slice.call(bar.children);
+      if (nodes.indexOf(over) < nodes.indexOf(chip)) bar.insertBefore(chip, over);
+      else bar.insertBefore(chip, over.nextSibling);
+    });
+
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+      chip.addEventListener(ev, end);
+    });
+
+    /* در حالت جابه‌جایی، کلیک انتخاب شهر انجام نشود */
+    chip.addEventListener("click", function (e) {
+      if (chip.classList.contains("is-dragging")) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
   }
 
   /* ---------- رندر نوار شهرها ---------- */
@@ -139,6 +220,8 @@
       });
 
       bar.appendChild(chip);
+      chip.style.touchAction = "pan-x";
+      makeChipDraggable(chip, bar);
 
       // دکمه‌ی «انتخاب شهر» بعد از چیپ فعال اول (مطابق طرح)
       if (idx === 3) {
