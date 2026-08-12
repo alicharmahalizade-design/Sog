@@ -141,7 +141,7 @@
 }
 .report-sheet.is-in { transform: translateY(0); }
 .report-close {
-  position: absolute; top: 12px; inset-inline-start: 12px;
+  position: absolute; top: 12px; inset-inline-end: 12px;  /* در راست‌چین یعنی گوشه‌ی چپ */
   background: none; border: none; color: var(--text-dim); padding: 4px;
 }
 .report-title { font-size: 16px; font-weight: 700; text-align: center; margin: 2px 0 16px; }
