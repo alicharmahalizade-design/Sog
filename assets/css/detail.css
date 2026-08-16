@@ -103,7 +103,15 @@
 }
 
 /* ===== آکاردیون ===== */
-.accordion { margin: 0 14px 14px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); }
+/* آکاردیون‌های پشت‌سرهم یک گروهِ چسبیده می‌سازند: فاصله‌ی کم و گوشه‌های گرد فقط
+   در بالای اولین و پایین آخرین آکاردیونِ گروه؛ گوشه‌های میانی تقریباً صاف. */
+/* بدون خط دور (مطابق طرح)؛ خودِ رنگ سطح، کارت را از زمینه‌ی مشکی جدا می‌کند. */
+.accordion { margin: 0 14px 5px; border-radius: 5px; overflow: hidden; border: none; }
+.accordion.is-group-first { border-top-left-radius: 16px; border-top-right-radius: 16px; }
+.accordion.is-group-last {
+  border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
+  margin-bottom: 16px;
+}
 .acc-head {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px; background: var(--surface-2); border: none;

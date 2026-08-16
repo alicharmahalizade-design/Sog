@@ -195,6 +195,24 @@
 
     root.appendChild(needsBanner());
     bindAccordions();
+    markAccordionGroups(root);
+    [].forEach.call(root.querySelectorAll(".acc-pad"), markAccordionGroups);
+  }
+
+  /* آکاردیون‌های پشت‌سرهم یک گروه‌اند؛ فقط بالای اولین و پایین آخرین عضو گرد می‌شود. */
+  function markAccordionGroups(container) {
+    var kids = container.children, prevIsAcc = false;
+    for (var i = 0; i < kids.length; i++) {
+      var k = kids[i], isAcc = k.classList.contains("accordion");
+      if (isAcc) {
+        k.classList.remove("is-group-first");
+        k.classList.remove("is-group-last");
+        if (!prevIsAcc) k.classList.add("is-group-first");
+        var next = kids[i + 1];
+        if (!next || !next.classList.contains("accordion")) k.classList.add("is-group-last");
+      }
+      prevIsAcc = isAcc;
+    }
   }
 
   /* ---------- هدر ---------- */
