@@ -1,6 +1,6 @@
 /* Service Worker ساده برای پیش‌نمایش PWA سوگ.
    استراتژی: cache-first برای دارایی‌های ثابت، network-first برای داده‌ی JSON. */
-var CACHE = "sog-preview-v26";
+var CACHE = "sog-preview-v27";
 var ASSETS = [
   "./",
   "index.html",
@@ -47,6 +47,9 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   var url = e.request.url;
   if (e.request.method !== "GET") return;
+
+  // ویدیو را دست‌نخورده به مرورگر بسپار؛ درخواست‌های Range در Cache API قابل ذخیره نیستند.
+  if (e.request.destination === "video" || url.indexOf(".mp4") !== -1) return;
 
   // داده‌ی JSON: network-first تا آگهی‌ها تازه بمانند
   if (url.indexOf("/data/") !== -1 && url.indexOf(".json") !== -1) {

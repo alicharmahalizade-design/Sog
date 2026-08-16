@@ -412,7 +412,22 @@ option { direction: rtl; text-align: right; }
   opacity: 1; transition: opacity .45s ease;
 }
 #sogSplash.is-out { opacity: 0; pointer-events: none; }
-.splash-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+/* ویدیوی پس‌زمینه‌ی اسپلش؛ اگر پخش نشود همان گرادیان پشتش دیده می‌شود */
+.splash-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border: none; pointer-events: none;
+  opacity: 0; transition: opacity .6s ease;
+}
+#sogSplash.has-video .splash-video { opacity: 1; }
+/* لایه‌ی تیره‌کننده تا لوگو و متن روی ویدیو خوانا بماند */
+.splash-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.14) 42%, rgba(0,0,0,.55) 100%);
+}
+@media (prefers-reduced-motion: reduce) { .splash-video { display: none; } }
+
+.splash-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
 
 /* هاله‌ی نرم پشت لوگو، مثل نور شمع */
 .splash-mark { position: relative; display: grid; place-items: center; }
@@ -437,11 +452,12 @@ option { direction: rtl; text-align: right; }
 
 .splash-name {
   margin-top: 22px; font-size: 26px; font-weight: 700; color: #f2f2f2;
-  letter-spacing: .5px;
+  letter-spacing: .5px; text-shadow: 0 2px 10px rgba(0,0,0,.75);
   animation: splash-fade .7s .18s ease both;
 }
 .splash-tag {
-  margin-top: 6px; font-size: 13px; color: #9a8f7e;
+  margin-top: 6px; font-size: 13px; color: #b3a894;
+  text-shadow: 0 2px 10px rgba(0,0,0,.8);
   animation: splash-fade .7s .3s ease both;
 }
 @keyframes splash-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -463,8 +479,9 @@ option { direction: rtl; text-align: right; }
 
 /* آیه/جمله‌ی پایین صفحه */
 .splash-foot {
-  position: absolute; bottom: calc(28px + env(safe-area-inset-bottom));
-  font-size: 12.5px; color: #6f6455; padding: 0 30px;
+  position: absolute; z-index: 1; bottom: calc(28px + env(safe-area-inset-bottom));
+  font-size: 12.5px; color: #a2937c; padding: 0 30px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.8);
   animation: splash-fade .8s .45s ease both;
 }
 

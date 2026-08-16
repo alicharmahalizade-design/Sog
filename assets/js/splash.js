@@ -29,6 +29,9 @@
   box.setAttribute("role", "status");
   box.setAttribute("aria-label", "در حال بارگذاری اپلیکیشن سوگ");
   box.innerHTML =
+    '<video class="splash-video" src="assets/video/splash.mp4" autoplay muted loop playsinline ' +
+      'preload="auto" aria-hidden="true" tabindex="-1"></video>' +
+    '<div class="splash-scrim" aria-hidden="true"></div>' +
     '<div class="splash-inner">' +
       '<div class="splash-mark"><img src="assets/img/logo.png" alt="سوگ"></div>' +
       '<div class="splash-name">سوگ</div>' +
@@ -42,6 +45,14 @@
     document.body.appendChild(box);
     document.body.style.overflow = "hidden";
     try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
+    // بعضی مرورگرها پخش خودکار را فقط پس از فراخوانی صریح play() شروع می‌کنند.
+    var vid = box.querySelector(".splash-video");
+    if (vid) {
+      vid.muted = true;
+      var p = vid.play();
+      if (p && p.catch) p.catch(function () {});    // اگر پخش ممکن نبود، پس‌زمینه‌ی گرادیانی می‌ماند
+      vid.addEventListener("playing", function () { box.classList.add("has-video"); });
+    }
   }
 
   function hide() {
