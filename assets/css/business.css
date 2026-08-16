@@ -199,3 +199,147 @@
 .suggest-card .s-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 .suggest-card .s-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 .suggest-card .s-go { color: var(--accent); flex: 0 0 auto; }
+
+/* ===== سوییچ نمایش (شبکه‌ای / آکاردئونی) ===== */
+.view-switch {
+  display: flex; gap: 6px; margin: 14px 14px 4px;
+  background: var(--surface-2); border: 1px solid var(--card-border);
+  border-radius: 999px; padding: 4px;
+}
+.vs-btn {
+  flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 13px; font-weight: 700; padding: 8px 10px; border-radius: 999px;
+  transition: background .15s, color .15s;
+}
+.vs-btn.is-active { background: var(--accent-soft); color: var(--accent); }
+
+/* ===== نمایش آکاردئونی ===== */
+.acc-section { padding: 8px 0 90px; }
+.acc-list { display: flex; flex-direction: column; gap: 10px; padding: 0 14px; }
+/* کارت تخت، بدون حاشیه (stroke) — هم‌سبک با آکاردئون‌های صفحه‌ی آگهی */
+.acc-item {
+  background: var(--surface-2); border: none;
+  border-radius: 14px; overflow: hidden;
+}
+.acc-item.is-open { background: #232323; }
+.acc-head {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  background: none; border: none; color: var(--accent);
+  padding: 16px 14px; text-align: right;
+}
+.acc-ico {
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: #2b2b2b; border: none; color: var(--accent);
+}
+.acc-ico svg { width: 22px; height: 22px; }
+.acc-head-text { flex: 1 1 auto; min-width: 0; }
+.acc-title-line { display: flex; align-items: baseline; gap: 6px; }
+.acc-title { font-size: 15px; font-weight: 700; }
+.acc-count { font-size: 12px; color: var(--text-mute); font-weight: 400; }
+.acc-subs-hint {
+  display: block; font-size: 11px; color: var(--text-mute); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.acc-chev {
+  flex: 0 0 auto; display: inline-grid; place-items: center;
+  color: var(--text-dim); transition: transform .2s;
+}
+.acc-item.is-open > .acc-head .acc-chev { transform: rotate(180deg); color: var(--accent); }
+
+.acc-body { padding: 0 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+/* چیپ‌های زیرشاخه */
+.acc-subs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.acc-sub-chip {
+  background: transparent; border: 1px solid #3a3a3a; color: var(--text-dim);
+  border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 500;
+}
+.acc-sub-chip.is-active { background: var(--accent); border-color: var(--accent); color: #1c1206; font-weight: 700; }
+
+/* ردیف کسب‌وکار (آکاردئون تودرتو) */
+.acc-biz {
+  background: #2b2b2b; border: none;
+  border-radius: 12px; overflow: hidden;
+}
+.acc-biz.is-open { background: #313131; }
+.acc-biz-head {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  background: none; border: none; color: var(--text); padding: 10px; text-align: right;
+}
+.acc-biz-logo { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: #2a2a2a center/cover no-repeat; }
+.acc-biz-info { flex: 1 1 auto; min-width: 0; }
+.acc-biz-name {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.acc-biz-sub { display: block; font-size: 11.5px; color: var(--text-dim); }
+.acc-biz-stars { display: flex; gap: 2px; color: var(--accent); margin-top: 2px; }
+.acc-biz.is-open .acc-biz-head .acc-chev { transform: rotate(180deg); color: var(--accent); }
+
+/* دایره‌های راه ارتباطی */
+.acc-contacts {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-around;
+  padding: 12px 10px 14px; border-top: 1px solid var(--divider);
+}
+.acc-contact {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-decoration: none; color: var(--text-dim); font-size: 11px;
+}
+.acc-contact-ico {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: #3a3a3a; color: var(--text); border: none;
+}
+.acc-contact.is-off { opacity: .35; pointer-events: none; }
+.acc-more {
+  flex: 1 0 100%; margin-top: 4px;
+  background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 10px; padding: 9px; font-size: 12.5px; font-weight: 700;
+}
+.acc-empty { color: var(--text-dim); text-align: center; padding: 20px 14px; }
+
+/* ===== ردیف شهر با دکمه‌ی انتخاب شهر ===== */
+.city-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border-bottom: 1px solid #1a1a1a;
+  padding-inline-start: 14px;
+}
+.city-row .city-bar { flex: 1 1 auto; min-width: 0; border-bottom: none; padding-inline-start: 0; }
+.city-picker-btn {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid #2f2f2f; border-radius: 999px;
+  padding: 7px 12px; font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.city-picker-btn svg { color: var(--accent); }
+
+/* بۀ‌شیت انتخاب شهر */
+.city-sheet[hidden] { display: none; }   /* بدون این، display:flex بر hidden غلبه می‌کند */
+.city-sheet {
+  /* باید بالاتر از .sheet-backdrop (۹۰) باشد وگرنه کلیک روی شهرها به بک‌دراپ می‌خورد */
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 100;
+  max-width: var(--frame-w); margin: 0 auto;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 20px 20px 0 0; padding: 8px 14px calc(18px + env(safe-area-inset-bottom));
+  max-height: 78vh; display: flex; flex-direction: column;
+}
+.city-search {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 0 12px; margin: 6px 0 12px;
+}
+.city-search .search-icon { color: var(--text-mute); flex: 0 0 auto; }
+.city-search input {
+  flex: 1 1 auto; background: none; border: none; outline: none;
+  color: var(--text); font-size: 14px; padding: 11px 0;
+}
+.city-options { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.city-option {
+  width: 100%; text-align: right; background: var(--surface-2);
+  border: 1px solid var(--card-border); border-radius: 12px;
+  color: var(--text); font-size: 14px; padding: 12px 14px;
+}
+.city-option.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.city-empty { color: var(--text-dim); text-align: center; padding: 20px; }

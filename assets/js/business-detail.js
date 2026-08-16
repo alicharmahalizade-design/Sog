@@ -39,7 +39,7 @@
     var top = el("div", "bp-top");
     var back = el("button", "round-btn", IC.back); back.setAttribute("aria-label", "بازگشت");
     back.addEventListener("click", function () { if (history.length > 1) history.back(); else location.href = "business.html"; });
-    top.appendChild(el("a", "logo", '<img src="assets/img/logo.svg" alt="سوگ">'));
+    top.appendChild(el("a", "logo", '<img src="assets/img/logo.png" alt="سوگ">'));
     top.appendChild(back);
     cover.appendChild(top);
     root.appendChild(cover);

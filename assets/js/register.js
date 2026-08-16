@@ -70,16 +70,38 @@
     });
   }
 
-  /* استان و شهر */
+  /* استان و شهر — فهرست شهر به استانِ انتخاب‌شده وابسته است */
   function fillPlaces() {
     var prov = document.getElementById("provinceSel");
-    PROVINCES.forEach(function (p) { prov.appendChild(new Option(p, p)); });
     var city = document.getElementById("citySel");
-    fetch("data/cities.json").then(function (r) { return r.json(); }).then(function (d) {
-      (d.cities || []).filter(function (c) { return c.slug !== "all"; }).forEach(function (c) {
-        city.appendChild(new Option(c.name, c.slug));
+    if (!prov || !city) return;
+
+    city.disabled = true;
+
+    function resetCity(placeholder) {
+      city.innerHTML = "";
+      var ph = new Option(placeholder, "");
+      ph.disabled = true; ph.selected = true;
+      city.appendChild(ph);
+    }
+    resetCity("ابتدا استان را انتخاب کنید");
+
+    fetch("data/provinces.json").then(function (r) { return r.json(); }).then(function (d) {
+      var MAP = d.provinces || {};
+      Object.keys(MAP).forEach(function (name) { prov.appendChild(new Option(name, name)); });
+
+      prov.addEventListener("change", function () {
+        var list = MAP[prov.value] || [];
+        resetCity(list.length ? "شهر مراسم" : "شهری یافت نشد");
+        list.forEach(function (c) { city.appendChild(new Option(c, c)); });
+        city.disabled = !list.length;
       });
-    }).catch(function () {});
+    }).catch(function () {
+      /* اگر داده‌ی استان‌ها بارگذاری نشد، دست‌کم فهرست ثابت استان‌ها نمایش داده شود */
+      PROVINCES.forEach(function (p) { prov.appendChild(new Option(p, p)); });
+      resetCity("شهر مراسم");
+      city.disabled = false;
+    });
   }
 
   /* چیپ‌های نکات مراسم */
@@ -106,16 +128,148 @@
     });
   }
 
-  /* آپلود تصویر → پیش‌نمایش */
+  /* آپلود تصویر → برش → پیش‌نمایش */
+  var croppedDataUrl = null;   // تصویر برش‌خورده برای ارسال نهایی
+
+  /* ویرایشگر برش: جابه‌جایی با کشیدن، بزرگ‌نمایی با اسلایدر، نسبت ۴:۵ */
+  function openCropper(file, onDone) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var back = el("div", "crop-backdrop");
+      var modal = el("div", "crop-modal");
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-label", "برش تصویر");
+
+      modal.appendChild(el("h3", "crop-title", "برش تصویر"));
+      var stage = el("div", "crop-stage");
+      var canvas = document.createElement("canvas");
+      canvas.className = "crop-canvas";
+      stage.appendChild(canvas);
+      modal.appendChild(stage);
+
+      var zoomWrap = el("div", "crop-zoom");
+      zoomWrap.appendChild(el("span", null, "بزرگ‌نمایی"));
+      var zoom = document.createElement("input");
+      zoom.type = "range"; zoom.min = "100"; zoom.max = "300"; zoom.value = "100";
+      zoomWrap.appendChild(zoom);
+      modal.appendChild(zoomWrap);
+      modal.appendChild(el("p", "crop-hint", "تصویر را با انگشت جابه‌جا کنید تا کادر دلخواه انتخاب شود."));
+
+      var actions = el("div", "crop-actions");
+      var cancel = el("button", "btn-ghost", "بی‌خیال"); cancel.type = "button";
+      var ok = el("button", "btn-primary", "برش و تأیید"); ok.type = "button";
+      actions.appendChild(cancel); actions.appendChild(ok);
+      modal.appendChild(actions);
+
+      document.body.appendChild(back); document.body.appendChild(modal);
+      document.body.style.overflow = "hidden";
+
+      /* اندازه‌ی کادر برش با نسبت ۴:۵ */
+      var VW = Math.min(320, window.innerWidth - 80), VH = Math.round(VW * 5 / 4);
+      canvas.width = VW; canvas.height = VH;
+      var ctx = canvas.getContext("2d");
+
+      var minScale = Math.max(VW / img.width, VH / img.height);
+      var scale = minScale, ox = 0, oy = 0;   /* ox/oy: جابه‌جایی مرکز تصویر */
+
+      function clamp() {
+        var w = img.width * scale, h = img.height * scale;
+        var maxX = Math.max(0, (w - VW) / 2), maxY = Math.max(0, (h - VH) / 2);
+        ox = Math.max(-maxX, Math.min(maxX, ox));
+        oy = Math.max(-maxY, Math.min(maxY, oy));
+      }
+      function draw() {
+        clamp();
+        var w = img.width * scale, h = img.height * scale;
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, VW, VH);
+        ctx.drawImage(img, (VW - w) / 2 + ox, (VH - h) / 2 + oy, w, h);
+      }
+      draw();
+
+      zoom.addEventListener("input", function () {
+        scale = minScale * (parseInt(zoom.value, 10) / 100);
+        draw();
+      });
+
+      var dragging = false, lastX = 0, lastY = 0;
+      canvas.addEventListener("pointerdown", function (e) {
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        ox += e.clientX - lastX; oy += e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        draw();
+      });
+      ["pointerup", "pointercancel"].forEach(function (ev) {
+        canvas.addEventListener(ev, function () { dragging = false; });
+      });
+
+      function close() {
+        modal.remove(); back.remove();
+        document.body.style.overflow = "";
+        URL.revokeObjectURL(url);
+      }
+      cancel.addEventListener("click", close);
+      back.addEventListener("click", close);
+      ok.addEventListener("click", function () {
+        /* خروجی با کیفیت بالاتر (۸۰۰×۱۰۰۰) ساخته می‌شود */
+        var out = document.createElement("canvas");
+        out.width = 800; out.height = 1000;
+        var k = out.width / VW;
+        var octx = out.getContext("2d");
+        var w = img.width * scale * k, h = img.height * scale * k;
+        octx.fillStyle = "#000"; octx.fillRect(0, 0, out.width, out.height);
+        octx.drawImage(img, (out.width - w) / 2 + ox * k, (out.height - h) / 2 + oy * k, w, h);
+        onDone(out.toDataURL("image/jpeg", 0.9));
+        close();
+      });
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+  }
+
   function bindUpload() {
     var input = document.getElementById("photoInput"), box = document.getElementById("uploadBox");
     if (!input) return;
+
+    function showPreview(dataUrl) {
+      croppedDataUrl = dataUrl;
+      box.classList.add("has-img");
+      box.innerHTML = '<img src="' + dataUrl + '" alt="">';
+      var bar = el("div", "img-tools");
+      var recrop = el("button", "img-tool", "برش دوباره"); recrop.type = "button";
+      var remove = el("button", "img-tool", "حذف تصویر"); remove.type = "button";
+      bar.appendChild(recrop); bar.appendChild(remove);
+      box.appendChild(bar);
+      box.appendChild(input);
+
+      /* کلیک روی تصویر، پنجره‌ی انتخاب فایل را باز نکند */
+      box.addEventListener("click", stop, true);
+      function stop(e) { if (e.target !== input) e.preventDefault(); }
+
+      recrop.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var f = input.files && input.files[0];
+        if (f) openCropper(f, showPreview);
+      });
+      remove.addEventListener("click", function (e) {
+        e.stopPropagation();
+        croppedDataUrl = null;
+        input.value = "";
+        box.removeEventListener("click", stop, true);
+        box.classList.remove("has-img");
+        box.innerHTML = '<span class="up-inner"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> افزودن تصویر</span>';
+        box.appendChild(input);
+      });
+    }
+
     input.addEventListener("change", function () {
       var f = input.files && input.files[0]; if (!f) return;
-      var url = URL.createObjectURL(f);
-      box.classList.add("has-img");
-      box.innerHTML = '<img src="' + url + '" alt="">';
-      box.appendChild(input);
+      openCropper(f, showPreview);
     });
   }
 

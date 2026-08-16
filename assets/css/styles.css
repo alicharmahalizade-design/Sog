@@ -97,7 +97,7 @@ option { direction: rtl; text-align: right; }
 }
 .search-box input::placeholder { color: var(--text-mute); }
 .logo { flex: 0 0 auto; display: block; }
-.logo img { height: 34px; width: auto; }
+.logo img { height: 38px; width: 38px; object-fit: contain; }
 .mic-btn {
   flex: 0 0 auto; width: 28px; height: 28px; border-radius: 8px;
   display: grid; place-items: center; background: transparent; border: none; color: var(--text-mute);
@@ -395,3 +395,80 @@ option { direction: rtl; text-align: right; }
 .reg-or { color: var(--text-mute); font-size: 13px; margin: 16px 0; }
 .reg-operator { display: block; background: #25d366; color: #08331b; text-decoration: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; }
 .reg-note { color: var(--text-mute); font-size: 12px; margin-top: 20px; }
+
+/* ===== جابه‌جایی دستی چیپ شهرها ===== */
+.city-bar.is-reordering { overflow-x: hidden; touch-action: none; }
+.city-chip.is-dragging {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+  transform: scale(1.06); box-shadow: 0 6px 18px rgba(0,0,0,.5);
+  transition: transform .12s;
+}
+
+/* ===== اسپلش‌اسکرین ورود ===== */
+#sogSplash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+  background: radial-gradient(120% 80% at 50% 38%, #16120e 0%, #0a0908 45%, #000 100%);
+  opacity: 1; transition: opacity .45s ease;
+}
+#sogSplash.is-out { opacity: 0; pointer-events: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+/* هاله‌ی نرم پشت لوگو، مثل نور شمع */
+.splash-mark { position: relative; display: grid; place-items: center; }
+.splash-mark::before {
+  content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(217,154,91,.28) 0%, rgba(217,154,91,.08) 45%, rgba(217,154,91,0) 70%);
+  animation: splash-glow 3.2s ease-in-out infinite;
+}
+.splash-mark img {
+  width: 96px; height: 96px; object-fit: contain;
+  border-radius: 24px; position: relative;
+  animation: splash-rise .8s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes splash-glow {
+  0%, 100% { transform: scale(1); opacity: .9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes splash-rise {
+  from { opacity: 0; transform: translateY(12px) scale(.94); }
+  to { opacity: 1; transform: none; }
+}
+
+.splash-name {
+  margin-top: 22px; font-size: 26px; font-weight: 700; color: #f2f2f2;
+  letter-spacing: .5px;
+  animation: splash-fade .7s .18s ease both;
+}
+.splash-tag {
+  margin-top: 6px; font-size: 13px; color: #9a8f7e;
+  animation: splash-fade .7s .3s ease both;
+}
+@keyframes splash-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* نوار باریک پیشرفت */
+.splash-bar {
+  margin-top: 26px; width: 132px; height: 2px; border-radius: 2px;
+  background: rgba(255,255,255,.10); overflow: hidden;
+}
+.splash-bar span {
+  display: block; width: 40%; height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(217,154,91,0), #d99a5b, rgba(217,154,91,0));
+  animation: splash-slide 1.25s ease-in-out infinite;
+}
+@keyframes splash-slide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+
+/* آیه/جمله‌ی پایین صفحه */
+.splash-foot {
+  position: absolute; bottom: calc(28px + env(safe-area-inset-bottom));
+  font-size: 12.5px; color: #6f6455; padding: 0 30px;
+  animation: splash-fade .8s .45s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-mark::before, .splash-mark img, .splash-name, .splash-tag, .splash-foot { animation: none; }
+  .splash-bar span { animation-duration: 2.4s; }
+}
