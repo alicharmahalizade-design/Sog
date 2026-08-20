@@ -1,6 +1,6 @@
 /* Service Worker ساده برای پیش‌نمایش PWA سوگ.
    استراتژی: cache-first برای دارایی‌های ثابت، network-first برای داده‌ی JSON. */
-var CACHE = "sog-preview-v29";
+var CACHE = "sog-preview-v30";
 var ASSETS = [
   "./",
   "index.html",
@@ -77,7 +77,20 @@ self.addEventListener("fetch", function (e) {
     return;
   }
 
-  // بقیه: cache-first
+  // اسکریپت و استایل: network-first تا نسخه‌ی HTML و JS هیچ‌وقت ناهماهنگ نشوند
+  if (e.request.destination === "script" || e.request.destination === "style" ||
+      /\/assets\/(js|css)\//.test(url)) {
+    e.respondWith(
+      fetch(e.request).then(function (res) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
+        return res;
+      }).catch(function () { return caches.match(e.request); })
+    );
+    return;
+  }
+
+  // بقیه (تصویر، فونت، صدا): cache-first
   e.respondWith(
     caches.match(e.request).then(function (cached) {
       return cached || fetch(e.request).then(function (res) {
