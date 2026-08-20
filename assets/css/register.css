@@ -310,4 +310,11 @@
   padding: 12px; font-size: 13.5px; font-weight: 700; margin-top: 10px;
 }
 .music-name { font-size: 12px; color: var(--text-dim); margin: 8px 0 0; text-align: center; }
-.multi-photos .bio-thumbs { margin-bottom: 4px; }
+/* تصاویر مراسم داخل یک کادر، با فاصله از فیلد بالایی */
+.multi-photos {
+  margin-top: 14px; padding: 14px;
+  border: 1px solid #2e2e2e; border-radius: 12px; background: #171717;
+}
+.multi-photos .field-hint { margin: 0 0 12px; }
+.multi-photos .bio-thumbs { margin-bottom: 12px; }
+.multi-photos .pick-btn { margin-top: 0; }
