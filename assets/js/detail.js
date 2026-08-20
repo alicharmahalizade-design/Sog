@@ -313,11 +313,10 @@
     var row = el("div", "action-row");
     row.appendChild(actionItem(ICON.share, "اشتراک", function () { shareCard(d); }));
     if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { openStory(d); }));
-    if (d.has_audio) {
+    if (d.has_audio !== false) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
-      var on = true, b = soundBtn.querySelector("button");
-      b.classList.add("is-active");
-      b.addEventListener("click", function () { on = !on; b.innerHTML = on ? ICON.sound : ICON.soundOff; b.classList.toggle("is-active", on); });
+      var b = soundBtn.querySelector("button");
+      startMusic(d, b);
       row.appendChild(soundBtn);
     }
     var saved = SogStore.isSaved(Number(d.id) || d.id);
@@ -331,6 +330,86 @@
     row.appendChild(saveBtn);
     return row;
   }
+  /* ---------- موزیک پیشنهادی آگهی ----------
+     برای هر آگهی یکی از تراک‌ها انتخاب می‌شود؛ انتخاب بر اساس شناسه‌ی آگهی است
+     تا هر آگهی همیشه موزیک خودش را داشته باشد. با افزودن فایل به این فهرست،
+     تنوع موزیک‌ها بیشتر می‌شود. */
+  var TRACKS = ["assets/audio/track-1.mp3"];
+  var audioEl = null;
+
+  function trackFor(d) {
+    if (d.audio) return d.audio;                       /* اگر آگهی موزیک اختصاصی داشت */
+    var n = parseInt(SogUtil.toEn(String(d.id)).replace(/\D/g, ""), 10) || 0;
+    return TRACKS[n % TRACKS.length];
+  }
+
+  function startMusic(d, btn) {
+    var src = trackFor(d);
+    if (!src) return;
+
+    audioEl = new Audio(src);
+    audioEl.setAttribute("hidden", "");
+    document.body.appendChild(audioEl);   /* در DOM باشد تا مرورگر آن را مدیریت کند */
+    audioEl.loop = true;
+    audioEl.volume = 0;                                /* بالا آمدن نرم صدا */
+    audioEl.preload = "auto";
+
+    var wanted = true;                                 /* خواسته‌ی کاربر: صدا روشن باشد */
+    var TARGET = 0.32;
+
+    function fadeTo(target) {
+      if (!audioEl) return;
+      var step = (target - audioEl.volume) / 18;
+      var timer = setInterval(function () {
+        if (!audioEl) { clearInterval(timer); return; }
+        var v = audioEl.volume + step;
+        if ((step > 0 && v >= target) || (step < 0 && v <= target)) { v = target; clearInterval(timer); }
+        audioEl.volume = Math.max(0, Math.min(1, v));
+      }, 40);
+    }
+
+    function paint() {
+      btn.innerHTML = wanted ? ICON.sound : ICON.soundOff;
+      btn.classList.toggle("is-active", wanted);
+      btn.setAttribute("aria-label", wanted ? "قطع صدا" : "پخش صدا");
+    }
+
+    function tryPlay() {
+      var pr = audioEl.play();
+      if (pr && pr.catch) {
+        pr.then(function () { fadeTo(TARGET); }).catch(function () {
+          /* مرورگر پخش خودکار را اجازه نداد؛ با اولین لمس صفحه پخش می‌شود */
+          var once = function () {
+            document.removeEventListener("pointerdown", once);
+            document.removeEventListener("scroll", once);
+            if (wanted && audioEl) audioEl.play().then(function () { fadeTo(TARGET); }).catch(function () {});
+          };
+          document.addEventListener("pointerdown", once, { once: true });
+          document.addEventListener("scroll", once, { once: true });
+        });
+      }
+    }
+
+    btn.addEventListener("click", function () {
+      wanted = !wanted;
+      paint();
+      if (!audioEl) return;
+      if (wanted) { audioEl.play().then(function () { fadeTo(TARGET); }).catch(function () {}); }
+      else { fadeTo(0); setTimeout(function () { if (audioEl && !wanted) audioEl.pause(); }, 800); }
+    });
+
+    /* با خروج از صفحه یا رفتن به پس‌زمینه، پخش متوقف شود */
+    document.addEventListener("visibilitychange", function () {
+      if (!audioEl) return;
+      if (document.hidden) audioEl.pause();
+      else if (wanted) audioEl.play().catch(function () {});
+    });
+    window.addEventListener("pagehide", function () { if (audioEl) audioEl.pause(); });
+
+    paint();
+    tryPlay();
+  }
+
   function actionItem(icon, label, onClick) {
     var item = el("div", "action-item");
     var b = el("button", null, icon); b.setAttribute("aria-label", label);
