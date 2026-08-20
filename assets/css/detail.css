@@ -257,11 +257,12 @@
 }
 .desc-box {
   position: relative; border: 1px dashed #444; border-radius: 14px;
-  padding: 34px 16px 16px; margin-bottom: 16px;
+  padding: 52px 16px 16px; margin-bottom: 16px;   /* فاصله‌ی بیشتر برچسب تا متن */
   font-size: 14px; line-height: 2; color: var(--text);
 }
 .desc-box .desc-label {
-  position: absolute; top: 12px; inset-inline-end: 14px;
+  /* برچسب در سمت راست کادر */
+  position: absolute; top: 12px; inset-inline-start: 14px;
   background: var(--badge); color: #fff; font-size: 12px; font-weight: 700;
   padding: 3px 12px; border-radius: 7px;
 }
