@@ -1,135 +1,45 @@
-/* ویزارد ثبت سوگ — سه مرحله‌ای. داده فرم آماده‌ی ارسال به REST وردپرس. */
+/* ویزارد ثبت سوگ — مرحله‌ها از روی مراسم‌های انتخاب‌شده ساخته می‌شوند.
+   داده‌ی فرم در قالبی جمع می‌شود که مستقیم به REST وردپرس قابل ارسال است. */
 (function () {
   "use strict";
   function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[+d]; }); }
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
   var MONTHS = SogUtil.jMonths;
-  var PROVINCES = ["آذربایجان شرقی", "آذربایجان غربی", "اردبیل", "اصفهان", "البرز", "ایلام", "بوشهر", "تهران", "چهارمحال و بختیاری", "خوزستان", "فارس", "کرمان", "گیلان", "مازندران", "همدان", "یزد"];
-  var NOTES = ["به صرف ناهار", "به صرف شام", "به صرف افطار", "ایاب و ذهاب", "انجام پذیرایی", "وسیله نقلیه"];
-
-  /* ---------- تاریخ و ساعت (پیش‌فرض: همین حالا) ---------- */
   var TODAY = SogUtil.todayJalali();
-
   function pad2(n) { return faNum(n < 10 ? "0" + n : String(n)); }
 
-  // روزهای ماهِ انتخاب‌شده را می‌سازد و انتخاب قبلی را تا حد ممکن نگه می‌دارد
-  function fillDays(box) {
-    var day = box.querySelector(".sel-day");
-    var jy = +box.querySelector(".sel-year").value || TODAY.y;
-    var jm = +box.querySelector(".sel-month").value || TODAY.m;
-    var len = SogUtil.jalaliMonthLength(jy, jm);
-    var want = Math.min(+day.value || TODAY.d, len);
-    day.innerHTML = "";
-    for (var d = 1; d <= len; d++) day.appendChild(new Option(faNum(d), d));
-    day.value = want;
-  }
+  /* مراسم‌های قابل انتخاب — هرکدام می‌تواند بیش از یک نوبت داشته باشد */
+  var CEREMONIES = [
+    { key: "tashi", name: "تشییع / خاکسپاری", on: true },
+    { key: "sevom", name: "سوم" },
+    { key: "haftom", name: "هفتم" },
+    { key: "sevom-haftom", name: "سوم/هفتم" },
+    { key: "khatm", name: "ختم" },
+    { key: "sevom-haftom-khatm", name: "سوم/هفتم/ختم" },
+    { key: "bozorgdasht", name: "بزرگداشت", on: true },
+    { key: "shame-ghariban", name: "شام غریبان" },
+    { key: "chehelom", name: "چهلم" },
+    { key: "salgard", name: "سالگرد" },
+    { key: "shabe-sal", name: "شب سال" }
+  ];
+  var NOTES = ["به صرف ناهار", "به صرف شام", "به صرف پذیرایی", "به صرف افطار"];
+  var MESSENGERS = ["روبیکا", "اینستاگرام", "بله", "واتساپ", "ایتا", "تلگرام"];
 
-  // خط پیش‌نمایش: «جمعه ۹ مرداد ۱۴۰۵ ساعت ۱۰:۳۰»
-  function updatePreview(box) {
-    var out = box.querySelector(".dt-preview");
-    if (!out) return;
-    var jy = +box.querySelector(".sel-year").value;
-    var jm = +box.querySelector(".sel-month").value;
-    var jd = +box.querySelector(".sel-day").value;
-    var hour = box.querySelector(".sel-hour"), min = box.querySelector(".sel-minute");
-    var txt = SogUtil.jalaliWeekday(jy, jm, jd) + " " + faNum(jd) + " " + MONTHS[jm - 1] + " " + faNum(jy);
-    if (hour && min) txt += " ساعت " + pad2(+hour.value) + ":" + pad2(+min.value);
-    out.textContent = txt;
-  }
-
-  /* پر کردن سلکت‌های تاریخ و ساعت با مقدار پیش‌فرضِ امروز/اکنون */
-  function fillDates() {
-    var now = new Date();
-    document.querySelectorAll(".sel-month").forEach(function (s) {
-      MONTHS.forEach(function (m, i) { s.appendChild(new Option(m, i + 1)); });
-      s.value = TODAY.m;
-    });
-    document.querySelectorAll(".sel-year").forEach(function (s) {
-      for (var y = TODAY.y + 1; y >= TODAY.y - 45; y--) s.appendChild(new Option(faNum(y), y));
-      s.value = TODAY.y;
-    });
-    document.querySelectorAll(".sel-hour").forEach(function (s) {
-      for (var h = 0; h <= 23; h++) s.appendChild(new Option(pad2(h), h));
-      s.value = now.getHours();
-    });
-    document.querySelectorAll(".sel-minute").forEach(function (s) {
-      for (var m = 0; m < 60; m += 5) s.appendChild(new Option(pad2(m), m));
-      s.value = Math.floor(now.getMinutes() / 5) * 5;
-    });
-
-    document.querySelectorAll(".datetime-box").forEach(function (box) {
-      fillDays(box);
-      updatePreview(box);
-      box.querySelectorAll("select").forEach(function (s) {
-        s.addEventListener("change", function () {
-          if (s.classList.contains("sel-month") || s.classList.contains("sel-year")) fillDays(box);
-          updatePreview(box);
-        });
-      });
-    });
-  }
-
-  /* استان و شهر — فهرست شهر به استانِ انتخاب‌شده وابسته است */
-  function fillPlaces() {
-    var prov = document.getElementById("provinceSel");
-    var city = document.getElementById("citySel");
-    if (!prov || !city) return;
-
-    city.disabled = true;
-
-    function resetCity(placeholder) {
-      city.innerHTML = "";
-      var ph = new Option(placeholder, "");
-      ph.disabled = true; ph.selected = true;
-      city.appendChild(ph);
-    }
-    resetCity("ابتدا استان را انتخاب کنید");
-
-    fetch("data/provinces.json").then(function (r) { return r.json(); }).then(function (d) {
-      var MAP = d.provinces || {};
-      Object.keys(MAP).forEach(function (name) { prov.appendChild(new Option(name, name)); });
-
-      prov.addEventListener("change", function () {
-        var list = MAP[prov.value] || [];
-        resetCity(list.length ? "شهر مراسم" : "شهری یافت نشد");
-        list.forEach(function (c) { city.appendChild(new Option(c, c)); });
-        city.disabled = !list.length;
-      });
-    }).catch(function () {
-      /* اگر داده‌ی استان‌ها بارگذاری نشد، دست‌کم فهرست ثابت استان‌ها نمایش داده شود */
-      PROVINCES.forEach(function (p) { prov.appendChild(new Option(p, p)); });
-      resetCity("شهر مراسم");
-      city.disabled = false;
-    });
-  }
-
-  /* چیپ‌های نکات مراسم */
-  function fillNotes() {
-    var grid = document.getElementById("noteGrid");
-    NOTES.forEach(function (n) {
-      var chip = el("button", "check-chip");
-      chip.type = "button";
-      chip.innerHTML = '<span class="lbl">' + n + '</span><span class="box">✓</span>';
-      chip.addEventListener("click", function () { chip.classList.toggle("is-checked"); });
-      grid.appendChild(chip);
-    });
-  }
-
-  /* ردیف‌های بازشونده */
-  function bindExpanders() {
-    document.querySelectorAll(".exp-row .exp-head").forEach(function (head) {
-      head.addEventListener("click", function () { head.closest(".exp-row").classList.toggle("is-open"); });
-    });
-    var sms = document.getElementById("smsOnly");
-    if (sms) sms.addEventListener("click", function () { sms.classList.toggle("on"); });
-    document.querySelectorAll(".social-btn").forEach(function (b) {
-      b.addEventListener("click", function () { b.classList.toggle("on"); });
-    });
-  }
-
-  /* آپلود تصویر → برش → پیش‌نمایش */
-  var croppedDataUrl = null;   // تصویر برش‌خورده برای ارسال نهایی
+  /* داده‌ی فرم */
+  var data = {
+    photos: [null, null, null],      /* اولی تصویر اصلی */
+    name: "", brief: "",
+    birth: null, death: null, age: "", birthplace: "", city: "",
+    father: "", father_tayefe: "", father_il: "",
+    mother: "", mother_tayefe: "", mother_il: "",
+    picked: {},                      /* key → تعداد نوبت */
+    events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
+    bio: "", music: null,
+    phone: "", messengers: [], relation: ""
+  };
+  CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
   /* ویرایشگر برش: جابه‌جایی با کشیدن، بزرگ‌نمایی با اسلایدر، نسبت ۴:۵ */
   function openCropper(file, onDone) {
@@ -263,59 +173,400 @@
     });
   }
 
-  function bindUpload() {
-    var input = document.getElementById("photoInput"), box = document.getElementById("uploadBox");
-    if (!input) return;
 
-    function showPreview(dataUrl) {
-      croppedDataUrl = dataUrl;
-      box.classList.add("has-img");
-      box.innerHTML = '<img src="' + dataUrl + '" alt="">';
-      var bar = el("div", "img-tools");
-      var recrop = el("button", "img-tool", "برش دوباره"); recrop.type = "button";
-      var remove = el("button", "img-tool", "حذف تصویر"); remove.type = "button";
-      bar.appendChild(recrop); bar.appendChild(remove);
-      box.appendChild(bar);
-      box.appendChild(input);
-
-      /* کلیک روی تصویر، پنجره‌ی انتخاب فایل را باز نکند */
-      box.addEventListener("click", stop, true);
-      function stop(e) { if (e.target !== input) e.preventDefault(); }
-
-      recrop.addEventListener("click", function (e) {
-        e.stopPropagation();
-        var f = input.files && input.files[0];
-        if (f) openCropper(f, showPreview);
-      });
-      remove.addEventListener("click", function (e) {
-        e.stopPropagation();
-        croppedDataUrl = null;
-        input.value = "";
-        box.removeEventListener("click", stop, true);
-        box.classList.remove("has-img");
-        box.innerHTML = '<span class="up-inner"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> افزودن تصویر</span>';
-        box.appendChild(input);
-      });
-    }
-
-    input.addEventListener("change", function () {
-      var f = input.files && input.files[0]; if (!f) return;
-      openCropper(f, showPreview);
-    });
+  /* ---------- سازنده‌های فیلد ---------- */
+  function field(label, req, node, hint) {
+    var f = el("div", "field");
+    var l = el("div", "field-label");
+    l.innerHTML = '<span class="info">ⓘ</span> ' + esc(label) + (req ? ' <span class="req">*</span>' : "");
+    f.appendChild(l);
+    if (hint) f.appendChild(el("p", "field-hint", esc(hint)));
+    f.appendChild(node);
+    return f;
   }
 
-  /* ناوبری مراحل */
-  var current = 1, TOTAL = 3;
-  function goStep(n) {
-    current = Math.max(1, Math.min(TOTAL, n));
-    document.querySelectorAll(".reg-panel").forEach(function (p) {
-      p.classList.toggle("is-active", +p.dataset.panel === current);
+  function textInput(key, placeholder, opts) {
+    opts = opts || {};
+    var i = document.createElement(opts.tag || "input");
+    if (opts.tag !== "textarea") i.type = opts.type || "text";
+    i.placeholder = placeholder;
+    if (opts.rows) i.rows = opts.rows;
+    if (opts.max) i.maxLength = opts.max;
+    if (opts.inputmode) i.setAttribute("inputmode", opts.inputmode);
+    i.value = opts.get ? (opts.get() || "") : (data[key] || "");
+    i.addEventListener("input", function () {
+      if (opts.set) opts.set(i.value); else data[key] = i.value;
+      if (opts.max && i.parentNode) {
+        var c = i.parentNode.querySelector(".char-count");
+        if (c) c.textContent = faNum(opts.max - i.value.length);
+      }
     });
-    document.querySelectorAll(".reg-step").forEach(function (s) {
-      var st = +s.dataset.step;
-      s.classList.toggle("is-active", st === current);
-      s.classList.toggle("is-done", st < current);
+    if (!opts.max) return i;
+    var wrap = el("div", "ta-wrap");
+    wrap.appendChild(i);
+    wrap.appendChild(el("span", "char-count", faNum(opts.max - (i.value.length || 0))));
+    return wrap;
+  }
+
+  /* کادر تاریخ شمسی (و در صورت نیاز ساعت) */
+  function dateBox(getter, setter, withTime) {
+    var box = el("div", "datetime-box");
+    var prev = el("p", "dt-preview");
+    var row = el("div", "date-row");
+    var day = document.createElement("select"), mon = document.createElement("select"), yr = document.createElement("select");
+    day.className = "sel-day"; mon.className = "sel-month"; yr.className = "sel-year";
+    MONTHS.forEach(function (m, i) { mon.appendChild(new Option(m, i + 1)); });
+    for (var y = TODAY.y + 1; y >= TODAY.y - 100; y--) yr.appendChild(new Option(faNum(y), y));
+    row.appendChild(day); row.appendChild(mon); row.appendChild(yr);
+    box.appendChild(prev); box.appendChild(row);
+
+    var hour, min;
+    if (withTime) {
+      var trow = el("div", "time-row");
+      trow.appendChild(el("span", "dt-sep", "ساعت"));
+      hour = document.createElement("select"); hour.className = "sel-hour";
+      for (var h = 0; h <= 23; h++) hour.appendChild(new Option(pad2(h), h));
+      min = document.createElement("select"); min.className = "sel-minute";
+      for (var m2 = 0; m2 < 60; m2 += 5) min.appendChild(new Option(pad2(m2), m2));
+      trow.appendChild(hour); trow.appendChild(el("span", "dt-colon", ":")); trow.appendChild(min);
+      box.appendChild(trow);
+    }
+
+    var cur = getter() || { y: TODAY.y, m: TODAY.m, d: TODAY.d, h: 16, i: 0 };
+    yr.value = cur.y; mon.value = cur.m;
+
+    function fillDays() {
+      var len = SogUtil.jalaliMonthLength(+yr.value, +mon.value);
+      var want = Math.min(+day.value || cur.d, len);
+      day.innerHTML = "";
+      for (var d = 1; d <= len; d++) day.appendChild(new Option(faNum(d), d));
+      day.value = want;
+    }
+    fillDays();
+    if (withTime) { hour.value = cur.h == null ? 16 : cur.h; min.value = cur.i || 0; }
+
+    function sync() {
+      var v = { y: +yr.value, m: +mon.value, d: +day.value };
+      if (withTime) { v.h = +hour.value; v.i = +min.value; }
+      var txt = SogUtil.jalaliWeekday(v.y, v.m, v.d) + " " + faNum(v.d) + " " + MONTHS[v.m - 1] + " " + faNum(v.y);
+      if (withTime) txt += " ساعت " + pad2(v.h) + ":" + pad2(v.i);
+      prev.textContent = txt;
+      setter(v);
+    }
+    [day, mon, yr].concat(withTime ? [hour, min] : []).forEach(function (s) {
+      s.addEventListener("change", function () {
+        if (s === mon || s === yr) fillDays();
+        sync();
+      });
     });
+    sync();
+    return box;
+  }
+
+  /* انتخاب تصویر با برش */
+  function photoSlot(index, label) {
+    var box = el("label", "photo-slot" + (data.photos[index] ? " has-img" : ""));
+    function paint() {
+      box.innerHTML = "";
+      box.className = "photo-slot" + (data.photos[index] ? " has-img" : "");
+      if (data.photos[index]) {
+        var img = el("img"); img.src = data.photos[index]; img.alt = "";
+        box.appendChild(img);
+        var rm = el("button", "slot-x", "×"); rm.type = "button";
+        rm.addEventListener("click", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          data.photos[index] = null; paint();
+        });
+        box.appendChild(rm);
+      } else {
+        box.appendChild(el("span", "slot-txt",
+          '<svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7l1.3-2.2h3.4L15 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' + esc(label)));
+      }
+      var inp = document.createElement("input");
+      inp.type = "file"; inp.accept = "image/*"; inp.hidden = true;
+      inp.addEventListener("change", function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        openCropper(f, function (url) { data.photos[index] = url; paint(); });
+        inp.value = "";
+      });
+      box.appendChild(inp);
+    }
+    paint();
+    return box;
+  }
+
+  /* چند تصویر برای هر مراسم */
+  function multiPhotos(ev, max, note) {
+    var wrap = el("div", "multi-photos");
+    if (note) wrap.appendChild(el("p", "field-hint", esc(note)));
+    var thumbs = el("div", "bio-thumbs");
+    function paint() {
+      thumbs.innerHTML = "";
+      (ev.photos || []).forEach(function (src, i) {
+        var th = el("div", "bio-thumb"); th.style.backgroundImage = 'url("' + src + '")';
+        var x = el("button", "bio-thumb-x", "×"); x.type = "button";
+        x.addEventListener("click", function () { ev.photos.splice(i, 1); paint(); });
+        th.appendChild(x); thumbs.appendChild(th);
+      });
+      btn.hidden = (ev.photos || []).length >= max;
+    }
+    var btn = el("label", "pick-btn", "انتخاب تصاویر مراسم ( " + faNum(max) + " تصویر )");
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
+    inp.addEventListener("change", function () {
+      Array.prototype.slice.call(inp.files || []).forEach(function (f) {
+        if ((ev.photos || []).length >= max) return;
+        var rd = new FileReader();
+        rd.onload = function () { ev.photos = ev.photos || []; ev.photos.push(rd.result); paint(); };
+        rd.readAsDataURL(f);
+      });
+      inp.value = "";
+    });
+    btn.appendChild(inp);
+    wrap.appendChild(thumbs); wrap.appendChild(btn);
+    paint();
+    return wrap;
+  }
+
+  /* انتخاب موقعیت روی نقشه */
+  function mapPicker(ev) {
+    var box = el("div", "map-pick");
+    var map = el("div", "loc-map");
+    map.style.backgroundImage = "url('assets/img/map.svg')";
+    var status = el("p", "map-status", ev.lat ? "موقعیت ثبت شد" : "موقعیت دقیق آرامگاه را در نقشه انتخاب کنید");
+    var btn = el("button", "map-btn", "استفاده از موقعیت فعلی من"); btn.type = "button";
+    btn.addEventListener("click", function () {
+      if (!navigator.geolocation) { status.textContent = "دستگاه شما موقعیت‌یابی ندارد."; return; }
+      status.textContent = "در حال یافتن موقعیت…";
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        ev.lat = pos.coords.latitude; ev.lng = pos.coords.longitude;
+        status.textContent = "موقعیت ثبت شد ✓";
+      }, function () { status.textContent = "دسترسی به موقعیت داده نشد؛ می‌توانید لینک نقشه را بگذارید."; });
+    });
+    var link = textInput(null, "یا لینک موقعیت از گوگل‌مپ / نشان را اینجا بگذارید", {
+      get: function () { return ev.map_link; },
+      set: function (v) { ev.map_link = v; }
+    });
+    box.appendChild(map); box.appendChild(status); box.appendChild(btn); box.appendChild(link);
+    return box;
+  }
+
+  /* ---------- ساخت مرحله‌ها ---------- */
+  function ceremonyInstances() {
+    var out = [];
+    CEREMONIES.forEach(function (c) {
+      var n = data.picked[c.key] || 0;
+      for (var i = 1; i <= n; i++) {
+        var id = c.key + "#" + i;
+        if (!data.events[id]) data.events[id] = { photos: [], notes: [] };
+        out.push({ id: id, name: c.name + (n > 1 ? " (" + faNum(i) + ")" : "") });
+      }
+    });
+    return out;
+  }
+
+  function buildSteps() {
+    var steps = [];
+
+    /* ۱) تصویر و نام */
+    steps.push({ title: "مشخصات درگذشته", build: function () {
+      var p = el("section", "reg-panel");
+      var slots = el("div", "photo-slots");
+      slots.appendChild(photoSlot(0, "انتخاب تصویر ( تصویر اصلی )"));
+      slots.appendChild(photoSlot(1, "انتخاب تصویر"));
+      slots.appendChild(photoSlot(2, "انتخاب تصویر"));
+      p.appendChild(field("تصویر درگذشته", true, slots));
+      p.appendChild(field("نام و نام خانوادگی درگذشته", true, textInput("name", "نام و نام خانوادگی درگذشته را وارد کنید")));
+      p.appendChild(field("شرح کوتاه از درگذشته", false, textInput("brief", "مثال : پدری دلسوز / مادری مهربان / …")));
+      return p;
+    }});
+
+    /* ۲) تاریخ‌ها و مکان */
+    steps.push({ title: "تاریخ‌ها و زادگاه", build: function () {
+      var p = el("section", "reg-panel");
+      p.appendChild(field("تاریخ تولد", true, dateBox(function () { return data.birth; }, function (v) { data.birth = v; })));
+      p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; })));
+      p.appendChild(field("سن درگذشته", true, textInput("age", "مثال : ۸۵ سال")));
+      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
+      p.appendChild(field("شهر", false, textInput("city", "نام شهر محل زندگی را وارد کنید")));
+      return p;
+    }});
+
+    /* ۳) خانواده */
+    steps.push({ title: "خانواده و طایفه", build: function () {
+      var p = el("section", "reg-panel");
+      p.appendChild(field("نام پدر", false, textInput("father", "فقط نام پدر نوشته شود")));
+      p.appendChild(field("نام طایفه پدری", true, textInput("father_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
+      p.appendChild(field("نام ایل پدری", false, textInput("father_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
+      p.appendChild(field("نام خانوادگی مادر", true, textInput("mother", "نام و نام خانوادگی یا فقط نام خانوادگی نوشته شود")));
+      p.appendChild(field("نام طایفه مادری", true, textInput("mother_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
+      p.appendChild(field("نام ایل مادری", false, textInput("mother_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
+      return p;
+    }});
+
+    /* ۴) انتخاب مراسم */
+    steps.push({ title: "انتخاب مراسم", rebuild: true, build: function () {
+      var p = el("section", "reg-panel");
+      p.appendChild(el("p", "panel-sub", "مراسمات انتخاب‌شده را در صفحه‌های بعدی تکمیل کنید"));
+      var list = el("div", "cer-list");
+      CEREMONIES.forEach(function (c) {
+        var row = el("div", "cer-row" + (data.picked[c.key] ? " is-on" : ""));
+        var chk = el("button", "cer-check"); chk.type = "button";
+        chk.setAttribute("aria-pressed", data.picked[c.key] ? "true" : "false");
+        chk.innerHTML = '<span class="box">✓</span><span class="lbl">' + esc(c.name) + "</span>";
+        var count = el("div", "cer-count");
+        var minus = el("button", "cc-btn", "−"); minus.type = "button";
+        var num = el("span", "cc-num", faNum(data.picked[c.key] || 1) + " مراسم");
+        var plus = el("button", "cc-btn", "+"); plus.type = "button";
+        count.appendChild(minus); count.appendChild(num); count.appendChild(plus);
+
+        function paint() {
+          var on = !!data.picked[c.key];
+          row.classList.toggle("is-on", on);
+          chk.setAttribute("aria-pressed", on ? "true" : "false");
+          num.textContent = faNum(data.picked[c.key] || 1) + " مراسم";
+          count.classList.toggle("is-off", !on);
+        }
+        chk.addEventListener("click", function () {
+          if (data.picked[c.key]) delete data.picked[c.key];
+          else data.picked[c.key] = 1;
+          paint(); refreshSteps();
+        });
+        plus.addEventListener("click", function () {
+          data.picked[c.key] = Math.min(5, (data.picked[c.key] || 0) + 1);
+          paint(); refreshSteps();
+        });
+        minus.addEventListener("click", function () {
+          if (!data.picked[c.key]) return;
+          if (data.picked[c.key] <= 1) delete data.picked[c.key];
+          else data.picked[c.key]--;
+          paint(); refreshSteps();
+        });
+        row.appendChild(chk); row.appendChild(count);
+        paint();
+        list.appendChild(row);
+      });
+      p.appendChild(list);
+      return p;
+    }});
+
+    /* ۵) دو صفحه برای هر مراسم انتخاب‌شده */
+    ceremonyInstances().forEach(function (ins) {
+      var ev = data.events[ins.id];
+
+      steps.push({ title: "مراسم " + ins.name, build: function () {
+        var p = el("section", "reg-panel");
+        p.appendChild(field("تاریخ و ساعت مراسم " + ins.name, true,
+          dateBox(function () { return ev.when; }, function (v) { ev.when = v; }, true)));
+        p.appendChild(field("موقعیت مراسم " + ins.name + " در نقشه", false, mapPicker(ev)));
+        p.appendChild(field("آدرس مراسم " + ins.name, true, textInput(null, "آدرس مراسم " + ins.name + " را بنویسید", {
+          tag: "textarea", rows: 3, max: 250,
+          get: function () { return ev.address; }, set: function (v) { ev.address = v; }
+        })));
+        return p;
+      }});
+
+      steps.push({ title: "توضیحات " + ins.name, build: function () {
+        var p = el("section", "reg-panel");
+        p.appendChild(field("توضیحات مراسم " + ins.name, false, textInput(null,
+          "در این قسمت توضیحات تکمیلی درباره‌ی نحوه‌ی برگزاری، امکانات و شرایط مهیاشده‌ی مراسم را بنویسید …", {
+            tag: "textarea", rows: 5, max: 500,
+            get: function () { return ev.desc; }, set: function (v) { ev.desc = v; }
+          })));
+
+        var grid = el("div", "check-grid");
+        NOTES.forEach(function (n) {
+          var chip = el("button", "check-chip" + (ev.notes.indexOf(n) !== -1 ? " is-checked" : ""));
+          chip.type = "button";
+          chip.innerHTML = '<span class="lbl">' + esc(n) + '</span><span class="box">✓</span>';
+          chip.addEventListener("click", function () {
+            var i = ev.notes.indexOf(n);
+            if (i === -1) ev.notes.push(n); else ev.notes.splice(i, 1);
+            chip.classList.toggle("is-checked", i === -1);
+          });
+          grid.appendChild(chip);
+        });
+        p.appendChild(field("نکات مراسم", false, grid));
+        p.appendChild(field("تصاویر مراسم " + ins.name, false,
+          multiPhotos(ev, 4, "در این قسمت بعد از برگزاری مراسم " + ins.name + " تصاویر مراسم را وارد کنید")));
+        return p;
+      }});
+    });
+
+    /* ۶) زندگی‌نامه و موزیک */
+    steps.push({ title: "زندگی‌نامه و موزیک", build: function () {
+      var p = el("section", "reg-panel");
+      p.appendChild(field("زندگی‌نامه", false, textInput("bio", "زندگی‌نامه و شرح زندگی درگذشته…", { tag: "textarea", rows: 7, max: 2000 })));
+      var music = el("div");
+      music.appendChild(el("p", "field-hint", "فایل موزیک مورد نظر خود را وارد کنید"));
+      var mbtn = el("label", "pick-btn", "انتخاب فایل موزیک");
+      var minp = document.createElement("input");
+      minp.type = "file"; minp.accept = "audio/*"; minp.hidden = true;
+      var mname = el("p", "music-name", data.music ? esc(data.music) : "");
+      minp.addEventListener("change", function () {
+        var f = minp.files && minp.files[0];
+        data.music = f ? f.name : null;
+        mname.textContent = f ? f.name : "";
+      });
+      mbtn.appendChild(minp);
+      music.appendChild(mbtn); music.appendChild(mname);
+      p.appendChild(field("موزیک", false, music));
+      return p;
+    }});
+
+    /* ۷) ارتباط */
+    steps.push({ title: "ارتباط با شما", build: function () {
+      var p = el("section", "reg-panel");
+      p.appendChild(el("p", "panel-sub", "برای ارتباط با شما شماره تلفن و کانال‌های ارتباطی مجازی خود را وارد کنید …"));
+      p.appendChild(field("موبایل", true, textInput("phone", "۰۹۱۲۳۴۵۶۷۸۹", { type: "tel", inputmode: "tel" })));
+      var grid = el("div", "check-grid");
+      MESSENGERS.forEach(function (m) {
+        var chip = el("button", "check-chip" + (data.messengers.indexOf(m) !== -1 ? " is-checked" : ""));
+        chip.type = "button";
+        chip.innerHTML = '<span class="lbl">' + esc(m) + '</span><span class="box">✓</span>';
+        chip.addEventListener("click", function () {
+          var i = data.messengers.indexOf(m);
+          if (i === -1) data.messengers.push(m); else data.messengers.splice(i, 1);
+          chip.classList.toggle("is-checked", i === -1);
+        });
+        grid.appendChild(chip);
+      });
+      p.appendChild(field("پیام‌رسان‌ها", false, grid));
+      p.appendChild(field("ارتباط خویشاوندی با درگذشته", false, textInput("relation", "مثال : فرزند")));
+      return p;
+    }});
+
+    return steps;
+  }
+
+  /* ---------- ناوبری ---------- */
+  var steps = buildSteps();
+  var current = 0;
+  var panels = document.getElementById("panels");
+
+  function refreshSteps() {
+    var stayTitle = steps[current] && steps[current].title;
+    steps = buildSteps();
+    /* اگر مرحله‌ی فعلی هنوز وجود دارد، همان‌جا بمانیم */
+    var idx = -1;
+    steps.forEach(function (s, i) { if (s.title === stayTitle) idx = i; });
+    current = idx === -1 ? Math.min(current, steps.length - 1) : idx;
+    paintProgress();
+  }
+
+  function paintProgress() {
+    document.getElementById("stepTitle").textContent = steps[current].title;
+    document.getElementById("stepCount").textContent = "مرحله " + faNum(current + 1) + " از " + faNum(steps.length);
+    document.getElementById("stepBar").style.width = ((current + 1) / steps.length * 100) + "%";
+  }
+
+  function show(i) {
+    current = Math.max(0, Math.min(steps.length - 1, i));
+    panels.innerHTML = "";
+    var node = steps[current].build();
+    node.classList.add("is-active");
+    panels.appendChild(node);
+    paintProgress();
     renderActions();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -323,30 +574,33 @@
   function renderActions() {
     var bar = document.getElementById("regActions");
     bar.innerHTML = "";
-    var next = el("button", "btn-next", current < TOTAL ? "مرحله بعد" : "ثبت آگهی");
-    next.type = "button";
-    next.addEventListener("click", function () { current < TOTAL ? goStep(current + 1) : submit(); });
-    bar.appendChild(next);
-    if (current > 1) {
-      var prev = el("button", "btn-prev", "مرحله قبل");
-      prev.type = "button";
-      prev.addEventListener("click", function () { goStep(current - 1); });
-      bar.appendChild(prev);
-    }
+    var prev = el("button", "btn-prev", "قبلی"); prev.type = "button";
+    prev.disabled = current === 0;
+    prev.addEventListener("click", function () { show(current - 1); });
+    var isLast = current === steps.length - 1;
+    var next = el("button", "btn-next", isLast ? "ثبت آگهی" : "بعدی"); next.type = "button";
+    next.addEventListener("click", function () {
+      if (isLast) submit(); else show(current + 1);
+    });
+    bar.appendChild(prev); bar.appendChild(next);
   }
 
   function submit() {
-    // نمونه‌ی پیش‌نمایش؛ در وردپرس این‌جا به REST API ارسال می‌شود
-    document.getElementById("regSuccess").classList.add("show");
+    /* بدون بک‌اند: داده به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس ارسال شود */
+    try { localStorage.setItem("sog:draftListing", JSON.stringify(data)); } catch (e) {}
+    document.getElementById("regSuccess").classList.add("is-in");
   }
 
-  /* راه‌اندازی */
-  fillDates(); fillPlaces(); fillNotes(); bindExpanders(); bindUpload(); bindBioPhotos(); renderActions();
-  document.querySelectorAll(".reg-step").forEach(function (s) {
-    s.addEventListener("click", function () { goStep(+s.dataset.step); });
+  var backBtn = document.getElementById("backBtn");
+  if (backBtn) backBtn.addEventListener("click", function () {
+    if (current > 0) show(current - 1); else history.back();
   });
-  document.getElementById("backBtn").addEventListener("click", function () {
-    if (current > 1) goStep(current - 1); else location.href = "index.html";
+  var draftBtn = document.getElementById("draftBtn");
+  if (draftBtn) draftBtn.addEventListener("click", function () {
+    try { localStorage.setItem("sog:draftListing", JSON.stringify(data)); } catch (e) {}
+    draftBtn.classList.add("saved");
+    setTimeout(function () { draftBtn.classList.remove("saved"); }, 1200);
   });
-  document.getElementById("draftBtn").addEventListener("click", function () { alert("پیش‌نویس ذخیره شد (نمونه)."); });
+
+  show(0);
 })();

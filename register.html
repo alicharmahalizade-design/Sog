@@ -27,147 +27,17 @@
         </button>
       </header>
 
-      <!-- استپر -->
-      <div class="reg-steps">
-        <button class="reg-step is-active" data-step="1">۱. عمومی</button>
-        <button class="reg-step" data-step="2">۲. مراسم</button>
-        <button class="reg-step" data-step="3">۳. توضیحات</button>
+      <!-- استپر پویا: تعداد مرحله‌ها به مراسم‌های انتخاب‌شده بستگی دارد -->
+      <div class="reg-progress">
+        <div class="rp-head">
+          <span id="stepTitle">مشخصات درگذشته</span>
+          <span id="stepCount"></span>
+        </div>
+        <div class="rp-bar"><span id="stepBar"></span></div>
       </div>
 
       <form id="regForm" novalidate>
-        <!-- ===== مرحله ۱: عمومی ===== -->
-        <section class="reg-panel is-active" data-panel="1">
-          <div class="field">
-            <div class="field-label"><span class="info" title="الزامی">ⓘ</span> تصویر مرحوم <span class="req">*</span></div>
-            <label class="upload-box" id="uploadBox">
-              <span class="up-inner"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> افزودن تصویر</span>
-              <input type="file" name="photo" accept="image/*" hidden id="photoInput">
-            </label>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> نام مرحوم <span class="req">*</span></div>
-            <input type="text" name="name" placeholder="نام و نام خانوادگی مرحوم را بنویسید" required>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> نوع مراسم <span class="req">*</span></div>
-            <select name="ceremony" required>
-              <option value="" disabled selected>نوع مراسم را انتخاب کنید</option>
-              <option>تشییع</option><option>خاکسپاری</option><option>سالگرد</option>
-              <option>بزرگداشت</option><option>چهلم</option><option>ختم</option>
-            </select>
-          </div>
-          <div class="field-row" style="margin-bottom:18px">
-            <div class="field">
-              <div class="field-label"><span class="info">ⓘ</span> استان <span class="req">*</span></div>
-              <select name="province" id="provinceSel" required><option value="" disabled selected>استان مراسم</option></select>
-            </div>
-            <div class="field">
-              <div class="field-label"><span class="info">ⓘ</span> شهر <span class="req">*</span></div>
-              <select name="city" id="citySel" required><option value="" disabled selected>شهر مراسم</option></select>
-            </div>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> تاریخ درگذشت <span class="req">*</span></div>
-            <div class="datetime-box" data-datetime="death">
-              <p class="dt-preview" data-preview="death"></p>
-              <div class="date-row">
-                <select name="death_day" class="sel-day" aria-label="روز"></select>
-                <select name="death_month" class="sel-month" aria-label="ماه"></select>
-                <select name="death_year" class="sel-year" aria-label="سال"></select>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> سن مرحوم <span class="req">*</span></div>
-            <input type="number" name="age" inputmode="numeric" placeholder="سن مرحوم را بنویسید">
-          </div>
-        </section>
-
-        <!-- ===== مرحله ۲: مراسم ===== -->
-        <section class="reg-panel" data-panel="2">
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> تاریخ و ساعت مراسم خاکسپاری <span class="req">*</span></div>
-            <div class="datetime-box" data-datetime="event">
-              <p class="dt-preview" data-preview="event"></p>
-              <div class="date-row">
-                <select name="event_day" class="sel-day" aria-label="روز"></select>
-                <select name="event_month" class="sel-month" aria-label="ماه"></select>
-                <select name="event_year" class="sel-year" aria-label="سال"></select>
-              </div>
-              <div class="time-row">
-                <span class="dt-sep">ساعت</span>
-                <select name="event_hour" class="sel-hour" aria-label="ساعت"></select>
-                <span class="dt-colon">:</span>
-                <select name="event_minute" class="sel-minute" aria-label="دقیقه"></select>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> نکات مراسم <span class="req">*</span></div>
-            <div class="check-grid" id="noteGrid"></div>
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> آدرس مراسم <span class="req">*</span></div>
-            <input type="text" name="address" placeholder="آدرس مراسم را بنویسید">
-          </div>
-          <div class="field">
-            <div class="field-label"><span class="info">ⓘ</span> لوکیشن مراسم <span class="req">*</span></div>
-            <div class="loc-map" style="background-image:url('assets/img/map.svg')"></div>
-          </div>
-          <div class="exp-row" id="bozorgRow">
-            <div class="exp-head"><span class="lbl">نیاز به تکمیل اطلاعات مراسم بزرگداشت دارید؟</span><span class="box">✓</span></div>
-          </div>
-        </section>
-
-        <!-- ===== مرحله ۳: توضیحات ===== -->
-        <section class="reg-panel" data-panel="3">
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">افزودن زندگی‌نامه</span><span class="box">✓</span></div>
-            <div class="exp-body">
-                <textarea rows="4" name="bio" placeholder="زندگی‌نامه و شرح زندگی مرحوم…"></textarea>
-                <div class="bio-photos">
-                  <div class="bio-photos-head">تصاویر زندگی‌نامه (اختیاری)</div>
-                  <div class="bio-thumbs" id="bioThumbs"></div>
-                  <label class="bio-add">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    افزودن تصویر
-                    <input type="file" id="bioPhotoInput" accept="image/png,image/jpeg" multiple hidden>
-                  </label>
-                </div>
-              </div>
-          </div>
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">افزودن توضیحات تکمیلی</span><span class="box">✓</span></div>
-            <div class="exp-body"><textarea rows="3" name="extra" placeholder="توضیحات تکمیلی…"></textarea></div>
-          </div>
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">انتخاب موزیک دلخواه</span><span class="box">✓</span></div>
-            <div class="exp-body"><label class="upload-music">آپلود موزیک دلخواه<input type="file" accept="audio/*" hidden></label></div>
-          </div>
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">افزودن لایو (پخش زنده مراسم)</span><span class="box">✓</span></div>
-            <div class="exp-body"><input type="url" name="live" placeholder="لینک پخش زنده…"></div>
-          </div>
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">وابستگی قومی و خانوادگی (ایل/طایفه/خاندان)</span><span class="box">✓</span></div>
-            <div class="exp-body"><div class="exp-triple">
-              <input type="text" name="il" placeholder="ایل"><input type="text" name="tayefe" placeholder="طایفه"><input type="text" name="khandan" placeholder="خاندان">
-            </div></div>
-          </div>
-          <div class="exp-row">
-            <div class="exp-head"><span class="lbl">ارتباط با من (سوشال مدیا و تماس)</span><span class="box">✓</span></div>
-            <div class="exp-body">
-              <input type="tel" name="contact_phone" placeholder="شماره موبایل" style="margin-bottom:10px">
-              <div class="sms-only" id="smsOnly"><span>فقط پیامک</span><span class="box">✓</span></div>
-              <div class="social-grid">
-                <button type="button" class="social-btn" data-social="whatsapp">واتساپ</button>
-                <button type="button" class="social-btn" data-social="instagram">اینستاگرام</button>
-                <button type="button" class="social-btn" data-social="eitaa">ایتا</button>
-                <button type="button" class="social-btn" data-social="igap">آیگپ</button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div id="panels"></div>
       </form>
     </main>
 
