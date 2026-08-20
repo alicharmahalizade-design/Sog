@@ -330,6 +330,19 @@
     row.appendChild(saveBtn);
     return row;
   }
+  /* پیام کوتاه پایین صفحه */
+  function toast(msg) {
+    var old = document.querySelector(".sog-toast");
+    if (old) old.remove();
+    var t = el("div", "sog-toast", esc(msg));
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add("is-in"); });
+    setTimeout(function () {
+      t.classList.remove("is-in");
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 300);
+    }, 2200);
+  }
+
   /* ---------- موزیک پیشنهادی آگهی ----------
      برای هر آگهی یکی از تراک‌ها انتخاب می‌شود؛ انتخاب بر اساس شناسه‌ی آگهی است
      تا هر آگهی همیشه موزیک خودش را داشته باشد. با افزودن فایل به این فهرست،
@@ -741,11 +754,24 @@
     var cnt = el("div", "cond-action");
     var cb = el("button", "ca-btn candle", ICON.candle);
     var cntLabel = el("span", null, faNum(baseCount + SogStore.getSalavat(id)));
-    cb.setAttribute("aria-label", "روشن‌کردن شمع / صلوات");
+    var already = SogStore.hasCandle(id);
+
+    function paintCandle() {
+      cb.classList.toggle("is-lit", SogStore.hasCandle(id));
+      cb.setAttribute("aria-label", SogStore.hasCandle(id) ? "شما شمع روشن کرده‌اید" : "روشن‌کردن شمع");
+    }
+    paintCandle();
+
     cb.addEventListener("click", function () {
-      var mine = SogStore.addSalavat(id);
-      cntLabel.textContent = faNum(baseCount + mine);
+      if (!SogStore.lightCandle(id)) {
+        /* هر کاربر فقط یک‌بار می‌تواند شمع روشن کند */
+        cb.classList.remove("shake"); void cb.offsetWidth; cb.classList.add("shake");
+        toast("شما برای این آگهی شمع روشن کرده‌اید.");
+        return;
+      }
+      cntLabel.textContent = faNum(baseCount + SogStore.getSalavat(id));
       cb.classList.remove("lit"); void cb.offsetWidth; cb.classList.add("lit");
+      paintCandle();
     });
     cnt.appendChild(cb); cnt.appendChild(cntLabel);
     actions.appendChild(reg); actions.appendChild(cnt);

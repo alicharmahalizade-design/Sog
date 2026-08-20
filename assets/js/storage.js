@@ -90,9 +90,14 @@
     },
 
     /* ----- صلوات (شمع مجازی) ----- */
+    /* هر کاربر روی هر آگهی فقط یک شمع می‌تواند روشن کند */
     getSalavat: function (id) { return readMap(SALAVAT_KEY)[id] || 0; },
-    addSalavat: function (id) {
-      var m = readMap(SALAVAT_KEY); m[id] = (m[id] || 0) + 1; writeMap(SALAVAT_KEY, m); return m[id];
+    hasCandle: function (id) { return (readMap(SALAVAT_KEY)[id] || 0) > 0; },
+    lightCandle: function (id) {
+      var m = readMap(SALAVAT_KEY);
+      if (m[id]) return false;          /* قبلاً روشن کرده است */
+      m[id] = 1; writeMap(SALAVAT_KEY, m);
+      return true;
     },
 
     /* ----- دفتر یادبود ----- */
