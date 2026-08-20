@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>ثبت سوگ | سوگ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/img/icon-192.png" type="image/png">
+  <link rel="icon" href="assets/img/icon-192-v2.png" type="image/png">
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/register.css">
 </head>
@@ -122,8 +122,19 @@
         <!-- ===== مرحله ۳: توضیحات ===== -->
         <section class="reg-panel" data-panel="3">
           <div class="exp-row">
-            <div class="exp-head"><span class="lbl">افزودن بیوگرافی</span><span class="box">✓</span></div>
-            <div class="exp-body"><textarea rows="4" name="bio" placeholder="بیوگرافی و شرح زندگی مرحوم…"></textarea></div>
+            <div class="exp-head"><span class="lbl">افزودن زندگی‌نامه</span><span class="box">✓</span></div>
+            <div class="exp-body">
+                <textarea rows="4" name="bio" placeholder="زندگی‌نامه و شرح زندگی مرحوم…"></textarea>
+                <div class="bio-photos">
+                  <div class="bio-photos-head">تصاویر زندگی‌نامه (اختیاری)</div>
+                  <div class="bio-thumbs" id="bioThumbs"></div>
+                  <label class="bio-add">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    افزودن تصویر
+                    <input type="file" id="bioPhotoInput" accept="image/png,image/jpeg" multiple hidden>
+                  </label>
+                </div>
+              </div>
           </div>
           <div class="exp-row">
             <div class="exp-head"><span class="lbl">افزودن توضیحات تکمیلی</span><span class="box">✓</span></div>

@@ -517,17 +517,21 @@
   /* ---------- بلوک رویداد ---------- */
   function eventBody(c) {
     var wrap = el("div");
-    if (c.date) {
+    if (c.date || c.time_from || c.time_to) {
       var dl = el("div", "event-line");
-      dl.innerHTML = '<span class="ev-ico">' + ICON.clock + '</span><span class="ev-lbl">زمان :</span> <span>' + esc(c.date) + '</span>';
+      dl.innerHTML = '<span class="ev-ico">' + ICON.clock + '</span><span class="ev-lbl">زمان :</span>';
+      /* تاریخ و کادر ساعت در یک ستون‌اند تا ساعت دقیقاً زیر متن تاریخ شروع شود */
+      var col = el("div", "ev-col");
+      if (c.date) col.appendChild(el("span", null, esc(c.date)));
+      if (c.time_from || c.time_to) {
+        var tp = el("div", "time-pills");
+        if (c.time_to) tp.appendChild(el("span", "pill", esc(c.time_to)));
+        tp.appendChild(el("span", "to", "تا"));
+        if (c.time_from) tp.appendChild(el("span", "pill", esc(c.time_from)));
+        col.appendChild(tp);
+      }
+      dl.appendChild(col);
       wrap.appendChild(dl);
-    }
-    if (c.time_from || c.time_to) {
-      var tp = el("div", "time-pills");
-      if (c.time_to) tp.appendChild(el("span", "pill", esc(c.time_to)));
-      tp.appendChild(el("span", "to", "تا"));
-      if (c.time_from) tp.appendChild(el("span", "pill", esc(c.time_from)));
-      wrap.appendChild(tp);
     }
     if (c.location) {
       var ll = el("div", "event-line");
@@ -604,12 +608,12 @@
     var wrap = el("div");
     wrap.appendChild(el("p", "ack-text", fmtDesc(ack.text)));
     var foot = el("div", "ack-foot");
-    if (ack.has_story) {
-      var st = el("div", "ack-story");
-      var b = el("button", null, ICON.story); b.addEventListener("click", function () { openStory(currentDetail); });
-      st.appendChild(b); st.appendChild(el("span", null, "استوری"));
-      foot.appendChild(st);
-    } else { foot.appendChild(el("div")); }
+    var st = el("div", "ack-story");
+    var b = el("button", null, ICON.story);
+    b.setAttribute("aria-label", "ساخت استوری سپاسگزاری");
+    b.addEventListener("click", function () { openStory(currentDetail, ack); });
+    st.appendChild(b); st.appendChild(el("span", null, "استوری"));
+    foot.appendChild(st);
     foot.appendChild(el("div", "ack-sign", esc(ack.signature) + "<br>" + esc(ack.date)));
     wrap.appendChild(foot);
     return accordion("سپاسگزاری", wrap);
@@ -824,6 +828,72 @@
     return list.filter(Boolean)[0] || null;
   }
 
+  /* استوری سپاسگزاری: متن تشکر خانواده در قالب استوری */
+  function makeAckStory(d, ack, portrait) {
+    var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
+    x.canvas.width = W; x.canvas.height = H;
+
+    var g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    var glow = x.createRadialGradient(W / 2, 420, 60, W / 2, 420, 620);
+    glow.addColorStop(0, "rgba(217,154,91,.13)"); glow.addColorStop(1, "rgba(217,154,91,0)");
+    x.fillStyle = glow; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(48, 48, W - 96, H - 96);
+
+    x.direction = "rtl"; x.textAlign = "center";
+    x.fillStyle = "#d99a5b"; x.font = "700 52px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 180);
+
+    drawPortrait(x, portrait, W / 2, 420, 150);
+    drawCeremonyBadge(x, "سپاسگزاری", W / 2, 650);
+
+    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 60);
+    x.fillText(d.deceased_name, W / 2, 760);
+
+    x.strokeStyle = "#333"; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W / 2 - 180, 810); x.lineTo(W / 2 + 180, 810); x.stroke();
+
+    /* متن سپاسگزاری با اندازه‌ی خودتنظیم تا در کادر جا شود */
+    var text = String(ack && ack.text ? ack.text : "");
+    var size = 42, lineH, used, maxW = W - 220, boxTop = 880, boxBottom = H - 330;
+    do {
+      x.font = "400 " + size + "px Vazirmatn, Tahoma";
+      lineH = Math.round(size * 1.9);
+      used = measureWrapped(x, text, maxW, lineH);
+      size -= 2;
+    } while (used > (boxBottom - boxTop) && size > 22);
+
+    x.fillStyle = "#e2e2e2";
+    wrapText(x, text, W / 2, boxTop + lineH, maxW, lineH);
+
+    /* امضا و تاریخ */
+    var signY = boxTop + used + 90;
+    if (signY > H - 240) signY = H - 240;
+    if (ack && ack.signature) {
+      x.fillStyle = "#d99a5b"; x.font = "700 40px Vazirmatn, Tahoma";
+      x.fillText(ack.signature, W / 2, signY);
+    }
+    if (ack && ack.date) {
+      x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma";
+      x.fillText(ack.date, W / 2, signY + 54);
+    }
+
+    x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
+    x.fillText("مشاهده‌ی کامل آگهی در اپلیکیشن سوگ", W / 2, H - 130);
+    return x.canvas;
+  }
+
+  /* ارتفاع مورد نیاز متن چندخطی را حساب می‌کند (بدون کشیدن) */
+  function measureWrapped(ctx, text, maxW, lineH) {
+    var words = String(text).split(/\s+/), line = "", lines = 1;
+    words.forEach(function (w) {
+      var test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines++; line = w; }
+      else line = test;
+    });
+    return lines * lineH;
+  }
+
   function makeStory(d, portrait) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
@@ -919,13 +989,13 @@
   }
 
   /* پیش‌نمایش استوری + دکمه‌های ذخیره و اشتراک */
-  function openStory(d) {
+  function openStory(d, ack) {
     var run = function () {
       loadPortrait(d).then(function (portrait) {
-        var canvas = makeStory(d, portrait);
+        var canvas = ack ? makeAckStory(d, ack, portrait) : makeStory(d, portrait);
         canvas.toBlob(function (blob) {
           var url = URL.createObjectURL(blob);
-          var fileName = "sog-story-" + d.deceased_name + ".png";
+          var fileName = (ack ? "sog-thanks-" : "sog-story-") + d.deceased_name + ".png";
 
           var back = el("div", "sheet-backdrop");
           var box = el("div", "story-modal");
@@ -942,7 +1012,7 @@
           var actions = el("div", "story-actions");
           var save = el("a", "btn-primary", "ذخیره‌ی تصویر");
           save.href = url; save.download = fileName;
-          var share = el("button", "btn-ghost", "اشتراک‌گذاری"); share.type = "button";
+          var share = el("button", "btn-ghost", "استوری یا وضعیت"); share.type = "button";
           share.addEventListener("click", function () {
             var file = new File([blob], fileName, { type: "image/png" });
             var payload = { title: d.deceased_name, text: "آگهی ترحیم " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };

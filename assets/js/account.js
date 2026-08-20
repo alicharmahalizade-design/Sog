@@ -33,6 +33,7 @@
     root.innerHTML = "";
     var user = SogStore.getUser();
     root.appendChild(profileCard(user));
+    root.appendChild(sectionTitle("فعالیت‌ها"));
     root.appendChild(statsRow());
     root.appendChild(quickActions());
     root.appendChild(sectionTitle("همدردی‌های من"));
@@ -108,7 +109,7 @@
       { n: SogStore.getSaved().length, l: "ذخیره" },
       { n: SogStore.getFollows().length, l: "دنبال‌شده" },
       { n: conds.length, l: "همدردی", go: "condSection" },
-      { n: salavat, l: "شمع", go: "condSection" }
+      { n: salavat, l: "تسلیت", go: "condSection" }
     ].forEach(function (s) {
       var b = el("div", "stat-box" + (s.go ? " is-link" : ""));
       b.appendChild(el("div", "stat-n", faNum(s.n)));

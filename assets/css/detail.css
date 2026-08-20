@@ -109,7 +109,7 @@
   width: fit-content;
   margin-inline-start: auto;   /* در چیدمان راست‌چین یعنی چسبیده به سمت چپ */
   margin-inline-end: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 2px;
   color: var(--text-mute); font-size: 12.5px;
   background: none; border: none;
 }
@@ -133,7 +133,7 @@
 .note-body { display: none; padding: 0 14px 14px; }
 .note-box.is-open .note-body { display: block; }
 .note-input {
-  width: 100%; min-height: 84px; resize: vertical;
+  width: 100%; min-height: 180px; resize: vertical;
   background: #2b2b2b; border: none; border-radius: 12px;
   color: var(--text); font-size: 14px; padding: 10px 12px; outline: none;
 }
@@ -242,7 +242,15 @@
   background: #ccc center/cover no-repeat;
 }
 /* چیپ‌ها کنار هم (نه ستونی) و در صورت نبود جا به سطر بعد می‌روند */
-.chips-col { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-bottom: 16px; }
+.event-line .ev-col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.event-line .ev-col .time-pills { margin-bottom: 0; }
+
+/* ۶) چیپ‌های مراسم: راست‌چین و با فاصله‌ی بیشتر از کادر بالایی */
+.chips-col {
+  display: flex; flex-direction: row; flex-wrap: wrap;
+  align-items: center; justify-content: flex-start;
+  gap: 8px 10px; margin-top: 18px; margin-bottom: 16px;
+}
 .event-chip {
   border: 1px solid #3a3a3a; border-radius: 999px; padding: 8px 18px;
   font-size: 13px; color: var(--text); background: transparent; text-align: center;
@@ -318,7 +326,7 @@
 .c-sms     { color: #c6c6c6 !important; }
 
 /* ---- همدردی ---- */
-.condolence-item { border-top: 1px solid #262626; }
+.condolence-item { border-top: 1px solid #3d3d3d; }
 .condolence-item:first-child { border-top: none; }
 .cond-head {
   width: 100%; display: flex; align-items: center; gap: 12px;

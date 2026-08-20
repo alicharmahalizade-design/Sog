@@ -232,6 +232,37 @@
     img.src = url;
   }
 
+  /* تصاویر زندگی‌نامه: چند عکس با پیش‌نمایش و امکان حذف */
+  function bindBioPhotos() {
+    var input = document.getElementById("bioPhotoInput");
+    var box = document.getElementById("bioThumbs");
+    if (!input || !box) return;
+    var photos = [];
+
+    function draw() {
+      box.innerHTML = "";
+      photos.forEach(function (src, i) {
+        var th = el("div", "bio-thumb");
+        th.style.backgroundImage = 'url("' + src + '")';
+        var rm = el("button", "bio-thumb-x", "×"); rm.type = "button";
+        rm.setAttribute("aria-label", "حذف تصویر");
+        rm.addEventListener("click", function () { photos.splice(i, 1); draw(); });
+        th.appendChild(rm);
+        box.appendChild(th);
+      });
+    }
+
+    input.addEventListener("change", function () {
+      var files = Array.prototype.slice.call(input.files || []);
+      files.forEach(function (f) {
+        var rd = new FileReader();
+        rd.onload = function () { photos.push(rd.result); draw(); };
+        rd.readAsDataURL(f);
+      });
+      input.value = "";
+    });
+  }
+
   function bindUpload() {
     var input = document.getElementById("photoInput"), box = document.getElementById("uploadBox");
     if (!input) return;
@@ -310,7 +341,7 @@
   }
 
   /* راه‌اندازی */
-  fillDates(); fillPlaces(); fillNotes(); bindExpanders(); bindUpload(); renderActions();
+  fillDates(); fillPlaces(); fillNotes(); bindExpanders(); bindUpload(); bindBioPhotos(); renderActions();
   document.querySelectorAll(".reg-step").forEach(function (s) {
     s.addEventListener("click", function () { goStep(+s.dataset.step); });
   });

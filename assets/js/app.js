@@ -39,6 +39,8 @@
     return e;
   }
 
+  function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
   /* ---------- اسکلتون لودینگ ---------- */
   function renderSkeletons() {
     var bar = document.getElementById("cityBar");
@@ -498,14 +500,69 @@
   /* ---------- جستجو ---------- */
   function bindSearch() {
     var input = document.getElementById("searchInput");
-    var t;
+    if (!input) return;
+    var t, saveT;
+
+    /* پنل تاریخچه‌ی جستجو زیر کادر جستجو */
+    var panel = el("div", "search-history");
+    panel.hidden = true;
+    (input.closest(".search-box") || input.parentNode).appendChild(panel);
+
+    function renderHistory() {
+      var list = SogStore.getSearches();
+      panel.innerHTML = "";
+      if (!list.length) { panel.hidden = true; return; }
+
+      var head = el("div", "sh-head");
+      head.appendChild(el("span", null, "جستجوهای اخیر"));
+      var clear = el("button", "sh-clear", "پاک کردن همه"); clear.type = "button";
+      clear.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      clear.addEventListener("click", function () { SogStore.clearSearches(); renderHistory(); });
+      head.appendChild(clear);
+      panel.appendChild(head);
+
+      list.forEach(function (q) {
+        var row = el("div", "sh-item");
+        var go = el("button", "sh-go", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span>' + esc(q) + '</span>');
+        go.type = "button";
+        go.addEventListener("mousedown", function (e) { e.preventDefault(); });
+        go.addEventListener("click", function () {
+          input.value = q;
+          state.query = q; state.year = null;
+          SogStore.addSearch(q);
+          renderFeed(); renderHistory();
+          panel.hidden = true;
+          input.blur();
+        });
+        var rm = el("button", "sh-x", "×"); rm.type = "button";
+        rm.setAttribute("aria-label", "حذف از تاریخچه");
+        rm.addEventListener("mousedown", function (e) { e.preventDefault(); });
+        rm.addEventListener("click", function () { SogStore.removeSearch(q); renderHistory(); });
+        row.appendChild(go); row.appendChild(rm);
+        panel.appendChild(row);
+      });
+      panel.hidden = false;
+    }
+
+    function maybeShowHistory() { if (!input.value) renderHistory(); }
+    input.addEventListener("focus", maybeShowHistory);
+    input.addEventListener("click", maybeShowHistory);
+    input.addEventListener("blur", function () { setTimeout(function () { panel.hidden = true; }, 120); });
+
     input.addEventListener("input", function () {
-      clearTimeout(t);
+      clearTimeout(t); clearTimeout(saveT);
+      panel.hidden = true;
       t = setTimeout(function () {
         state.query = input.value;
         state.year = null;
         renderFeed();
       }, 180);
+      /* عبارت پس از مکث ذخیره می‌شود تا هر حرف یک ردیف تاریخچه نسازد */
+      saveT = setTimeout(function () { SogStore.addSearch(input.value); }, 1400);
+    });
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { SogStore.addSearch(input.value); panel.hidden = true; input.blur(); }
     });
   }
 

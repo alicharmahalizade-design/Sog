@@ -10,6 +10,7 @@
   var GUEST_KEY = "sog:guest";      // نگاشت id → آرایه‌ی پیام‌های دفتر یادبود
   var NOTE_KEY = "sog:notes";       // نگاشت id → یادداشت خصوصی کاربر
   var CITY_ORDER_KEY = "sog:cityOrder"; // ترتیب دلخواه کاربر برای شهرها (آرایه‌ی slug)
+  var SEARCH_KEY = "sog:searches";   // تاریخچه‌ی جستجوی کاربر
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
@@ -29,6 +30,20 @@
   }
 
   var Store = {
+    /* ----- تاریخچه‌ی جستجو ----- */
+    getSearches: function () { return read(SEARCH_KEY); },
+    addSearch: function (q) {
+      q = String(q || "").trim();
+      if (q.length < 2) return;
+      var list = read(SEARCH_KEY).filter(function (x) { return x !== q; });
+      list.unshift(q);
+      write(SEARCH_KEY, list.slice(0, 8));   /* حداکثر ۸ جستجوی اخیر */
+    },
+    removeSearch: function (q) {
+      write(SEARCH_KEY, read(SEARCH_KEY).filter(function (x) { return x !== q; }));
+    },
+    clearSearches: function () { write(SEARCH_KEY, []); },
+
     /* ----- یادداشت خصوصی روی آگهی ----- */
     getNote: function (id) { return readMap(NOTE_KEY)[id] || ""; },
     setNote: function (id, text) {
