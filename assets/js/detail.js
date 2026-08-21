@@ -1117,7 +1117,7 @@
           var actions = el("div", "story-actions");
           var save = el("a", "btn-primary", "ذخیره‌ی تصویر");
           save.href = url; save.download = fileName;
-          var share = el("button", "btn-ghost", "استوری یا وضعیت"); share.type = "button";
+          var share = el("button", "btn-ghost", "استوری"); share.type = "button";
           share.addEventListener("click", function () {
             var file = new File([blob], fileName, { type: "image/png" });
             var payload = { title: d.deceased_name, text: "آگهی ترحیم " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };
