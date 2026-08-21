@@ -20,8 +20,9 @@
   try { seen = sessionStorage.getItem(KEY) === "1"; } catch (e) {}
   if (seen) return;
 
-  var MIN_MS = 1100;   // دست‌کم این‌قدر بماند تا پرشی دیده نشود
-  var MAX_MS = 3500;   // اگر بارگذاری طول کشید، بیش از این نماند
+  /* روی‌هم‌رفته حدود دو ثانیه: ۱٫۷۵ ثانیه ماندن + ۰٫۲۵ ثانیه محوشدن */
+  var MIN_MS = 1750;
+  var MAX_MS = 1750;
   var start = Date.now();
 
   var box = document.createElement("div");
@@ -34,8 +35,7 @@
     '<div class="splash-scrim" aria-hidden="true"></div>' +
     '<div class="splash-inner">' +
       '<div class="splash-mark"><img src="assets/img/logo.png" alt="سوگ"></div>' +
-      '<div class="splash-name">سوگ</div>' +
-      '<div class="splash-tag">مرجع آگهی‌های سوگ ایران</div>' +
+      '<div class="splash-tag">مرجع ثبت سوگ ایرانیان</div>' +
       '<div class="splash-bar"><span></span></div>' +
     '</div>' +
     '<div class="splash-foot">یادِ رفتگان، زنده در دل‌های ما</div>';
@@ -60,7 +60,7 @@
     setTimeout(function () {
       box.classList.add("is-out");
       document.body.style.overflow = "";
-      setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 500);
+      setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 260);
     }, wait);
   }
 
