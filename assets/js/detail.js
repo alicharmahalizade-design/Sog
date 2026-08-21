@@ -899,6 +899,16 @@
     return x.canvas;
   }
 
+  /* لوگوی سوگ برای کارت‌ها */
+  function loadLogo() {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = "assets/img/logo.png";
+    });
+  }
+
   /* بارگذاری تصویر متوفی پیش از ساخت کارت (اگر نبود، کارت بدون تصویر ساخته می‌شود) */
   function loadPortrait(d) {
     var src = (d.photos && d.photos[0]) || d.photo;
@@ -934,7 +944,7 @@
   }
 
   /* استوری سپاسگزاری: متن تشکر خانواده در قالب استوری */
-  function makeAckStory(d, ack, portrait) {
+  function makeAckStory(d, ack, portrait, logo) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
 
@@ -947,9 +957,9 @@
     x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(48, 48, W - 96, H - 96);
 
     x.direction = "rtl"; x.textAlign = "center";
-    x.fillStyle = "#d99a5b"; x.font = "700 52px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 180);
+    if (logo) x.drawImage(logo, W / 2 - 55, 110, 110, 110);
 
-    drawPortrait(x, portrait, W / 2, 420, 150);
+    drawPortrait(x, portrait, W / 2, 450, 150);
     drawCeremonyBadge(x, "سپاسگزاری", W / 2, 650);
 
     x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 60);
@@ -984,7 +994,7 @@
     }
 
     x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
-    x.fillText("مشاهده‌ی کامل آگهی در اپلیکیشن سوگ", W / 2, H - 130);
+    x.fillText("اطلاعات بیشتر در سوگ", W / 2, H - 130);
     return x.canvas;
   }
 
@@ -999,7 +1009,16 @@
     return lines * lineH;
   }
 
-  function makeStory(d, portrait) {
+  /* نام پدر و طایفه (فقط همین دو مورد روی کارت می‌آید) */
+  function fatherLine(d) {
+    var f = (d.family && d.family.father) || {};
+    var parts = [];
+    if (f.name) parts.push("پدر: " + f.name);
+    if (f.tayefe) parts.push("طایفه: " + f.tayefe);
+    return parts.join("   •   ");
+  }
+
+  function makeStory(d, portrait, logo) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
 
@@ -1007,88 +1026,49 @@
     var g = x.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
     x.fillStyle = g; x.fillRect(0, 0, W, H);
-    var glow = x.createRadialGradient(W / 2, 560, 80, W / 2, 560, 700);
+    var glow = x.createRadialGradient(W / 2, 640, 80, W / 2, 640, 720);
     glow.addColorStop(0, "rgba(217,154,91,.14)"); glow.addColorStop(1, "rgba(217,154,91,0)");
     x.fillStyle = glow; x.fillRect(0, 0, W, H);
 
-    /* قاب */
     x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3;
     x.strokeRect(48, 48, W - 96, H - 96);
 
     x.direction = "rtl"; x.textAlign = "center";
 
-    /* برند */
-    x.fillStyle = "#d99a5b"; x.font = "700 52px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 190);
-    x.fillStyle = "#6f6f6f"; x.font = "400 30px Vazirmatn, Tahoma"; x.fillText("آگهی ترحیم", W / 2, 240);
+    /* لوگوی سوگ بالای کارت */
+    if (logo) x.drawImage(logo, W / 2 - 70, 130, 140, 140);
 
     /* تصویر متوفی */
-    drawPortrait(x, portrait, W / 2, 560, 230);
+    drawPortrait(x, portrait, W / 2, 640, 240);
 
-    /* کادر نوع مراسم */
-    drawCeremonyBadge(x, ceremonyLabel(d), W / 2, 880);
+    /* نوع مراسم */
+    drawCeremonyBadge(x, ceremonyLabel(d), W / 2, 990);
 
-    /* نام و زیرعنوان */
+    /* نام و نام خانوادگی */
     x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 180, 92);
-    x.fillText(d.deceased_name, W / 2, 1010);
+    x.fillText(d.deceased_name, W / 2, 1130);
+
+    /* شرح کوتاه */
     if (d.subtitle) {
-      x.fillStyle = "#bdbdbd"; x.font = "400 40px Vazirmatn, Tahoma";
-      x.fillText(d.subtitle, W / 2, 1076);
+      x.fillStyle = "#bdbdbd"; x.font = "400 42px Vazirmatn, Tahoma";
+      x.fillText(d.subtitle, W / 2, 1200);
     }
 
     /* خط جداکننده */
     x.strokeStyle = "#333"; x.lineWidth = 2;
-    x.beginPath(); x.moveTo(W / 2 - 180, 1130); x.lineTo(W / 2 + 180, 1130); x.stroke();
+    x.beginPath(); x.moveTo(W / 2 - 180, 1260); x.lineTo(W / 2 + 180, 1260); x.stroke();
 
-    /* تاریخ تولد و وفات */
-    var line = "";
-    if (d.birth && d.birth.date) line += d.birth.date;
-    if (d.death && d.death.date) line += (line ? "  —  " : "") + d.death.date;
-    if (line) { x.fillStyle = "#d9d9d9"; x.font = "400 44px Vazirmatn, Tahoma"; x.fillText(line, W / 2, 1200); }
-
-    /* شهر */
-    var city = (d.death && d.death.place) || deceasedCity || "";
-    if (city) { x.fillStyle = "#9a9a9a"; x.font = "400 38px Vazirmatn, Tahoma"; x.fillText(city, W / 2, 1262); }
-
-    /* طایفه‌ی پدری و مادری */
-    var tribes = tribesLine(d);
-    if (tribes) { x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText(tribes, W / 2, 1322); }
-
-    /* جزئیات مراسم */
-    var c = mainCeremony(d);
-    if (c) {
-      var top = 1390, pad = 34, boxW = W - 200, left = (W - boxW) / 2;
-      x.font = "400 34px Vazirmatn, Tahoma";
-      /* ارتفاع کادر بر اساس متن آدرس محاسبه می‌شود */
-      var addrLines = c.location ? Math.ceil(x.measureText(c.location).width / (boxW - 2 * pad)) : 0;
-      var boxH = 150 + addrLines * 46;
-      x.beginPath();
-      var r = 28;
-      x.moveTo(left + r, top);
-      x.arcTo(left + boxW, top, left + boxW, top + boxH, r);
-      x.arcTo(left + boxW, top + boxH, left, top + boxH, r);
-      x.arcTo(left, top + boxH, left, top, r);
-      x.arcTo(left, top, left + boxW, top, r);
-      x.closePath();
-      x.fillStyle = "rgba(255,255,255,.04)"; x.fill();
-      x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 2; x.stroke();
-
-      x.fillStyle = "#d99a5b"; x.font = "700 38px Vazirmatn, Tahoma";
-      x.fillText(c.title || "مراسم", W / 2, top + 62);
-
-      var when = [c.date, (c.time_from ? "ساعت " + c.time_from + (c.time_to ? " تا " + c.time_to : "") : "")]
-        .filter(Boolean).join("  •  ");
-      if (when) { x.fillStyle = "#e2e2e2"; x.font = "400 36px Vazirmatn, Tahoma"; x.fillText(when, W / 2, top + 116); }
-      if (c.location) {
-        x.fillStyle = "#a6a6a6"; x.font = "400 32px Vazirmatn, Tahoma";
-        wrapText(x, c.location, W / 2, top + 166, boxW - 2 * pad, 44);
-      }
+    /* پدر و طایفه */
+    var fl = fatherLine(d);
+    if (fl) {
+      x.fillStyle = "#c9b89c"; x.font = "400 40px Vazirmatn, Tahoma";
+      x.fillText(fl, W / 2, 1340);
     }
 
     /* پاورقی */
-    x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
-    x.fillText("مشاهده‌ی کامل آگهی و مراسم‌ها در اپلیکیشن سوگ", W / 2, H - 150);
-    x.fillStyle = "#5c5245"; x.font = "400 28px Vazirmatn, Tahoma";
-    x.fillText(location.host + location.pathname.replace(/^\//, "/"), W / 2, H - 100);
+    if (logo) x.drawImage(logo, W / 2 - 44, H - 330, 88, 88);
+    x.fillStyle = "#a08a68"; x.font = "700 40px Vazirmatn, Tahoma";
+    x.fillText("اطلاعات بیشتر در سوگ", W / 2, H - 190);
 
     return x.canvas;
   }
@@ -1096,8 +1076,9 @@
   /* پیش‌نمایش استوری + دکمه‌های ذخیره و اشتراک */
   function openStory(d, ack) {
     var run = function () {
-      loadPortrait(d).then(function (portrait) {
-        var canvas = ack ? makeAckStory(d, ack, portrait) : makeStory(d, portrait);
+      Promise.all([loadPortrait(d), loadLogo()]).then(function (res) {
+        var portrait = res[0], logo = res[1];
+        var canvas = ack ? makeAckStory(d, ack, portrait, logo) : makeStory(d, portrait, logo);
         canvas.toBlob(function (blob) {
           var url = URL.createObjectURL(blob);
           var fileName = (ack ? "sog-thanks-" : "sog-story-") + d.deceased_name + ".png";
