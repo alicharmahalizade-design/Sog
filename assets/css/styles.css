@@ -521,3 +521,13 @@ option { direction: rtl; text-align: right; }
 .sh-go span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sh-go:active { background: var(--surface-2); }
 .sh-x { background: none; border: none; color: var(--text-mute); font-size: 18px; padding: 4px 8px; }
+
+/* شمارش معکوس زیر میکروفون */
+.search-box { position: relative; }
+.mic-timer {
+  position: absolute; top: calc(100% + 4px); inset-inline-start: 8px;
+  min-width: 22px; text-align: center;
+  font-size: 11px; font-weight: 700; color: var(--badge);
+  background: rgba(0,0,0,.75); border: 1px solid #333; border-radius: 999px;
+  padding: 2px 7px; z-index: 5;
+}

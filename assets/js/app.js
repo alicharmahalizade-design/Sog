@@ -12,7 +12,7 @@
   state.tayefe = PARAMS.get("tayefe") || null;
   state.il = PARAMS.get("il") || null;
 
-  var CARDS_BEFORE_COLLECTION = 5; // بعد از ۵ کارت، کالکشن سال‌ها
+  var CARDS_BEFORE_COLLECTION = 10; // بعد از ۱۰ کارت، کالکشن سال‌ها
 
   var CEREMONY_TYPES = [
     { type: "khaksepari", label: "تشییع و خاکسپاری" },
@@ -37,6 +37,15 @@
     if (cls) e.className = cls;
     if (html != null) e.innerHTML = html;
     return e;
+  }
+
+  /* یکسان‌سازی حروف عربی/فارسی و نیم‌فاصله تا جستجو به شکل نوشتن حساس نباشد */
+  function normalize(v) {
+    return String(v == null ? "" : v)
+      .replace(/[يﻯﻰ]/g, "ی").replace(/[كﻙ]/g, "ک")
+      .replace(/[\u200c\u200f\u200e]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -75,6 +84,9 @@
 
   /* ---------- فیلترها ---------- */
   function matchesFilters(item) {
+    /* در نمای پیش‌فرض، آگهی‌های تمام‌شده فقط در کالکشن سال‌ها دیده می‌شوند */
+    if (state.year == null && !state.query && !state.tayefe && !state.il &&
+        !state.followOnly && !state.savedOnly && !isCurrent(item)) return false;
     if (state.city !== "all" && item.city_slug !== state.city) return false;
     if (state.year != null && item.death_year !== state.year) return false;
     if (state.ceremony && item.ceremony_type !== state.ceremony) return false;
@@ -83,9 +95,9 @@
     if (state.followOnly && !SogStore.isFollowing(item.id)) return false;
     if (state.savedOnly && !SogStore.isSaved(item.id)) return false;
     if (state.query) {
-      var q = state.query.trim();
-      var hay = (item.deceased_name + " " + item.city + " " + (item.tayefe || "") + " " + (item.il || "") + " " + (item.ceremony_labels || []).join(" "));
-      if (hay.indexOf(q) === -1) return false;
+      var q = normalize(state.query);
+      var hay = normalize(item.deceased_name + " " + item.city + " " + (item.tayefe || "") + " " + (item.il || "") + " " + (item.ceremony_labels || []).join(" "));
+      if (q && hay.indexOf(q) === -1) return false;
     }
     return true;
   }
@@ -302,16 +314,41 @@
     mic.hidden = false;
     var rec = new SR();
     rec.lang = "fa-IR"; rec.interimResults = false; rec.maxAlternatives = 1;
+    /* شمارش معکوس سه‌ثانیه‌ای زیر میکروفون هنگام شنیدن */
+    var timer = el("span", "mic-timer");
+    timer.hidden = true;
+    (mic.parentNode || mic).appendChild(timer);
+    var tick;
+
+    function startCountdown() {
+      var left = 3;
+      timer.hidden = false;
+      timer.textContent = faNum(left);
+      clearInterval(tick);
+      tick = setInterval(function () {
+        left--;
+        if (left <= 0) {
+          clearInterval(tick);
+          timer.textContent = faNum(0);
+          setTimeout(function () { timer.hidden = true; }, 300);
+          try { rec.stop(); } catch (e) {}
+          return;
+        }
+        timer.textContent = faNum(left);
+      }, 1000);
+    }
+    function stopCountdown() { clearInterval(tick); timer.hidden = true; }
+
     mic.addEventListener("click", function () {
-      try { rec.start(); mic.classList.add("is-listening"); } catch (e) {}
+      try { rec.start(); mic.classList.add("is-listening"); startCountdown(); } catch (e) {}
     });
     rec.onresult = function (e) {
       var text = e.results[0][0].transcript;
       var input = document.getElementById("searchInput");
       input.value = text; state.query = text; state.year = null; renderFeed();
     };
-    rec.onend = function () { mic.classList.remove("is-listening"); };
-    rec.onerror = function () { mic.classList.remove("is-listening"); };
+    rec.onend = function () { mic.classList.remove("is-listening"); stopCountdown(); };
+    rec.onerror = function () { mic.classList.remove("is-listening"); stopCountdown(); };
   }
 
   /* متن‌های طولانی کارت: همیشه تک‌خطی؛ اگر جا نشد، آرام رفت‌وبرگشت حرکت می‌کنند. */
@@ -397,18 +434,44 @@
       ' stroke-width="1.8" stroke-linejoin="round"/></svg>';
   }
 
+  /* ---------- ماندگاری آگهی در صفحه‌ی اول ----------
+     آگهی معمولی تا پایان روز چهلم (ساعت ۱۲ شبِ چهلم) در صفحه‌ی اول می‌ماند؛
+     آگهی سالگرد تا پایان روزِ خود مراسم. پس از آن به کالکشن سال‌ها می‌رود. */
+  function eventDateOf(item) {
+    if (!window.SogUtil) return null;
+    var d = SogUtil.toEn(item.event_date_jalali || "").split("/");
+    if (d.length !== 3) return null;
+    var g = SogUtil.jalaliToGregorian(+d[0], +d[1], +d[2]);
+    return new Date(g.y, g.m - 1, g.d, 0, 0, 0, 0);
+  }
+
+  function isAnniversary(item) {
+    var t = item.ceremony_type || "";
+    if (t === "salgard" || t === "shabe-sal") return true;
+    return (item.ceremony_labels || []).some(function (l) {
+      return l.indexOf("سالگرد") !== -1 || l.indexOf("شب سال") !== -1;
+    });
+  }
+
+  /* آیا هنوز باید در صفحه‌ی اول باشد؟ */
+  function isCurrent(item) {
+    var ev = eventDateOf(item);
+    if (!ev) return true;                       /* بدون تاریخ، در صفحه‌ی اول می‌ماند */
+    var end = new Date(ev.getTime());
+    end.setDate(end.getDate() + (isAnniversary(item) ? 1 : 40));   /* ساعت ۱۲ شبِ همان روز */
+    return Date.now() < end.getTime();
+  }
+
   /* ---------- کالکشن سال‌های گذشته (خودکار) ---------- */
   function buildYearCollection() {
-    // گروه‌بندی خودکار بر اساس سال فوت، به‌جز سال جاری‌ترین‌ها
+    /* فقط آگهی‌هایی که دوره‌شان تمام شده در کالکشن می‌آیند */
     var counts = {};
     DATA.listings.forEach(function (it) {
-      if (it.death_year == null) return;
+      if (it.death_year == null || isCurrent(it)) return;
       counts[it.death_year] = (counts[it.death_year] || 0) + 1;
     });
-    var years = Object.keys(counts).map(Number).sort(function (a, b) { return b - a; });
-    // «سال‌های گذشته» = همه‌ی سال‌ها به‌جز جدیدترین سال
-    if (years.length <= 1) return null;
-    var pastYears = years.slice(1);
+    var pastYears = Object.keys(counts).map(Number).sort(function (a, b) { return b - a; });
+    if (!pastYears.length) return null;
 
     var wrap = el("section", "year-collection");
     wrap.appendChild(el("h2", "collection-title", "سوگ‌های سال‌های گذشته"));
@@ -550,13 +613,12 @@
     input.addEventListener("blur", function () { setTimeout(function () { panel.hidden = true; }, 120); });
 
     input.addEventListener("input", function () {
-      clearTimeout(t); clearTimeout(saveT);
+      clearTimeout(saveT);
       panel.hidden = true;
-      t = setTimeout(function () {
-        state.query = input.value;
-        state.year = null;
-        renderFeed();
-      }, 180);
+      /* نتیجه‌ها با هر حرف و بدون تأخیر به‌روز می‌شوند */
+      state.query = input.value;
+      state.year = null;
+      renderFeed();
       /* عبارت پس از مکث ذخیره می‌شود تا هر حرف یک ردیف تاریخچه نسازد */
       saveT = setTimeout(function () { SogStore.addSearch(input.value); }, 1400);
     });

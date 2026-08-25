@@ -25,6 +25,15 @@
   var CALL = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>';
 
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+  /* یکسان‌سازی حروف عربی/فارسی و نیم‌فاصله تا جستجو به شکل نوشتن حساس نباشد */
+  function normalize(v) {
+    return String(v == null ? "" : v)
+      .replace(/[يﻯﻰ]/g, "ی").replace(/[كﻙ]/g, "ک")
+      .replace(/[\u200c\u200f\u200e]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
   /* ---------- بارگذاری ---------- */
@@ -52,8 +61,9 @@
     if (state.city !== "all" && b.city_slug !== state.city) return false;
     if (state.category && b.category_slug !== state.category) return false;
     if (state.query) {
-      var hay = b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" ");
-      if (hay.indexOf(state.query.trim()) === -1) return false;
+      var hay = normalize(b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" "));
+      var q = normalize(state.query);
+      if (q && hay.indexOf(q) === -1) return false;
     }
     return true;
   }
@@ -261,8 +271,9 @@
       if (state.city !== "all" && b.city_slug !== state.city) return false;
       if (sub && (b.services || []).indexOf(sub) === -1) return false;
       if (state.query) {
-        var hay = b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" ");
-        if (hay.indexOf(state.query.trim()) === -1) return false;
+        var hay = normalize(b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" "));
+        var q = normalize(state.query);
+        if (q && hay.indexOf(q) === -1) return false;
       }
       return true;
     }).sort(rank);
@@ -489,11 +500,56 @@
   /* ---------- جستجو ---------- */
   function bindSearch() {
     var input = document.getElementById("searchInput");
-    var t;
+    if (!input) return;
+    /* بدون تأخیر: با هر حرف، نتیجه‌ها به‌روز می‌شوند */
     input.addEventListener("input", function () {
-      clearTimeout(t);
-      t = setTimeout(function () { state.query = input.value || null; applyView(); }, 180);
+      state.query = input.value || null;
+      applyView();
     });
+    bindVoice(input);
+  }
+
+  /* جستجوی صوتی فارسی */
+  function bindVoice(input) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var mic = document.getElementById("micBtn");
+    if (!SR || !mic) return;
+    mic.hidden = false;
+
+    var rec = new SR();
+    rec.lang = "fa-IR"; rec.interimResults = false; rec.maxAlternatives = 1;
+
+    var timer = el("span", "mic-timer");
+    timer.hidden = true;
+    (mic.parentNode || mic).appendChild(timer);
+    var tick;
+
+    function startCountdown() {
+      var left = 3;
+      timer.hidden = false; timer.textContent = faNum(left);
+      clearInterval(tick);
+      tick = setInterval(function () {
+        left--;
+        if (left <= 0) {
+          clearInterval(tick); timer.textContent = faNum(0);
+          setTimeout(function () { timer.hidden = true; }, 300);
+          try { rec.stop(); } catch (e) {}
+          return;
+        }
+        timer.textContent = faNum(left);
+      }, 1000);
+    }
+    function stopCountdown() { clearInterval(tick); timer.hidden = true; }
+
+    mic.addEventListener("click", function () {
+      try { rec.start(); mic.classList.add("is-listening"); startCountdown(); } catch (e) {}
+    });
+    rec.onresult = function (e) {
+      var text = e.results[0][0].transcript;
+      input.value = text; state.query = text; applyView();
+    };
+    rec.onend = function () { mic.classList.remove("is-listening"); stopCountdown(); };
+    rec.onerror = function () { mic.classList.remove("is-listening"); stopCountdown(); };
   }
 
   /* ---------- راه‌اندازی ---------- */
