@@ -3,7 +3,7 @@
     {
       "id": 101,
       "deceased_name": "استاد محمود فرشچیان",
-      "photo": "assets/img/portrait-1.svg",
+      "photo": "assets/img/farshchian-1.jpg",
       "ceremony_type": "khaksepari",
       "ceremony_labels": [
         "تشییع",
@@ -22,7 +22,7 @@
     {
       "id": 102,
       "deceased_name": "استاد محمود فرشچیان",
-      "photo": "assets/img/portrait-2.svg",
+      "photo": "assets/img/farshchian-1.jpg",
       "ceremony_type": "salgard",
       "ceremony_labels": [
         "سالگرد"
@@ -40,7 +40,7 @@
     {
       "id": 103,
       "deceased_name": "استاد محمود فرشچیان",
-      "photo": "assets/img/portrait-1.svg",
+      "photo": "assets/img/farshchian-1.jpg",
       "ceremony_type": "khaksepari",
       "ceremony_labels": [
         "تشییع",
