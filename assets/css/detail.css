@@ -155,8 +155,8 @@
   max-width: var(--frame-w); margin: 0 auto;
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: 20px 20px 0 0;
-  padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
-  max-height: 88vh; overflow-y: auto;
+  padding: 16px 16px calc(10px + env(safe-area-inset-bottom));
+  max-height: 86vh; overflow-y: auto; overscroll-behavior: contain;
   transform: translateY(100%); transition: transform .25s ease;
 }
 .report-sheet.is-in { transform: translateY(0); }
@@ -184,7 +184,14 @@
   display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim);
 }
 .report-upload .up-hint { font-size: 12px; color: var(--text-mute); }
-.report-actions { display: flex; gap: 10px; margin-top: 4px; }
+/* دکمه‌ها همیشه پایین کادر می‌چسبند تا در فرم‌های بلند از دسترس خارج نشوند */
+.report-actions {
+  display: flex; gap: 10px; margin-top: 8px;
+  position: sticky; bottom: calc(-10px - env(safe-area-inset-bottom));
+  background: var(--card);
+  padding: 10px 0 calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 16px -12px rgba(0,0,0,.9);
+}
 .report-actions .btn-primary, .report-actions .btn-ghost {
   flex: 1 1 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
 }
@@ -342,7 +349,7 @@
   padding: 14px 4px; background: none; border: none; color: var(--text);
 }
 .cond-head .cond-logo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #222; flex: 0 0 auto; }
-.cond-head .cond-name { flex: 1 1 auto; text-align: start; font-weight: 700; font-size: 14.5px; }
+.cond-head .cond-name { flex: 0 1 auto; text-align: start; font-weight: 700; font-size: 14.5px; min-width: 0; }
 .cond-head .chev { color: var(--text-dim); transition: transform .25s; }
 .cond-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .cond-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; }
@@ -350,7 +357,11 @@
 .condolence-item.is-open > .cond-body { grid-template-rows: 1fr; }
 /* بدون تورفتگی سمت چپ تا متن تمام عرض کادر را پر کند */
 .cond-message { padding: 0 4px 14px; }
-.cond-message p { font-size: 13.5px; line-height: 1.75; color: var(--text-dim); margin: 0 0 8px; text-align: justify; }
+.cond-message p {
+  font-size: 13.5px; line-height: 1.75; color: var(--text-dim); margin: 0 0 8px;
+  text-align: justify;
+  overflow-wrap: anywhere; word-break: break-word;   /* متن‌های طولانیِ بدون فاصله هم می‌شکنند */
+}
 /* تاریخ در سمت چپ کادر */
 .cond-message time { display: block; width: fit-content; margin-inline-start: auto; font-size: 12px; color: var(--text-mute); }
 
@@ -470,12 +481,19 @@
   padding: 14px; margin: 0 0 10px; background: var(--surface-2); border-radius: 12px;
 }
 
-.condolence-item.is-mine { background: rgba(217,154,91,.07); border-radius: 12px; }
+.condolence-item.is-mine {
+  background: rgba(217,154,91,.07); border-radius: 12px;
+  padding: 4px 10px 12px;          /* متن به لبه‌ی کادر نچسبد */
+  margin-bottom: 14px;             /* فاصله تا خط جداکننده‌ی پایین */
+  border-top: none;
+}
+.condolence-item.is-mine + .condolence-item { border-top: 1px solid #4d4d4d; }
 .condolence-item.is-mine .cond-body { grid-template-rows: 1fr; }
 .mine-avatar { display: grid; place-items: center; color: var(--accent); background: rgba(217,154,91,.15); }
 .mine-badge {
   font-size: 10.5px; font-weight: 700; color: #1c1206; background: var(--accent);
-  border-radius: 999px; padding: 2px 9px; margin-inline-start: 8px;
+  border-radius: 999px; padding: 2px 9px;
+  margin-inline-start: 8px; margin-inline-end: auto;   /* کنار نام، نه چسبیده به لبه */
 }
 .mine-tools { display: flex; gap: 8px; margin-top: 10px; }
 .mine-btn {
