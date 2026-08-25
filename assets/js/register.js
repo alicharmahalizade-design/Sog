@@ -228,7 +228,8 @@
       for (var h = 0; h <= 23; h++) hour.appendChild(new Option(pad2(h), h));
       min = document.createElement("select"); min.className = "sel-minute";
       for (var m2 = 0; m2 < 60; m2 += 5) min.appendChild(new Option(pad2(m2), m2));
-      trow.appendChild(hour); trow.appendChild(el("span", "dt-colon", ":")); trow.appendChild(min);
+      /* در چیدمان راست‌چین، دقیقه سمت راست و ساعت سمت چپ می‌نشیند */
+      trow.appendChild(min); trow.appendChild(el("span", "dt-colon", ":")); trow.appendChild(hour);
       box.appendChild(trow);
     }
 
@@ -355,12 +356,9 @@
   function ceremonyInstances() {
     var out = [];
     CEREMONIES.forEach(function (c) {
-      var n = data.picked[c.key] || 0;
-      for (var i = 1; i <= n; i++) {
-        var id = c.key + "#" + i;
-        if (!data.events[id]) data.events[id] = { photos: [], notes: [] };
-        out.push({ id: id, name: c.name + (n > 1 ? " (" + faNum(i) + ")" : "") });
-      }
+      if (!data.picked[c.key]) return;
+      if (!data.events[c.key]) data.events[c.key] = { photos: [], notes: [] };
+      out.push({ id: c.key, name: c.name });
     });
     return out;
   }
@@ -414,36 +412,15 @@
         var chk = el("button", "cer-check"); chk.type = "button";
         chk.setAttribute("aria-pressed", data.picked[c.key] ? "true" : "false");
         chk.innerHTML = '<span class="box">✓</span><span class="lbl">' + esc(c.name) + "</span>";
-        var count = el("div", "cer-count");
-        var minus = el("button", "cc-btn", "−"); minus.type = "button";
-        var num = el("span", "cc-num", faNum(data.picked[c.key] || 1) + " مراسم");
-        var plus = el("button", "cc-btn", "+"); plus.type = "button";
-        count.appendChild(minus); count.appendChild(num); count.appendChild(plus);
-
-        function paint() {
-          var on = !!data.picked[c.key];
-          row.classList.toggle("is-on", on);
-          chk.setAttribute("aria-pressed", on ? "true" : "false");
-          num.textContent = faNum(data.picked[c.key] || 1) + " مراسم";
-          count.classList.toggle("is-off", !on);
-        }
         chk.addEventListener("click", function () {
           if (data.picked[c.key]) delete data.picked[c.key];
           else data.picked[c.key] = 1;
-          paint(); refreshSteps();
+          var on = !!data.picked[c.key];
+          row.classList.toggle("is-on", on);
+          chk.setAttribute("aria-pressed", on ? "true" : "false");
+          refreshSteps();
         });
-        plus.addEventListener("click", function () {
-          data.picked[c.key] = Math.min(5, (data.picked[c.key] || 0) + 1);
-          paint(); refreshSteps();
-        });
-        minus.addEventListener("click", function () {
-          if (!data.picked[c.key]) return;
-          if (data.picked[c.key] <= 1) delete data.picked[c.key];
-          else data.picked[c.key]--;
-          paint(); refreshSteps();
-        });
-        row.appendChild(chk); row.appendChild(count);
-        paint();
+        row.appendChild(chk);
         list.appendChild(row);
       });
       p.appendChild(list);
