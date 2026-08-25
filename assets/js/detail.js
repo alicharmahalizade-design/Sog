@@ -438,14 +438,10 @@
 
   /* ---------- بۀ‌شیت گزارش خطا ---------- */
   var REPORT_TYPES = [
-    "اطلاعات متوفی نادرست است",
-    "تاریخ یا ساعت مراسم اشتباه است",
-    "آدرس یا محل مراسم اشتباه است",
-    "شماره تماس خانواده نادرست است",
-    "تصویر نامناسب یا اشتباه است",
     "این آگهی تکراری است",
+    "تصویر نامناسب یا اشتباه است",
     "محتوای توهین‌آمیز یا نامرتبط",
-    "سایر موارد"
+    "اطلاعات آگهی اشتباه است"
   ];
 
   function openReportSheet(d) {
@@ -501,12 +497,22 @@
       /* بدون بک‌اند: گزارش به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس به سرور ارسال شود */
       try {
         var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
-        box.push({ id: d && d.id, type: fd.get("type"), note: fd.get("note") || "", at: Date.now() });
+        box.push({
+          id: d && d.id,
+          listing: d && d.deceased_name,
+          type: fd.get("type"),
+          note: fd.get("note") || "",
+          at: Date.now(),
+          /* گیرنده‌ها: هم پشتیبانی سوگ، هم ثبت‌کننده‌ی آگهی */
+          to: ["sog-support", "listing-owner"],
+          owner: (d && d.owner_id) || null,
+          status: "queued"
+        });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
       form.replaceWith(el("div", "report-done",
         '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-        '<p>گزارش شما ثبت شد. با تشکر از همراهی‌تان.</p>'));
+        '<p>گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد. با تشکر از همراهی‌تان.</p>'));
       setTimeout(closeReportSheet, 1800);
     });
   }

@@ -396,7 +396,7 @@
       p.appendChild(field("نام پدر", false, textInput("father", "فقط نام پدر نوشته شود")));
       p.appendChild(field("نام طایفه پدری", true, textInput("father_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
       p.appendChild(field("نام ایل پدری", false, textInput("father_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
-      p.appendChild(field("نام خانوادگی مادر", true, textInput("mother", "نام و نام خانوادگی یا فقط نام خانوادگی نوشته شود")));
+      p.appendChild(field("نام مادر", true, textInput("mother", "نام و نام خانوادگی یا فقط نام خانوادگی نوشته شود")));
       p.appendChild(field("نام طایفه مادری", true, textInput("mother_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
       p.appendChild(field("نام ایل مادری", false, textInput("mother_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
       return p;
