@@ -223,7 +223,6 @@
     var hour, min;
     if (withTime) {
       var trow = el("div", "time-row");
-      trow.appendChild(el("span", "dt-sep", "ساعت"));
       hour = document.createElement("select"); hour.className = "sel-hour";
       for (var h = 0; h <= 23; h++) hour.appendChild(new Option(pad2(h), h));
       min = document.createElement("select"); min.className = "sel-minute";
