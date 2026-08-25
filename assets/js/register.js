@@ -26,6 +26,11 @@
   ];
   var NOTES = ["به صرف ناهار", "به صرف شام", "به صرف پذیرایی", "به صرف افطار"];
   var MESSENGERS = ["روبیکا", "اینستاگرام", "بله", "واتساپ", "ایتا", "تلگرام"];
+  var READY_THANKS = [
+    "از تمامی عزیزانی که در این مصیبت ما را تنها نگذاشتند و با حضور یا پیام خود موجب تسلی خاطر خانواده شدند، صمیمانه سپاسگزاریم.",
+    "بدین‌وسیله از همه‌ی سروران گرامی که در مراسم تشییع و ترحیم شرکت فرمودند، کمال تشکر و قدردانی را داریم.",
+    "از لطف و محبت شما بزرگواران که در این ایام سخت همراه ما بودید، صمیمانه سپاسگزاریم. اجرکم عندالله."
+  ];
 
   /* داده‌ی فرم */
   var data = {
@@ -37,7 +42,7 @@
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
     bio: "", bio_photos: [], bio_layout: "one", music: null,
-    phone: "", messengers: [], messenger_links: {}, relation: ""
+    phone: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
@@ -603,6 +608,50 @@
       wrap.appendChild(grid); wrap.appendChild(links);
       p.appendChild(field("پیام‌رسان‌ها", false, wrap));
       p.appendChild(field("ارتباط خویشاوندی با درگذشته", false, textInput("relation", "مثال : فرزند")));
+
+      /* آیکون جفت: ثبت همدردی و سپاسگزاری در پایان ثبت آگهی */
+      var pair = el("div", "final-pair");
+      var thanksBtn = el("button", "pair-btn" + (data.thanks ? " is-on" : ""));
+      thanksBtn.type = "button";
+      thanksBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span><span>متن سپاسگزاری</span>';
+      var condBtn = el("button", "pair-btn is-off");
+      condBtn.type = "button";
+      condBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span>ثبت همدردی</span>';
+      condBtn.disabled = true;
+      condBtn.title = "پس از انتشار آگهی، بازدیدکنندگان می‌توانند همدردی ثبت کنند";
+      pair.appendChild(thanksBtn); pair.appendChild(condBtn);
+
+      var thanksBox = el("div", "thanks-box");
+      thanksBox.hidden = !data.thanks;
+      var ta = textInput("thanks", "متن سپاسگزاری خود را بنویسید…", { tag: "textarea", rows: 4, max: 600 });
+      thanksBox.appendChild(ta);
+      thanksBox.appendChild(el("p", "field-hint", "یا یکی از متن‌های آماده را انتخاب کنید:"));
+      var track = el("div", "ready-track");
+      READY_THANKS.forEach(function (t) {
+        var card = el("button", "ready-card", esc(t));
+        card.type = "button";
+        card.addEventListener("click", function () {
+          Array.prototype.forEach.call(track.children, function (n) { n.classList.remove("is-picked"); });
+          card.classList.add("is-picked");
+          data.thanks = t;
+          var input = thanksBox.querySelector("textarea");
+          if (input) {
+            input.value = t;
+            var c = thanksBox.querySelector(".char-count");
+            if (c) c.textContent = faNum(600 - t.length);
+          }
+        });
+        track.appendChild(card);
+      });
+      thanksBox.appendChild(track);
+
+      thanksBtn.addEventListener("click", function () {
+        thanksBox.hidden = !thanksBox.hidden;
+        thanksBtn.classList.toggle("is-on", !thanksBox.hidden);
+      });
+
+      p.appendChild(field("همدردی و سپاسگزاری", false, pair));
+      p.appendChild(thanksBox);
       return p;
     }});
 
@@ -657,7 +706,14 @@
 
   function submit() {
     /* بدون بک‌اند: داده به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس ارسال شود */
-    try { localStorage.setItem("sog:draftListing", JSON.stringify(data)); } catch (e) {}
+    try {
+      localStorage.setItem("sog:draftListing", JSON.stringify(data));
+      /* تا وقتی حساب کاربری واقعی وصل نشده، ثبت‌کننده روی همین دستگاه شناخته می‌شود */
+      var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
+      var newId = "draft-" + Date.now();
+      mine.push(newId);
+      localStorage.setItem("sog:myListings", JSON.stringify(mine));
+    } catch (e) {}
     document.getElementById("regSuccess").classList.add("is-in");
   }
 

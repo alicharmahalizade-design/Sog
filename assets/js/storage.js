@@ -11,6 +11,9 @@
   var NOTE_KEY = "sog:notes";       // نگاشت id → یادداشت خصوصی کاربر
   var CITY_ORDER_KEY = "sog:cityOrder"; // ترتیب دلخواه کاربر برای شهرها (آرایه‌ی slug)
   var SEARCH_KEY = "sog:searches";   // تاریخچه‌ی جستجوی کاربر
+  var MYCOND_KEY = "sog:myCondolence";  // همدردی خودِ کاربر روی هر آگهی
+  var HIDDEN_KEY = "sog:hiddenCond";    // همدردی‌های مخفی‌شده توسط صاحب عزا
+  var OWNERNOTE_KEY = "sog:ownerNote";  // یادداشت صاحب عزا روی آگهی خودش
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
@@ -30,6 +33,39 @@
   }
 
   var Store = {
+    /* ----- همدردی خودِ کاربر (قابل ویرایش) ----- */
+    getMyCondolence: function (id) { return readMap(MYCOND_KEY)[id] || null; },
+    setMyCondolence: function (id, entry) {
+      var m = readMap(MYCOND_KEY);
+      if (entry) m[id] = entry; else delete m[id];
+      writeMap(MYCOND_KEY, m);
+    },
+
+    /* ----- مخفی‌کردن همدردی‌ها توسط صاحب عزا ----- */
+    getHidden: function (id) { return readMap(HIDDEN_KEY)[id] || { all: false, items: [] }; },
+    setHidden: function (id, v) { var m = readMap(HIDDEN_KEY); m[id] = v; writeMap(HIDDEN_KEY, m); },
+    toggleHiddenItem: function (id, key) {
+      var h = this.getHidden(id);
+      var i = h.items.indexOf(key);
+      if (i === -1) h.items.push(key); else h.items.splice(i, 1);
+      this.setHidden(id, h);
+      return i === -1;
+    },
+    toggleHideAll: function (id) {
+      var h = this.getHidden(id);
+      h.all = !h.all;
+      this.setHidden(id, h);
+      return h.all;
+    },
+
+    /* ----- یادداشت صاحب عزا ----- */
+    getOwnerNote: function (id) { return readMap(OWNERNOTE_KEY)[id] || ""; },
+    setOwnerNote: function (id, text) {
+      var m = readMap(OWNERNOTE_KEY);
+      if (text && text.trim()) m[id] = text; else delete m[id];
+      writeMap(OWNERNOTE_KEY, m);
+    },
+
     /* ----- تاریخچه‌ی جستجو ----- */
     getSearches: function () { return read(SEARCH_KEY); },
     addSearch: function (q) {

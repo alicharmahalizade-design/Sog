@@ -194,6 +194,7 @@
     }
     root.appendChild(condolenceSection(d));
 
+    if (ownerMode(d)) root.appendChild(ownerNote(d));
     root.appendChild(privateNote(d));
     root.appendChild(needsBanner());
     bindAccordions();
@@ -512,6 +513,46 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeReportSheet(); });
 
   /* ---------- یادداشت خصوصی کاربر ---------- */
+  /* یادداشت مخصوص آگهی‌گذار (صاحب عزا) */
+  function ownerNote(d) {
+    var wrap = el("section", "note-box owner-note");
+    var head = el("button", "note-head"); head.type = "button";
+    head.setAttribute("aria-expanded", "false");
+    head.appendChild(el("span", "note-title", "یادداشت من به‌عنوان ثبت‌کننده"));
+    var saved = SogStore.getOwnerNote(d.id) || "";
+    var badge = el("span", "note-badge", saved ? "ثبت‌شده" : "خالی");
+    head.appendChild(badge);
+    head.appendChild(el("span", "note-chev", ICON.chevron));
+
+    var body = el("div", "note-body");
+    var ta = el("textarea", "note-input");
+    ta.rows = 4;
+    ta.placeholder = "کارهای باقی‌مانده، هماهنگی‌های مراسم، شماره‌ی خدمات‌دهنده‌ها و…";
+    ta.value = saved;
+    var hint = el("p", "note-hint", "این یادداشت فقط برای شما (ثبت‌کننده‌ی آگهی) قابل دیدن است.");
+    var status = el("span", "note-status", "");
+    var t;
+    ta.addEventListener("input", function () {
+      clearTimeout(t);
+      status.textContent = "در حال ذخیره…";
+      t = setTimeout(function () {
+        SogStore.setOwnerNote(d.id, ta.value);
+        badge.textContent = ta.value.trim() ? "ثبت‌شده" : "خالی";
+        status.textContent = ta.value.trim() ? "ذخیره شد" : "";
+        setTimeout(function () { if (status.textContent === "ذخیره شد") status.textContent = ""; }, 1800);
+      }, 400);
+    });
+    hint.appendChild(status);
+    body.appendChild(ta); body.appendChild(hint);
+    head.addEventListener("click", function () {
+      var open = wrap.classList.toggle("is-open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) ta.focus();
+    });
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+
   function privateNote(d) {
     var wrap = el("section", "note-box");
     var saved = SogStore.getNote(d.id) || "";
@@ -717,19 +758,228 @@
   }
 
   /* ---------- همدردی ---------- */
+  /* متن‌های آماده‌ی همدردی و سپاسگزاری */
+  var READY_CONDOLENCE = [
+    "درگذشت این عزیز را به خانواده‌ی محترم تسلیت عرض می‌کنم. برای آن مرحوم علو درجات و برای بازماندگان صبر و شکیبایی آرزومندم.",
+    "مصیبت وارده را خدمت شما و خانواده‌ی محترمتان تسلیت عرض می‌نمایم. از خداوند منان برای آن مرحوم رحمت واسعه مسئلت دارم.",
+    "فقدان این عزیز موجب تأثر و تألم گردید. برای آن مرحوم آمرزش الهی و برای شما سلامتی و صبر جمیل خواستارم.",
+    "با نهایت تأسف و تأثر، درگذشت این بزرگوار را تسلیت گفته، از درگاه ایزد منان برای ایشان غفران الهی طلب می‌کنم.",
+    "خداوند روح آن عزیز سفرکرده را شاد و قرین رحمت گرداند و به شما و خانواده‌ی محترم صبر عطا فرماید."
+  ];
+  var READY_THANKS = [
+    "از تمامی عزیزانی که در این مصیبت ما را تنها نگذاشتند و با حضور یا پیام خود موجب تسلی خاطر خانواده شدند، صمیمانه سپاسگزاریم.",
+    "بدین‌وسیله از همه‌ی سروران گرامی که در مراسم تشییع و ترحیم شرکت فرمودند، کمال تشکر و قدردانی را داریم.",
+    "از لطف و محبت شما بزرگواران که در این ایام سخت همراه ما بودید، صمیمانه سپاسگزاریم. اجرکم عندالله."
+  ];
+
+  /* انتخابگر متن آماده */
+  function readyTextPicker(list, onPick) {
+    var box = el("div", "ready-picker");
+    box.appendChild(el("p", "ready-title", "یا یکی از متن‌های آماده را انتخاب کنید:"));
+    var track = el("div", "ready-track");
+    list.forEach(function (t) {
+      var card = el("button", "ready-card", esc(t));
+      card.type = "button";
+      card.addEventListener("click", function () {
+        Array.prototype.forEach.call(track.children, function (n) { n.classList.remove("is-picked"); });
+        card.classList.add("is-picked");
+        onPick(t);
+      });
+      track.appendChild(card);
+    });
+    box.appendChild(track);
+    return box;
+  }
+
+  /* کلید یکتا برای هر همدردی (برای مخفی‌کردن) */
+  function condKey(cd) { return (cd.name || "") + "|" + String(cd.date || ""); }
+
+  /* آیا کاربر ثبت‌کننده‌ی این آگهی است؟
+     تا وقتی حساب کاربری واقعی وصل نشده، آگهی‌هایی که خودِ کاربر روی این دستگاه ثبت کرده مالک محسوب می‌شوند. */
+  function ownerMode(d) {
+    try {
+      var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
+      return mine.indexOf(String(d.id)) !== -1 || mine.indexOf(Number(d.id)) !== -1;
+    } catch (e) { return false; }
+  }
+
+  /* همدردی خودِ کاربر: بالای فهرست و قابل ویرایش */
+  function myCondolenceItem(d, entry) {
+    var item = el("div", "condolence-item is-mine is-open");
+    var head = el("div", "cond-head");
+    head.innerHTML = '<span class="cond-logo mine-avatar">' +
+      '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
+      '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
+      '<span class="mine-badge">شما</span>';
+    var body = el("div", "cond-body");
+    var innerB = el("div");
+    var msg = el("div", "cond-message");
+    var pEl = el("p", null, fmtDesc(entry.message));
+    msg.appendChild(pEl);
+    msg.appendChild(el("time", null, esc(entry.date || "")));
+
+    var tools = el("div", "mine-tools");
+    var edit = el("button", "mine-btn", "ویرایش"); edit.type = "button";
+    var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
+    edit.addEventListener("click", function () { openCondolenceSheet(d, entry); });
+    del.addEventListener("click", function () {
+      SogStore.setMyCondolence(id, null);
+      toast("همدردی شما حذف شد.");
+      render(d);
+    });
+    tools.appendChild(edit); tools.appendChild(del);
+    msg.appendChild(tools);
+
+    innerB.appendChild(msg); body.appendChild(innerB);
+    item.appendChild(head); item.appendChild(body);
+    return item;
+  }
+
+  /* بۀ‌شیت ثبت/ویرایش همدردی */
+  function openCondolenceSheet(d, editing) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "report-sheet cond-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button";
+
+    var form = el("form", "report-form");
+    form.innerHTML =
+      '<h3 class="report-title">' + (editing ? "ویرایش همدردی" : "ثبت همدردی") + '</h3>' +
+      '<div class="cond-kind">' +
+        '<button type="button" class="kind-btn is-active" data-kind="person">شخصی</button>' +
+        '<button type="button" class="kind-btn" data-kind="org">اداره / شرکت</button>' +
+      '</div>' +
+      '<label class="report-field"><span>نام</span>' +
+        '<input name="name" type="text" placeholder="نام و نام خانوادگی" required></label>' +
+      '<label class="report-field org-only" hidden><span>کد ملی مسئول ثبت</span>' +
+        '<input name="melli" type="tel" inputmode="numeric" maxlength="10" placeholder="۱۰ رقم"></label>' +
+      '<label class="report-field"><span>متن همدردی</span>' +
+        '<textarea name="message" rows="4" placeholder="متن همدردی خود را بنویسید…" required></textarea></label>' +
+      '<div class="report-actions">' +
+        '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
+        '<button type="submit" class="btn-primary">' + (editing ? "ذخیره‌ی تغییرات" : "ثبت همدردی") + '</button>' +
+      '</div>';
+
+    var ta = form.querySelector('textarea[name="message"]');
+    form.insertBefore(readyTextPicker(READY_CONDOLENCE, function (t) { ta.value = t; }), form.querySelector(".report-actions"));
+
+    if (editing) {
+      form.querySelector('input[name="name"]').value = editing.name || "";
+      ta.value = editing.message || "";
+      if (editing.kind === "org") {
+        form.querySelector('.kind-btn[data-kind="person"]').classList.remove("is-active");
+        form.querySelector('.kind-btn[data-kind="org"]').classList.add("is-active");
+        form.querySelector(".org-only").hidden = false;
+        form.querySelector('input[name="melli"]').value = editing.melli || "";
+      }
+    }
+
+    /* ادارات و شرکت‌ها: ثبت با تأیید کد ملی */
+    var kind = editing && editing.kind === "org" ? "org" : "person";
+    Array.prototype.forEach.call(form.querySelectorAll(".kind-btn"), function (b) {
+      b.addEventListener("click", function () {
+        kind = b.getAttribute("data-kind");
+        Array.prototype.forEach.call(form.querySelectorAll(".kind-btn"), function (n) { n.classList.remove("is-active"); });
+        b.classList.add("is-active");
+        form.querySelector(".org-only").hidden = kind !== "org";
+        form.querySelector('input[name="name"]').placeholder = kind === "org" ? "نام اداره یا شرکت" : "نام و نام خانوادگی";
+      });
+    });
+
+    sheet.appendChild(close); sheet.appendChild(form);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    close.addEventListener("click", done);
+    back.addEventListener("click", done);
+    form.querySelector("[data-cancel]").addEventListener("click", done);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      if (kind === "org") {
+        var code = toEnNum(String(fd.get("melli") || "")).replace(/\D/g, "");
+        if (!validMelli(code)) {
+          toast("کد ملی معتبر نیست؛ برای ثبت به‌نام اداره یا شرکت، کد ملی مسئول ثبت لازم است.");
+          return;
+        }
+      }
+      var t = SogUtil.todayJalali();
+      SogStore.setMyCondolence(id, {
+        name: fd.get("name"),
+        message: fd.get("message"),
+        kind: kind,
+        melli: kind === "org" ? String(fd.get("melli") || "") : "",
+        date: faNum(t.y) + "/" + faNum(t.m < 10 ? "0" + t.m : t.m) + "/" + faNum(t.d < 10 ? "0" + t.d : t.d)
+      });
+      done();
+      toast(editing ? "همدردی شما ویرایش شد." : "همدردی شما ثبت شد.");
+      render(d);
+    });
+  }
+
+  /* اعتبارسنجی کد ملی ایران */
+  function validMelli(code) {
+    if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) return false;
+    var sum = 0;
+    for (var i = 0; i < 9; i++) sum += parseInt(code[i], 10) * (10 - i);
+    var r = sum % 11, c = parseInt(code[9], 10);
+    return (r < 2 && c === r) || (r >= 2 && c === 11 - r);
+  }
+
   function condolenceSection(d) {
     var wrap = el("div");
     var inner = el("div");
     d.condolences = d.condolences || [];
-    var visible = d.condolences.slice(0, 5);
-    visible.forEach(function (cd) { inner.appendChild(condolenceItem(cd)); });
 
-    if (d.condolences.length > 5) {
+    var hidden = SogStore.getHidden(id);
+    var isOwner = SogStore.isOwner ? SogStore.isOwner(id) : ownerMode(d);
+
+    /* ---- نوار مدیریت صاحب عزا ---- */
+    if (isOwner) {
+      var bar = el("div", "owner-bar");
+      bar.appendChild(el("span", "owner-tag", "شما ثبت‌کننده‌ی این آگهی هستید"));
+      var hideAll = el("button", "owner-btn" + (hidden.all ? " is-on" : ""),
+        hidden.all ? "نمایش همه‌ی همدردی‌ها" : "مخفی‌کردن همه‌ی همدردی‌ها");
+      hideAll.type = "button";
+      hideAll.addEventListener("click", function () {
+        SogStore.toggleHideAll(id);
+        render(d);   /* بازسازی بخش با وضعیت تازه */
+      });
+      bar.appendChild(hideAll);
+      inner.appendChild(bar);
+    }
+
+    /* ---- همدردی خودِ کاربر، همیشه اول فهرست ---- */
+    var mine = SogStore.getMyCondolence(id);
+    if (mine) inner.appendChild(myCondolenceItem(d, mine));
+
+    var list = d.condolences.filter(function (cd) {
+      if (hidden.all) return false;
+      return hidden.items.indexOf(condKey(cd)) === -1;
+    });
+
+    if (hidden.all && isOwner) {
+      inner.appendChild(el("p", "cond-hidden-note", "همه‌ی همدردی‌ها فعلاً برای بازدیدکنندگان مخفی است."));
+    }
+
+    var visible = list.slice(0, 5);
+    visible.forEach(function (cd) { inner.appendChild(condolenceItem(cd, d, isOwner)); });
+
+    if (list.length > 5) {
       var more = el("button", "cond-more", "مشاهده بیشتر ▾");
       var expanded = false;
       more.addEventListener("click", function () {
         expanded = !expanded;
-        if (expanded) { d.condolences.slice(5).forEach(function (cd) { inner.insertBefore(condolenceItem(cd), more); }); more.textContent = "بستن ▴"; }
+        if (expanded) { list.slice(5).forEach(function (cd) { inner.insertBefore(condolenceItem(cd, d, isOwner), more); }); more.textContent = "بستن ▴"; }
         else { location.reload(); }
       });
       inner.appendChild(more);
@@ -737,7 +987,8 @@
 
     var actions = el("div", "cond-actions");
     var reg = el("div", "cond-action");
-    var rb = el("button", "ca-btn", ICON.plus); rb.addEventListener("click", function () { alert("ثبت همدردی (نمونه)."); });
+    var rb = el("button", "ca-btn", ICON.plus);
+    rb.addEventListener("click", function () { openCondolenceSheet(d); });
     reg.appendChild(rb); reg.appendChild(el("span", null, "ثبت همدردی"));
 
     // شمع مجازی / صلوات‌شمار تعاملی
@@ -770,7 +1021,7 @@
 
     return accordion("همدردی با خانواده سوگوار", inner, { open: true });
   }
-  function condolenceItem(cd) {
+  function condolenceItem(cd, d, isOwner) {
     var item = el("div", "condolence-item");
     var head = el("button", "cond-head");
     head.setAttribute("aria-expanded", "false");
@@ -780,6 +1031,22 @@
     var body = el("div", "cond-body");
     var inner = el("div");
     var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p><time>" + esc(cd.date) + "</time>");
+
+    /* صاحب عزا می‌تواند همین همدردی را مخفی کند */
+    if (isOwner && d) {
+      var hide = el("button", "mine-btn", "مخفی‌کردن این همدردی");
+      hide.type = "button";
+      hide.addEventListener("click", function (e) {
+        e.stopPropagation();
+        SogStore.toggleHiddenItem(id, condKey(cd));
+        toast("این همدردی برای بازدیدکنندگان مخفی شد.");
+        render(d);
+      });
+      var tools = el("div", "mine-tools");
+      tools.appendChild(hide);
+      msg.appendChild(tools);
+    }
+
     inner.appendChild(msg); body.appendChild(inner);
     item.appendChild(head); item.appendChild(body);
     return item;
