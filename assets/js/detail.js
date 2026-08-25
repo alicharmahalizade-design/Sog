@@ -578,7 +578,8 @@
     var wrap = el("div");
     wrap.appendChild(el("p", "bio-text", fmtDesc(bio.text)));
     if (bio.gallery && bio.gallery.length) {
-      var g = el("div", "bio-gallery");
+      /* چیدمان تصاویر همان چیزی است که هنگام ثبت انتخاب شده (پیش‌فرض: دو ستونه) */
+      var g = el("div", "bio-gallery lay-" + (bio.layout || "two"));
       bio.gallery.forEach(function (src) { var i = el("img"); i.src = src; i.alt = ""; g.appendChild(i); });
       wrap.appendChild(g);
     }

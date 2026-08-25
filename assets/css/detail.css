@@ -284,6 +284,10 @@
 /* ---- زندگی‌نامه ---- */
 .bio-text { font-size: 14px; line-height: 2.1; color: var(--text-dim); margin-bottom: 16px; text-align: justify; }
 .bio-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+/* چیدمان‌های انتخابیِ تصاویر زندگی‌نامه */
+.bio-gallery.lay-one { grid-template-columns: 1fr; }
+.bio-gallery.lay-two, .bio-gallery.lay-grid, .bio-gallery.lay-two-one { grid-template-columns: 1fr 1fr; }
+.bio-gallery.lay-two-one img:nth-child(n+3) { grid-column: 1 / -1; }
 .bio-gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; border: 1px solid #2c2c2c; }
 .relatives-title { text-align: center; color: var(--text); font-weight: 700; font-size: 15px; margin: 8px 0 12px; }
 .relatives { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }

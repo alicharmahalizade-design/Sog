@@ -36,7 +36,7 @@
     mother: "", mother_tayefe: "", mother_il: "",
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
-    bio: "", music: null,
+    bio: "", bio_photos: [], bio_layout: "one", music: null,
     phone: "", messengers: [], messenger_links: {}, relation: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
@@ -328,6 +328,74 @@
     return wrap;
   }
 
+  /* تصاویر زندگی‌نامه + انتخاب چیدمان نمایش */
+  var BIO_LAYOUTS = [
+    { key: "one",  name: "یک ستونه",
+      ico: '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>' },
+    { key: "two",  name: "دو ستونه",
+      ico: '<rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/>' },
+    { key: "two-one", name: "دو ستونه بالا، یک ستونه پایین",
+      ico: '<rect x="3" y="4" width="8" height="8" rx="2"/><rect x="13" y="4" width="8" height="8" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/>' },
+    { key: "grid", name: "شبکه‌ی دو در دو",
+      ico: '<rect x="3" y="4" width="8" height="7" rx="2"/><rect x="13" y="4" width="8" height="7" rx="2"/><rect x="3" y="13" width="8" height="7" rx="2"/><rect x="13" y="13" width="8" height="7" rx="2"/>' }
+  ];
+
+  function bioPhotosField() {
+    var box = el("div", "bio-field");
+
+    /* انتخاب چیدمان */
+    var lay = el("div", "layout-picker");
+    BIO_LAYOUTS.forEach(function (L) {
+      var b = el("button", "layout-opt" + (data.bio_layout === L.key ? " is-active" : ""));
+      b.type = "button";
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6">' + L.ico + '</svg>' +
+                    '<span>' + esc(L.name) + '</span>';
+      b.addEventListener("click", function () {
+        data.bio_layout = L.key;
+        Array.prototype.forEach.call(lay.children, function (n) { n.classList.remove("is-active"); });
+        b.classList.add("is-active");
+        paint();
+      });
+      lay.appendChild(b);
+    });
+
+    /* پیش‌نمایش تصاویر با همان چیدمان */
+    var preview = el("div", "bio-preview");
+    function paint() {
+      preview.className = "bio-preview lay-" + data.bio_layout;
+      preview.innerHTML = "";
+      data.bio_photos.forEach(function (src, i) {
+        var cell = el("div", "bp-cell");
+        cell.style.backgroundImage = 'url("' + src + '")';
+        var x = el("button", "bio-thumb-x", "×"); x.type = "button";
+        x.addEventListener("click", function () { data.bio_photos.splice(i, 1); paint(); });
+        cell.appendChild(x);
+        preview.appendChild(cell);
+      });
+      if (!data.bio_photos.length) preview.appendChild(el("p", "field-hint", "هنوز تصویری اضافه نشده است."));
+    }
+
+    var add = el("label", "pick-btn", "افزودن تصویر به زندگی‌نامه");
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
+    inp.addEventListener("change", function () {
+      Array.prototype.slice.call(inp.files || []).forEach(function (f) {
+        var rd = new FileReader();
+        rd.onload = function () { data.bio_photos.push(rd.result); paint(); };
+        rd.readAsDataURL(f);
+      });
+      inp.value = "";
+    });
+    add.appendChild(inp);
+
+    box.appendChild(el("p", "field-hint", "چیدمان نمایش تصاویر را انتخاب کنید:"));
+    box.appendChild(lay);
+    box.appendChild(preview);
+    box.appendChild(add);
+    paint();
+    return box;
+  }
+
   /* انتخاب موقعیت روی نقشه */
   function mapPicker(ev) {
     var box = el("div", "map-pick");
@@ -473,6 +541,7 @@
     steps.push({ title: "زندگی‌نامه و موزیک", build: function () {
       var p = el("section", "reg-panel");
       p.appendChild(field("زندگی‌نامه", false, textInput("bio", "زندگی‌نامه و شرح زندگی درگذشته…", { tag: "textarea", rows: 7, max: 2000 })));
+      p.appendChild(field("تصاویر زندگی‌نامه", false, bioPhotosField()));
       var music = el("div");
       music.appendChild(el("p", "field-hint", "فایل موزیک مورد نظر خود را وارد کنید"));
       var mbtn = el("label", "pick-btn", "انتخاب فایل موزیک");
