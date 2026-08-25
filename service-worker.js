@@ -1,6 +1,6 @@
 /* Service Worker ساده برای پیش‌نمایش PWA سوگ.
    استراتژی: cache-first برای دارایی‌های ثابت، network-first برای داده‌ی JSON. */
-var CACHE = "sog-preview-v38";
+var CACHE = "sog-preview-v39";
 var ASSETS = [
   "./",
   "index.html",

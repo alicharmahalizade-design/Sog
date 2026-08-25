@@ -15,6 +15,39 @@
     pin: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
     cart: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/></svg>'
   };
+  function ownerNote(b) {
+    var KEY = "sog:bizNote";
+    function read() { try { return (JSON.parse(localStorage.getItem(KEY)) || {})[b.id] || ""; } catch (e) { return ""; } }
+    function write(v) {
+      try {
+        var m = JSON.parse(localStorage.getItem(KEY)) || {};
+        if (v && v.trim()) m[b.id] = v; else delete m[b.id];
+        localStorage.setItem(KEY, JSON.stringify(m));
+      } catch (e) {}
+    }
+
+    var sec = el("div", "bp-section");
+    sec.appendChild(el("h2", null, "توضیحات خدمات‌دهنده"));
+    var ta = document.createElement("textarea");
+    ta.className = "bp-note";
+    ta.rows = 4;
+    ta.placeholder = "توضیحات، شرایط کاری، تخفیف‌ها یا هر نکته‌ای که می‌خواهید مشتری‌ها ببینند…";
+    ta.value = read();
+    var status = el("p", "bp-note-status", "");
+    var t;
+    ta.addEventListener("input", function () {
+      clearTimeout(t);
+      status.textContent = "در حال ذخیره…";
+      t = setTimeout(function () {
+        write(ta.value);
+        status.textContent = ta.value.trim() ? "ذخیره شد" : "";
+        setTimeout(function () { if (status.textContent === "ذخیره شد") status.textContent = ""; }, 1800);
+      }, 400);
+    });
+    sec.appendChild(ta); sec.appendChild(status);
+    return sec;
+  }
+
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function stars(n) { var s = ""; for (var i = 0; i < 5; i++) s += '<span style="opacity:' + (i < n ? 1 : .25) + '">' + STAR + '</span>'; return s; }
@@ -70,6 +103,9 @@
 
     // درباره
     if (b.description) { var s1 = el("div", "bp-section"); s1.appendChild(el("h2", null, "درباره")); s1.appendChild(el("p", "bp-desc", esc(b.description))); root.appendChild(s1); }
+
+    /* کادر توضیحات که خودِ خدمات‌دهنده می‌نویسد (فعلاً روی همین دستگاه ذخیره می‌شود) */
+    root.appendChild(ownerNote(b));
 
     // ساعات کاری
     if (b.hours) { var s2 = el("div", "bp-section"); s2.appendChild(el("h2", null, "ساعات کاری")); s2.appendChild(el("div", "bp-hours", '<span class="ico">' + IC.clock + '</span>' + esc(b.hours))); root.appendChild(s2); }

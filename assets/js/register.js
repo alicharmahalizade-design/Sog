@@ -37,7 +37,7 @@
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
     bio: "", music: null,
-    phone: "", messengers: [], relation: ""
+    phone: "", messengers: [], messenger_links: {}, relation: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
@@ -496,19 +496,44 @@
       var p = el("section", "reg-panel");
       p.appendChild(el("p", "panel-sub", "برای ارتباط با شما شماره تلفن و کانال‌های ارتباطی مجازی خود را وارد کنید …"));
       p.appendChild(field("موبایل", true, textInput("phone", "۰۹۱۲۳۴۵۶۷۸۹", { type: "tel", inputmode: "tel" })));
+      /* برای هر پیام‌رسان انتخاب‌شده، کاربر می‌تواند لینک/شناسه بدهد؛
+         اگر خالی بماند، همان شماره‌ی موبایل به‌صورت پیش‌فرض استفاده می‌شود. */
+      var wrap = el("div");
       var grid = el("div", "check-grid");
+      var links = el("div", "msg-links");
+
+      function paintLinks() {
+        links.innerHTML = "";
+        if (!data.messengers.length) return;
+        data.messengers.forEach(function (m) {
+          var row = el("div", "msg-link");
+          row.appendChild(el("span", "msg-link-name", esc(m)));
+          var inp = textInput(null, "لینک یا شناسه‌ی " + m + " (اختیاری)", {
+            get: function () { return data.messenger_links[m]; },
+            set: function (v) { data.messenger_links[m] = v; }
+          });
+          row.appendChild(inp);
+          links.appendChild(row);
+        });
+        links.appendChild(el("p", "field-hint", "اگر خالی بماند، به‌صورت پیش‌فرض از همان شماره‌ی موبایل شما استفاده می‌شود."));
+      }
+
       MESSENGERS.forEach(function (m) {
         var chip = el("button", "check-chip" + (data.messengers.indexOf(m) !== -1 ? " is-checked" : ""));
         chip.type = "button";
         chip.innerHTML = '<span class="lbl">' + esc(m) + '</span><span class="box">✓</span>';
         chip.addEventListener("click", function () {
           var i = data.messengers.indexOf(m);
-          if (i === -1) data.messengers.push(m); else data.messengers.splice(i, 1);
+          if (i === -1) data.messengers.push(m);
+          else { data.messengers.splice(i, 1); delete data.messenger_links[m]; }
           chip.classList.toggle("is-checked", i === -1);
+          paintLinks();
         });
         grid.appendChild(chip);
       });
-      p.appendChild(field("پیام‌رسان‌ها", false, grid));
+      paintLinks();
+      wrap.appendChild(grid); wrap.appendChild(links);
+      p.appendChild(field("پیام‌رسان‌ها", false, wrap));
       p.appendChild(field("ارتباط خویشاوندی با درگذشته", false, textInput("relation", "مثال : فرزند")));
       return p;
     }});

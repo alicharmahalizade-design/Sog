@@ -367,7 +367,7 @@
     audioEl.volume = 0;                                /* بالا آمدن نرم صدا */
     audioEl.preload = "auto";
 
-    var wanted = true;                                 /* خواسته‌ی کاربر: صدا روشن باشد */
+    var wanted = false;                                /* پیش‌فرض: بی‌صدا؛ کاربر خودش روشن می‌کند */
     var TARGET = 0.32;
 
     function fadeTo(target) {
@@ -387,22 +387,6 @@
       btn.setAttribute("aria-label", wanted ? "قطع صدا" : "پخش صدا");
     }
 
-    function tryPlay() {
-      var pr = audioEl.play();
-      if (pr && pr.catch) {
-        pr.then(function () { fadeTo(TARGET); }).catch(function () {
-          /* مرورگر پخش خودکار را اجازه نداد؛ با اولین لمس صفحه پخش می‌شود */
-          var once = function () {
-            document.removeEventListener("pointerdown", once);
-            document.removeEventListener("scroll", once);
-            if (wanted && audioEl) audioEl.play().then(function () { fadeTo(TARGET); }).catch(function () {});
-          };
-          document.addEventListener("pointerdown", once, { once: true });
-          document.addEventListener("scroll", once, { once: true });
-        });
-      }
-    }
-
     btn.addEventListener("click", function () {
       wanted = !wanted;
       paint();
@@ -420,7 +404,7 @@
     window.addEventListener("pagehide", function () { if (audioEl) audioEl.pause(); });
 
     paint();
-    tryPlay();
+    /* پخش خودکار انجام نمی‌شود؛ با زدن دکمه‌ی صدا شروع می‌شود */
   }
 
   function actionItem(icon, label, onClick) {

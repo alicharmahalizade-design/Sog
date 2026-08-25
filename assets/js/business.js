@@ -4,7 +4,7 @@
   "use strict";
 
   var DATA = { businesses: [], categories: [], cities: [] };
-  var state = { city: "all", category: null, query: null, view: "grid", open: null, sub: null, openBiz: null };
+  var state = { city: "all", category: null, query: null, view: "accordion", open: null, sub: null, openBiz: null };
   try { var sv = localStorage.getItem("sog_biz_view"); if (sv === "accordion" || sv === "grid") state.view = sv; } catch (e) {}
 
   /* آیکون‌های دسته */
@@ -425,18 +425,21 @@
       renderList();
     }
 
-    Array.prototype.forEach.call(document.querySelectorAll(".vs-btn"), function (btn) {
-      btn.classList.toggle("is-active", btn.getAttribute("data-view") === state.view);
-    });
+    var tg = document.getElementById("viewToggle");
+    if (tg) {
+      /* آیکون همیشه حالتِ بعدی را نشان می‌دهد */
+      tg.classList.toggle("show-grid", isAcc);
+      tg.setAttribute("aria-label", isAcc ? "نمایش شبکه‌ای" : "نمایش آکاردئونی");
+    }
   }
 
   function bindViewSwitch() {
-    Array.prototype.forEach.call(document.querySelectorAll(".vs-btn"), function (btn) {
-      btn.addEventListener("click", function () {
-        state.view = btn.getAttribute("data-view");
-        try { localStorage.setItem("sog_biz_view", state.view); } catch (e) {}
-        applyView();
-      });
+    var tg = document.getElementById("viewToggle");
+    if (!tg) return;
+    tg.addEventListener("click", function () {
+      state.view = state.view === "accordion" ? "grid" : "accordion";
+      try { localStorage.setItem("sog_biz_view", state.view); } catch (e) {}
+      applyView();
     });
   }
 
