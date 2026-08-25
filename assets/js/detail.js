@@ -855,7 +855,7 @@
       '<label class="report-field"><span>نام</span>' +
         '<input name="name" type="text" placeholder="نام و نام خانوادگی" required></label>' +
       '<label class="report-field org-only" hidden><span>کد ملی مسئول ثبت</span>' +
-        '<input name="melli" type="tel" inputmode="numeric" maxlength="10" placeholder="۱۰ رقم"></label>' +
+        '<input name="melli" type="tel" inputmode="numeric" maxlength="10" placeholder="کد ملی ۱۰ رقمی مسئول ثبت"></label>' +
       '<label class="report-field"><span>متن همدردی</span>' +
         '<textarea name="message" rows="4" placeholder="متن همدردی خود را بنویسید…" required></textarea></label>' +
       '<div class="report-actions">' +

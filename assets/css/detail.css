@@ -167,12 +167,14 @@
 .report-title { font-size: 16px; font-weight: 700; text-align: center; margin: 2px 0 16px; }
 .report-field { display: block; margin-bottom: 14px; }
 .report-field > span { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
-.report-field select, .report-field textarea {
+.report-field[hidden] { display: none; }   /* بدون این، display:block بر hidden غلبه می‌کند */
+.report-field input, .report-field select, .report-field textarea {
   width: 100%; background: var(--surface-2); color: var(--text);
   border: 1px solid var(--card-border); border-radius: 12px;
   padding: 11px 12px; font-size: 14px; outline: none;
 }
-.report-field select:focus, .report-field textarea:focus { border-color: var(--accent); }
+.report-field input:focus, .report-field select:focus, .report-field textarea:focus { border-color: var(--accent); }
+.report-field input::placeholder, .report-field textarea::placeholder { color: var(--text-mute); }
 .report-upload {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   border: 1.5px dashed #3d3d3d; border-radius: 14px; padding: 18px; cursor: pointer;
@@ -485,10 +487,14 @@
 /* انتخاب متن آماده */
 .ready-picker { margin-bottom: 14px; }
 .ready-title { font-size: 12px; color: var(--text-mute); margin: 0 0 8px; }
-.ready-track { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+/* فهرست عمودی تا همه‌ی متن‌ها کامل دیده شوند */
+.ready-track {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 210px; overflow-y: auto; padding: 2px;
+}
 .ready-track::-webkit-scrollbar { display: none; }
 .ready-card {
-  flex: 0 0 78%; text-align: right; line-height: 1.9;
+  width: 100%; text-align: right; line-height: 1.9;
   background: var(--surface-2); border: 1px solid var(--card-border); border-radius: 12px;
   color: var(--text-dim); font-size: 12.5px; padding: 12px;
 }
