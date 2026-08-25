@@ -40,7 +40,8 @@
 
 /* ---- جعبه اطلاعات تولد/وفات ---- */
 .info-box {
-  margin: 0 14px 12px;
+  /* فاصله‌ی بالای کادر هم‌اندازه‌ی فاصله‌ی زیر کادر خانواده */
+  margin: 36px 14px 12px;
   display: flex; align-items: stretch;
   background: var(--surface); border: 1px solid var(--card-border);
   border-radius: 14px; overflow: hidden;
@@ -259,6 +260,7 @@
   position: relative; border: 1px dashed #444; border-radius: 14px;
   padding: 52px 16px 16px; margin-bottom: 16px;   /* فاصله‌ی بیشتر برچسب تا متن */
   font-size: 14px; line-height: 2; color: var(--text);
+  text-align: justify; text-align-last: right;    /* متن دوطرفه‌چین */
 }
 .desc-box .desc-label {
   /* برچسب در سمت راست کادر */

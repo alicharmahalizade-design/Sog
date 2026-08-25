@@ -36,9 +36,7 @@
     '<div class="splash-inner">' +
       '<div class="splash-mark"><img src="assets/img/logo.png" alt="سوگ"></div>' +
       '<div class="splash-tag">مرجع ثبت سوگ ایرانیان</div>' +
-      '<div class="splash-bar"><span></span></div>' +
-    '</div>' +
-    '<div class="splash-foot">یادِ رفتگان، زنده در دل‌های ما</div>';
+    '</div>';
 
   function mount() {
     if (!document.body) return;
