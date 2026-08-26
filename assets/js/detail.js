@@ -543,7 +543,7 @@
       }, 400);
     });
     hint.appendChild(status);
-    body.appendChild(ta); body.appendChild(hint);
+    body.appendChild(hint); body.appendChild(ta);   /* توضیح زیر عنوان */
     head.addEventListener("click", function () {
       var open = wrap.classList.toggle("is-open");
       head.setAttribute("aria-expanded", open ? "true" : "false");
@@ -584,7 +584,7 @@
       }, 400);
     });
     hint.appendChild(status);
-    body.appendChild(ta); body.appendChild(hint);
+    body.appendChild(hint); body.appendChild(ta);   /* توضیح زیر عنوان، بالای کادر متن */
 
     head.addEventListener("click", function () {
       var open = wrap.classList.toggle("is-open");
@@ -816,9 +816,10 @@
     var msg = el("div", "cond-message");
     var pEl = el("p", null, fmtDesc(entry.message));
     msg.appendChild(pEl);
-    msg.appendChild(el("time", null, esc(entry.date || "")));
 
+    /* تاریخ در همان ردیفِ دکمه‌های ویرایش و حذف */
     var tools = el("div", "mine-tools");
+    tools.appendChild(el("time", "mine-date", esc(entry.date || "")));
     var edit = el("button", "mine-btn", "ویرایش"); edit.type = "button";
     var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
     edit.addEventListener("click", function () { openCondolenceSheet(d, entry); });

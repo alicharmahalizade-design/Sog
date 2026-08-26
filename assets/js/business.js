@@ -4,8 +4,8 @@
   "use strict";
 
   var DATA = { businesses: [], categories: [], cities: [] };
-  var state = { city: "all", category: null, query: null, view: "accordion", open: null, sub: null, openBiz: null };
-  try { var sv = localStorage.getItem("sog_biz_view"); if (sv === "accordion" || sv === "grid") state.view = sv; } catch (e) {}
+  /* نمایش فقط به‌صورت آکاردئونی است */
+  var state = { city: "all", category: null, query: null, open: null, sub: null, openBiz: null };
 
   /* آیکون‌های دسته */
   var CAT_ICON = {
@@ -416,42 +416,21 @@
     });
   }
 
-  /* ---------- سوییچ نمایش ---------- */
+  /* ---------- نمایش ---------- */
   function applyView() {
     var grid = document.getElementById("gridView");
     var acc = document.getElementById("accView");
     var list = document.getElementById("bizList");
     var featured = document.getElementById("featuredSection");
     var empty = document.getElementById("emptyState");
-    var isAcc = state.view === "accordion";
 
-    if (grid) grid.hidden = isAcc;
-    if (acc) acc.hidden = !isAcc;
-    if (list) list.hidden = isAcc;
-    if (isAcc) {
-      if (featured) featured.hidden = true;
-      if (empty) empty.hidden = true;
-      renderAccordion();
-    } else {
-      renderList();
-    }
+    if (grid) grid.hidden = true;
+    if (list) list.hidden = true;
+    if (featured) featured.hidden = true;
+    if (empty) empty.hidden = true;
+    if (acc) acc.hidden = false;
 
-    var tg = document.getElementById("viewToggle");
-    if (tg) {
-      /* آیکون همیشه حالتِ بعدی را نشان می‌دهد */
-      tg.classList.toggle("show-grid", isAcc);
-      tg.setAttribute("aria-label", isAcc ? "نمایش شبکه‌ای" : "نمایش آکاردئونی");
-    }
-  }
-
-  function bindViewSwitch() {
-    var tg = document.getElementById("viewToggle");
-    if (!tg) return;
-    tg.addEventListener("click", function () {
-      state.view = state.view === "accordion" ? "grid" : "accordion";
-      try { localStorage.setItem("sog_biz_view", state.view); } catch (e) {}
-      applyView();
-    });
+    renderAccordion();
   }
 
   /* ---------- بۀ‌شیت سفارش ---------- */
@@ -554,7 +533,7 @@
 
   /* ---------- راه‌اندازی ---------- */
   load().then(function () {
-    renderCities(); renderCategories(); bindViewSwitch(); bindCityPicker(); applyView(); bindSearch();
+    renderCities(); renderCategories(); bindCityPicker(); applyView(); bindSearch();
   }).catch(function (e) {
     document.getElementById("bizList").innerHTML = '<p style="color:#c66;text-align:center;padding:30px">خطا در بارگذاری کسب‌وکارها.</p>';
     console.error(e);
