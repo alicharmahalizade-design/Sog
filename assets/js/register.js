@@ -48,7 +48,11 @@
 
   /* ویرایشگر برش: جابه‌جایی با کشیدن، بزرگ‌نمایی با اسلایدر، نسبت ۴:۵ */
   function openCropper(file, onDone) {
-    var url = URL.createObjectURL(file);
+    openCropperSrc(URL.createObjectURL(file), onDone, true);
+  }
+
+  /* برش تصویر از روی آدرس (برای ویرایش دوباره‌ی تصویرِ ثبت‌شده) */
+  function openCropperSrc(url, onDone, revoke) {
     var img = new Image();
     img.onload = function () {
       var back = el("div", "crop-backdrop");
@@ -126,7 +130,7 @@
       function close() {
         modal.remove(); back.remove();
         document.body.style.overflow = "";
-        URL.revokeObjectURL(url);
+        if (revoke) URL.revokeObjectURL(url);
       }
       cancel.addEventListener("click", close);
       back.addEventListener("click", close);
@@ -143,7 +147,7 @@
         close();
       });
     };
-    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.onerror = function () { if (revoke) URL.revokeObjectURL(url); };
     img.src = url;
   }
 
@@ -310,8 +314,15 @@
       (ev.photos || []).forEach(function (src, i) {
         var th = el("div", "bio-thumb"); th.style.backgroundImage = 'url("' + src + '")';
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
+        x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { ev.photos.splice(i, 1); paint(); });
-        th.appendChild(x); thumbs.appendChild(th);
+        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        ed.type = "button";
+        ed.setAttribute("aria-label", "ویرایش تصویر");
+        ed.addEventListener("click", function () {
+          openCropperSrc(src, function (out) { ev.photos[i] = out; paint(); });
+        });
+        th.appendChild(x); th.appendChild(ed); thumbs.appendChild(th);
       });
       btn.hidden = (ev.photos || []).length >= max;
     }
@@ -373,8 +384,15 @@
         var cell = el("div", "bp-cell");
         cell.style.backgroundImage = 'url("' + src + '")';
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
+        x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { data.bio_photos.splice(i, 1); paint(); });
-        cell.appendChild(x);
+        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        ed.type = "button";
+        ed.setAttribute("aria-label", "ویرایش تصویر");
+        ed.addEventListener("click", function () {
+          openCropperSrc(src, function (out) { data.bio_photos[i] = out; paint(); });
+        });
+        cell.appendChild(x); cell.appendChild(ed);
         preview.appendChild(cell);
       });
       if (!data.bio_photos.length) preview.appendChild(el("p", "field-hint", "هنوز تصویری اضافه نشده است."));
