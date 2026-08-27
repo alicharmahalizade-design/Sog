@@ -32,7 +32,7 @@
 .reg-step.is-done { color: var(--text-dim); border-color: #3a3a3a; }
 
 /* پنل‌ها */
-.reg-panel { display: none; padding: 8px 16px 0; }
+.reg-panel { display: none; padding: 8px 16px 120px; }   /* فضای امن تا نوار دکمه‌های پایین */
 .reg-panel.is-active { display: block; }
 
 /* فیلد */
@@ -377,3 +377,13 @@
 }
 .bp-cell .bio-thumb-edit { bottom: 8px; inset-inline-start: 8px; }
 .bp-cell .bio-thumb-x { top: 8px; inset-inline-start: 8px; }
+
+/* شمارنده‌ی تعداد مراسم (فقط بزرگداشت) */
+.cer-count { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.cer-count.is-off { opacity: .35; }
+.cc-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: #1d1d1d; border: 1px solid #333; color: var(--text);
+  font-size: 16px; line-height: 1; display: grid; place-items: center;
+}
+.cc-num { font-size: 12px; color: var(--text-dim); min-width: 58px; text-align: center; }

@@ -47,18 +47,66 @@
     ]));
     root.appendChild(sectionTitle("تنظیمات"));
     root.appendChild(prefsList());
-    root.appendChild(menuList([
-      { icon: IC.biz, label: "ثبت کسب‌وکار در سوگ", href: "business.html" },
-      { icon: IC.support, label: "پشتیبانی", onClick: contactSupport }
-    ]));
     if (user) root.appendChild(logoutBtn());
     root.appendChild(el("p", "acc-version", "سوگ — نسخه‌ی پیش‌نمایش"));
   }
 
   /* پروفایل */
+  /* عکس پروفایل: انتخاب از گالری و ذخیره روی همین دستگاه */
+  function avatarPicker(user) {
+    var AV_KEY = "sog:avatar";
+    function read() { try { return localStorage.getItem(AV_KEY) || ""; } catch (e) { return ""; } }
+    function write(v) { try { if (v) localStorage.setItem(AV_KEY, v); else localStorage.removeItem(AV_KEY); } catch (e) {} }
+
+    var box = el("label", "profile-avatar");
+    box.setAttribute("aria-label", "تغییر عکس پروفایل");
+    var input = document.createElement("input");
+    input.type = "file"; input.accept = "image/png,image/jpeg"; input.hidden = true;
+
+    function paint() {
+      var src = read();
+      box.innerHTML = "";
+      if (src) {
+        var img = el("img", "avatar-img"); img.src = src; img.alt = "";
+        box.appendChild(img);
+      } else {
+        box.insertAdjacentHTML("beforeend", svg("M12 8m-4 0a4 4 0 108 0a4 4 0 10-8 0M4 21c0-4 3.5-7 8-7s8 3 8 7", 40));
+      }
+      box.appendChild(el("span", "avatar-cam", svg("M3 7h4l1.5-2.5h7L17 7h4v13H3zM12 12.5m-3.2 0a3.2 3.2 0 106.4 0a3.2 3.2 0 10-6.4 0", 14)));
+      box.appendChild(input);
+    }
+
+    input.addEventListener("change", function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      if (f.size > 4 * 1024 * 1024) { toast("حجم تصویر باید کمتر از ۴ مگابایت باشد."); input.value = ""; return; }
+      var rd = new FileReader();
+      rd.onload = function () {
+        /* تصویر به مربع ۲۵۶ پیکسلی کوچک می‌شود تا حافظه‌ی مرورگر پر نشود */
+        var im = new Image();
+        im.onload = function () {
+          var S = 256, c = document.createElement("canvas");
+          c.width = S; c.height = S;
+          var x = c.getContext("2d");
+          var side = Math.min(im.width, im.height);
+          x.drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, S, S);
+          write(c.toDataURL("image/jpeg", 0.85));
+          paint();
+          toast("عکس پروفایل به‌روزرسانی شد.");
+        };
+        im.src = rd.result;
+      };
+      rd.readAsDataURL(f);
+      input.value = "";
+    });
+
+    paint();
+    return box;
+  }
+
   function profileCard(user) {
     var card = el("div", "profile-card");
-    var avatar = el("div", "profile-avatar", svg("M12 8m-4 0a4 4 0 108 0a4 4 0 10-8 0M4 21c0-4 3.5-7 8-7s8 3 8 7", 40));
+    var avatar = avatarPicker(user);
     var info = el("div", "profile-info");
     if (user) {
       info.appendChild(el("div", "profile-name", esc(user.name || "کاربر سوگ")));
@@ -190,6 +238,12 @@
     var list = el("div", "acc-menu");
     list.appendChild(toggleRow(IC.bell, "اعلان مراسم‌ها و یادآوری‌ها", "notify", prefs.notify));
     list.appendChild(toggleRow(IC.lock, "حالت حریم خصوصی (پنهان‌کردن شماره)", "privacy", prefs.privacy));
+    /* پشتیبانی در همین کادر تا کادر جداگانه‌ی خالی نداشته باشیم */
+    var sup = el("button", "acc-row");
+    sup.type = "button";
+    sup.innerHTML = '<span class="ar-ic">' + svg(IC.support) + '</span><span class="ar-label">پشتیبانی</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    sup.addEventListener("click", contactSupport);
+    list.appendChild(sup);
     return list;
   }
   function toggleRow(icon, label, key, on) {

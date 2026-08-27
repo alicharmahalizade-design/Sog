@@ -427,7 +427,7 @@
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: 20px 20px 0 0;
   padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
-  max-height: 92vh; overflow-y: auto; text-align: center;
+  max-height: 96vh; overflow-y: auto; text-align: center;
   transform: translateY(100%); transition: transform .25s ease;
 }
 .story-modal.is-in { transform: translateY(0); }
@@ -436,15 +436,18 @@
   background: none; border: none; color: var(--text-dim); padding: 4px;
 }
 .story-img {
-  width: auto; max-width: 100%; max-height: 62vh;
-  margin: 26px auto 10px; border-radius: 14px; border: 1px solid var(--card-border);
+  width: auto; max-width: 100%; max-height: 74vh;      /* پیش‌نمایش بزرگ‌تر */
+  margin: 22px auto 8px; border-radius: 14px; border: 1px solid var(--card-border);
 }
 .story-hint { font-size: 12px; color: var(--text-mute); margin: 0 0 14px; }
 .story-actions { display: flex; gap: 10px; }
 .story-actions .btn-primary, .story-actions .btn-ghost {
-  flex: 1 1 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+  border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
   text-decoration: none; display: grid; place-items: center;
 }
+/* «استوری» دو سوم و «ذخیره‌ی تصویر» یک سوم عرض */
+.story-actions .btn-ghost { flex: 2 1 0; }
+.story-actions .btn-primary { flex: 1 1 0; }
 .story-actions .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
 .story-actions .btn-ghost {
   background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
@@ -505,7 +508,8 @@
   margin-inline-start: 8px; margin-inline-end: auto;   /* کنار نام، نه چسبیده به لبه */
 }
 .mine-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.mine-date { font-size: 12px; color: var(--text-mute); margin-inline-end: auto; }
+/* دکمه‌ها سمت راست، تاریخ سمت چپ */
+.mine-date { font-size: 12px; color: var(--text-mute); order: 2; margin-inline-start: auto; }
 .mine-btn {
   background: var(--surface-2); border: 1px solid #3a3a3a; color: var(--text-dim);
   border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 700;
