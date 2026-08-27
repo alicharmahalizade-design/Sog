@@ -906,6 +906,21 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var fd = new FormData(form);
+      var nameVal = String(fd.get("name") || "");
+
+      if (kind === "person") {
+        var hit = orgWordIn(nameVal);
+        if (hit) {
+          toast("«" + hit + "» نام یک مجموعه است؛ برای ثبت به‌نام مجموعه، حالت «اداره / شرکت» را انتخاب کنید.");
+          form.querySelector('.kind-btn[data-kind="org"]').classList.add("blink");
+          setTimeout(function () {
+            var b2 = form.querySelector('.kind-btn[data-kind="org"]');
+            if (b2) b2.classList.remove("blink");
+          }, 1200);
+          return;
+        }
+      }
+
       if (kind === "org") {
         var code = toEnNum(String(fd.get("melli") || "")).replace(/\D/g, "");
         if (!validMelli(code)) {
@@ -925,6 +940,33 @@
       toast(editing ? "همدردی شما ویرایش شد." : "همدردی شما ثبت شد.");
       render(d);
     });
+  }
+
+  /* واژه‌های سازمانی: اگر در حالت «شخصی» به‌کار بروند، ثبت انجام نمی‌شود */
+  var ORG_WORDS = [
+    "شرکت", "اداره", "سازمان", "مؤسسه", "موسسه", "بانک", "کارخانه", "شهرداری", "بیمارستان",
+    "هیئت", "هیات", "تعاونی", "اتحادیه", "دانشگاه", "پتروشیمی", "کارگاه", "فروشگاه", "مجتمع",
+    "درمانگاه", "کلینیک", "آموزشگاه", "مدرسه", "دبیرستان", "انجمن", "بنیاد", "خیریه", "باشگاه",
+    "صندوق", "بیمه", "پالایشگاه", "نیروگاه", "فرمانداری", "بخشداری", "استانداری", "دادگستری",
+    "گروه صنعتی", "صنایع", "هلدینگ", "دفتر", "نمایندگی", "اتاق اصناف", "سندیکا", "کانون", "ستاد"
+  ];
+
+  function orgWordIn(name) {
+    var n = normalizeFa(name);
+    for (var i = 0; i < ORG_WORDS.length; i++) {
+      var w = normalizeFa(ORG_WORDS[i]);
+      /* واژه باید جدا باشد تا نام‌هایی مثل «بانکی» به‌اشتباه رد نشوند */
+      if (new RegExp("(^|\\s)" + w + "(\\s|$)").test(n)) return ORG_WORDS[i];
+    }
+    return null;
+  }
+
+  function normalizeFa(v) {
+    return String(v == null ? "" : v)
+      .replace(/[يﻯﻰ]/g, "ی").replace(/[كﻙ]/g, "ک")
+      .replace(/[\u200c\u200f\u200e]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   /* اعتبارسنجی کد ملی ایران */

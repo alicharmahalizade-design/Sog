@@ -540,3 +540,10 @@
 }
 .kind-btn.is-active { border-color: var(--accent); color: var(--accent); background: rgba(217,154,91,.10); }
 .note-box.owner-note { border: 1px solid rgba(217,154,91,.35); }
+
+/* هشدار روی دکمه‌ی «اداره / شرکت» وقتی نام سازمانی در حالت شخصی وارد شود */
+.kind-btn.blink { animation: kind-blink .4s ease 3; }
+@keyframes kind-blink {
+  0%, 100% { border-color: var(--card-border); color: var(--text-dim); }
+  50% { border-color: var(--accent); color: var(--accent); background: rgba(217,154,91,.16); }
+}
