@@ -285,7 +285,8 @@ option { direction: rtl; text-align: right; }
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid #262626;
-  background: #000 center/cover no-repeat;
+  /* کادر عکس کمی به چپ منتقل می‌شود تا شمع در جای درست بیفتد */
+  background: #000 left center/cover no-repeat;
   display: grid; place-items: end center;
 }
 .year-card::after {
