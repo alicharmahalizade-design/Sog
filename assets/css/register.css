@@ -49,6 +49,9 @@
   width: 100%; background: #171717; border: 1px solid #2e2e2e; border-radius: 12px;
   padding: 14px; color: var(--text); font-family: inherit; font-size: 14px; outline: none;
 }
+/* متن بتواند از وسط خط بشکند */
+.field textarea, .field input { overflow-wrap: anywhere; word-break: break-word; line-height: 1.9; }
+.field textarea { text-align: justify; text-align-last: right; }
 .field input::placeholder, .field textarea::placeholder { color: var(--text-mute); }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
 .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 14px center; }

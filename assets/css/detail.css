@@ -135,6 +135,7 @@
 .note-box.is-open .note-body { display: block; }
 .note-input {
   width: 100%; min-height: 180px; resize: vertical;
+  overflow-wrap: anywhere; word-break: break-word; line-height: 1.9;
   background: #2b2b2b; border: none; border-radius: 12px;
   color: var(--text); font-size: 14px; padding: 10px 12px; outline: none;
 }
@@ -174,6 +175,11 @@
   border: 1px solid var(--card-border); border-radius: 12px;
   padding: 11px 12px; font-size: 14px; outline: none;
 }
+/* متن بتواند از وسط خط بشکند و خط‌ها پر شوند */
+.report-field textarea, .report-field input {
+  overflow-wrap: anywhere; word-break: break-word; line-height: 1.9;
+}
+.report-field textarea { text-align: justify; text-align-last: right; }
 /* فلش انتخابگر سفارشی، با فاصله از لبه‌ی چپ */
 .report-field select {
   appearance: none; -webkit-appearance: none;
