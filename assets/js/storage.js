@@ -14,6 +14,7 @@
   var MYCOND_KEY = "sog:myCondolence";  // همدردی خودِ کاربر روی هر آگهی
   var HIDDEN_KEY = "sog:hiddenCond";    // همدردی‌های مخفی‌شده توسط صاحب عزا
   var OWNERNOTE_KEY = "sog:ownerNote";  // یادداشت صاحب عزا روی آگهی خودش
+  var EVPHOTO_KEY = "sog:eventPhotos";  // نگاشت «شناسه‌ی آگهی|مراسم» → آرایه‌ی تصاویر
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
@@ -56,6 +57,21 @@
       h.all = !h.all;
       this.setHidden(id, h);
       return h.all;
+    },
+
+    /* ----- تصاویر مراسم که صاحب عزا بعد از برگزاری اضافه می‌کند ----- */
+    getEventPhotos: function (id, key) { return readMap(EVPHOTO_KEY)[id + "|" + key] || []; },
+    addEventPhoto: function (id, key, src) {
+      var m = readMap(EVPHOTO_KEY), k = id + "|" + key;
+      m[k] = (m[k] || []).concat([src]);
+      writeMap(EVPHOTO_KEY, m);
+      return m[k];
+    },
+    removeEventPhoto: function (id, key, index) {
+      var m = readMap(EVPHOTO_KEY), k = id + "|" + key;
+      if (m[k]) { m[k].splice(index, 1); if (!m[k].length) delete m[k]; }
+      writeMap(EVPHOTO_KEY, m);
+      return m[k] || [];
     },
 
     /* ----- یادداشت صاحب عزا ----- */

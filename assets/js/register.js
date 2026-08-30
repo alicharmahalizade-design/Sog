@@ -588,8 +588,8 @@
           grid.appendChild(chip);
         });
         p.appendChild(field("نکات مراسم", false, grid));
-        p.appendChild(field("تصاویر مراسم " + ins.name, false,
-          multiPhotos(ev, 4, "در این قسمت بعد از برگزاری مراسم " + ins.name + " تصاویر مراسم را وارد کنید")));
+        p.appendChild(el("p", "field-hint",
+          "تصاویر مراسم " + ins.name + " را بعد از برگزاری، از خودِ صفحه‌ی آگهی اضافه کنید؛ نیازی به بازگشت به ثبت آگهی نیست."));
         return p;
       }});
     });

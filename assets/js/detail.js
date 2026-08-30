@@ -690,15 +690,71 @@
       db.appendChild(el("div", null, fmtDesc(c.description)));
       wrap.appendChild(db);
     }
-    if (c.gallery && c.gallery.length) {
-      wrap.appendChild(el("h3", "gallery-title", "تصاویر مراسم " + esc(c.title || "")));
-      var hs = el("div", "hscroll");
-      c.gallery.forEach(function (src) { var t = el("div", "thumb"); t.style.backgroundImage = 'url("' + src + '")'; hs.appendChild(t); });
-      wrap.appendChild(hs);
-    }
+    /* تصاویر مراسم: عکس‌های آگهی + عکس‌هایی که صاحب عزا بعد از مراسم اضافه می‌کند */
+    wrap.appendChild(eventGallery(c));
     return wrap;
   }
   function eventAccordion(c) { return accordion(c.title, eventBody(c)); }
+
+  /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
+  function eventGallery(c) {
+    var box = el("div", "event-gallery");
+    var key = c.type || c.title || "event";
+    var owner = currentDetail && ownerMode(currentDetail);
+
+    function paint() {
+      box.innerHTML = "";
+      var mine = SogStore.getEventPhotos(id, key);
+      var all = (c.gallery || []).concat(mine);
+
+      if (all.length) {
+        box.appendChild(el("h3", "gallery-title", "تصاویر مراسم " + esc(c.title || "")));
+        var hs = el("div", "hscroll");
+        all.forEach(function (src, i) {
+          var t = el("div", "thumb");
+          t.style.backgroundImage = 'url("' + src + '")';
+          /* فقط تصاویری که خود کاربر اضافه کرده قابل حذف‌اند */
+          if (owner && i >= (c.gallery || []).length) {
+            var x = el("button", "thumb-x", "×"); x.type = "button";
+            x.setAttribute("aria-label", "حذف تصویر");
+            x.addEventListener("click", function (e) {
+              e.stopPropagation();
+              SogStore.removeEventPhoto(id, key, i - (c.gallery || []).length);
+              paint();
+            });
+            t.appendChild(x);
+          }
+          hs.appendChild(t);
+        });
+        box.appendChild(hs);
+      }
+
+      if (!owner) return;
+
+      var add = el("label", "event-add-photo");
+      add.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+        "<span>افزودن تصویر مراسم " + esc(c.title || "") + "</span>";
+      var inp = document.createElement("input");
+      inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
+      inp.addEventListener("change", function () {
+        var files = Array.prototype.slice.call(inp.files || []);
+        var left = 8 - SogStore.getEventPhotos(id, key).length;
+        files.slice(0, Math.max(0, left)).forEach(function (f) {
+          var rd = new FileReader();
+          rd.onload = function () { SogStore.addEventPhoto(id, key, rd.result); paint(); };
+          rd.readAsDataURL(f);
+        });
+        if (left <= 0) toast("حداکثر ۸ تصویر برای هر مراسم می‌توانید اضافه کنید.");
+        inp.value = "";
+      });
+      add.appendChild(inp);
+      box.appendChild(add);
+      box.appendChild(el("p", "event-add-hint", "این تصاویر را بعد از برگزاری مراسم اضافه کنید؛ برای همه‌ی بازدیدکنندگان دیده می‌شود."));
+    }
+
+    paint();
+    return box;
+  }
 
   function anniversaryBody(a) {
     if (a.empty) return el("div", null, "اطلاعاتی برای این سالگرد ثبت نشده است.");
