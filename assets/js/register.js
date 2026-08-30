@@ -42,7 +42,7 @@
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
     bio: "", bio_photos: [], bio_layout: "one", music: null,
-    phone: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
+    phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
@@ -621,6 +621,9 @@
       var p = el("section", "reg-panel");
       p.appendChild(el("p", "panel-sub", "برای ارتباط با شما شماره تلفن و کانال‌های ارتباطی مجازی خود را وارد کنید …"));
       p.appendChild(field("موبایل", true, textInput("phone", "۰۹۱۲۳۴۵۶۷۸۹", { type: "tel", inputmode: "tel" })));
+      p.appendChild(field("کد ملی ثبت‌کننده", true,
+        textInput("melli", "کد ملی ۱۰ رقمی ثبت‌کننده‌ی آگهی", { type: "tel", inputmode: "numeric", max: 10 }),
+        "برای جلوگیری از ثبت آگهی جعلی، کد ملی ثبت‌کننده لازم است و در آگهی نمایش داده نمی‌شود."));
       /* برای هر پیام‌رسان انتخاب‌شده، کاربر می‌تواند لینک/شناسه بدهد؛
          اگر خالی بماند، همان شماره‌ی موبایل به‌صورت پیش‌فرض استفاده می‌شود. */
       var wrap = el("div");
@@ -756,7 +759,33 @@
     bar.appendChild(prev); bar.appendChild(next);
   }
 
+  /* اعتبارسنجی کد ملی ایران */
+  function validMelli(code) {
+    code = String(code || "").replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }).replace(/\D/g, "");
+    if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) return false;
+    var sum = 0;
+    for (var i = 0; i < 9; i++) sum += parseInt(code[i], 10) * (10 - i);
+    var r = sum % 11, c = parseInt(code[9], 10);
+    return (r < 2 && c === r) || (r >= 2 && c === 11 - r);
+  }
+
+  function toast(msg) {
+    var old = document.querySelector(".sog-toast");
+    if (old) old.remove();
+    var t = el("div", "sog-toast", esc(msg));
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add("is-in"); });
+    setTimeout(function () {
+      t.classList.remove("is-in");
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 300);
+    }, 2600);
+  }
+
   function submit() {
+    if (!validMelli(data.melli)) {
+      toast("کد ملی ثبت‌کننده معتبر نیست؛ لطفاً آن را بررسی کنید.");
+      return;
+    }
     /* بدون بک‌اند: داده به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس ارسال شود */
     try {
       localStorage.setItem("sog:draftListing", JSON.stringify(data));

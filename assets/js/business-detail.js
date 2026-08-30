@@ -15,6 +15,143 @@
     pin: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
     cart: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/></svg>'
   };
+  /* اعتبارسنجی کد ملی ایران */
+  function validMelli(code) {
+    code = String(code || "").replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }).replace(/\D/g, "");
+    if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) return false;
+    var sum = 0;
+    for (var i = 0; i < 9; i++) sum += parseInt(code[i], 10) * (10 - i);
+    var r = sum % 11, c = parseInt(code[9], 10);
+    return (r < 2 && c === r) || (r >= 2 && c === 11 - r);
+  }
+
+  function toast(msg) {
+    var old = document.querySelector(".sog-toast");
+    if (old) old.remove();
+    var t = el("div", "sog-toast", esc(msg));
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add("is-in"); });
+    setTimeout(function () {
+      t.classList.remove("is-in");
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 300);
+    }, 2600);
+  }
+
+  /* ثبت کد ملی صاحب کسب‌وکار */
+  function ownerVerify(b) {
+    var KEY = "sog:bizMelli";
+    function read() { try { return (JSON.parse(localStorage.getItem(KEY)) || {})[b.id] || ""; } catch (e) { return ""; } }
+    function write(v) {
+      try {
+        var m = JSON.parse(localStorage.getItem(KEY)) || {};
+        if (v) m[b.id] = v; else delete m[b.id];
+        localStorage.setItem(KEY, JSON.stringify(m));
+      } catch (e) {}
+    }
+
+    var sec = el("div", "bp-section");
+    sec.appendChild(el("h2", null, "ثبت کد ملی صاحب کسب‌وکار"));
+    sec.appendChild(el("p", "bp-hint", "برای تأیید مالکیت این کسب‌وکار، کد ملی صاحب یا مسئول ثبت لازم است. این کد در صفحه نمایش داده نمی‌شود."));
+
+    var saved = read();
+    var row = el("div", "melli-row");
+    var inp = document.createElement("input");
+    inp.type = "tel"; inp.inputMode = "numeric"; inp.maxLength = 10;
+    inp.className = "melli-input";
+    inp.placeholder = "کد ملی ۱۰ رقمی";
+    inp.value = saved;
+    var btn = el("button", "melli-btn", saved ? "ثبت‌شده ✓" : "ثبت"); btn.type = "button";
+    if (saved) btn.classList.add("is-ok");
+
+    btn.addEventListener("click", function () {
+      if (!validMelli(inp.value)) {
+        toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید.");
+        inp.classList.add("is-bad");
+        setTimeout(function () { inp.classList.remove("is-bad"); }, 1200);
+        return;
+      }
+      write(inp.value);
+      btn.textContent = "ثبت‌شده ✓";
+      btn.classList.add("is-ok");
+      toast("کد ملی ثبت شد؛ پس از بررسی، نشان «تأییدشده» به کسب‌وکار اضافه می‌شود.");
+    });
+
+    row.appendChild(inp); row.appendChild(btn);
+    sec.appendChild(row);
+    return sec;
+  }
+
+  /* گزارش خطا برای کسب‌وکار */
+  var BIZ_REPORT_TYPES = [
+    "این کسب‌وکار تکراری است",
+    "شماره تماس یا آدرس نادرست است",
+    "تصویر نامناسب یا اشتباه است",
+    "خدمات یا قیمت‌ها نادرست است",
+    "محتوای توهین‌آمیز یا نامرتبط",
+    "این کسب‌وکار دیگر فعال نیست"
+  ];
+
+  function reportRow(b) {
+    var wrap = el("div", "bp-section bp-report");
+    var btn = el("button", "report-error",
+      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> گزارش خطا');
+    btn.type = "button";
+    btn.addEventListener("click", function () { openBizReport(b); });
+    wrap.appendChild(btn);
+    return wrap;
+  }
+
+  function openBizReport(b) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "biz-report-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button";
+    close.setAttribute("aria-label", "بستن");
+
+    var form = el("form", "report-form");
+    form.innerHTML =
+      '<h3 class="report-title">گزارش خطا</h3>' +
+      '<label class="report-field"><span>نوع خطا</span><select name="type" required>' +
+      BIZ_REPORT_TYPES.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join("") +
+      '</select></label>' +
+      '<label class="report-field"><span>توضیحات</span>' +
+      '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
+      '<div class="report-actions">' +
+      '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
+      '<button type="submit" class="btn-primary">ثبت و ارسال</button></div>';
+
+    sheet.appendChild(close); sheet.appendChild(form);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    close.addEventListener("click", done);
+    back.addEventListener("click", done);
+    form.querySelector("[data-cancel]").addEventListener("click", done);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      try {
+        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
+        box.push({
+          kind: "business", id: b.id, name: b.name,
+          type: fd.get("type"), note: fd.get("note") || "",
+          at: Date.now(), to: ["sog-support", "business-owner"], status: "queued"
+        });
+        localStorage.setItem("sog:reports", JSON.stringify(box));
+      } catch (err) {}
+      done();
+      toast("گزارش شما ثبت و برای پشتیبانی سوگ و صاحب کسب‌وکار ارسال شد.");
+    });
+  }
+
   function ownerNote(b) {
     var KEY = "sog:bizNote";
     function read() { try { return (JSON.parse(localStorage.getItem(KEY)) || {})[b.id] || ""; } catch (e) { return ""; } }
@@ -106,6 +243,8 @@
 
     /* کادر توضیحات که خودِ خدمات‌دهنده می‌نویسد (فعلاً روی همین دستگاه ذخیره می‌شود) */
     root.appendChild(ownerNote(b));
+    root.appendChild(ownerVerify(b));
+    root.appendChild(reportRow(b));
 
     // ساعات کاری
     if (b.hours) { var s2 = el("div", "bp-section"); s2.appendChild(el("h2", null, "ساعات کاری")); s2.appendChild(el("div", "bp-hours", '<span class="ico">' + IC.clock + '</span>' + esc(b.hours))); root.appendChild(s2); }
