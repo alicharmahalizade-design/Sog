@@ -1058,6 +1058,15 @@
       var nameVal = String(fd.get("name") || "");
 
       if (kind === "person") {
+        var clean = normalizeFa(nameVal);
+        if (/[0-9۰-۹]/.test(clean)) {
+          toast("نام شخصی نباید شامل عدد باشد.");
+          return;
+        }
+        if (clean.split(" ").filter(Boolean).length < 2) {
+          toast("لطفاً نام و نام خانوادگی را کامل بنویسید.");
+          return;
+        }
         var hit = orgWordIn(nameVal);
         if (hit) {
           toast("«" + hit + "» نام یک مجموعه است؛ برای ثبت به‌نام مجموعه، حالت «اداره / شرکت» را انتخاب کنید.");
@@ -1219,10 +1228,33 @@
     head.setAttribute("aria-expanded", "false");
     head.dataset.acc = "cond";
     var logo = '<img class="cond-logo" src="' + esc(cd.logo) + '" alt="">';
-    head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + '</span>' + ICON.chevron;
+    /* همدردی اداریِ تأییدشده نشان می‌گیرد */
+    var verified = cd.kind === "org" && cd.verified
+      ? '<span class="cond-verified" title="تأییدشده"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+      : "";
+    head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + ICON.chevron;
     var body = el("div", "cond-body");
     var inner = el("div");
     var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p><time>" + esc(cd.date) + "</time>");
+
+    var tools = el("div", "mine-tools");
+
+    /* هر بازدیدکننده می‌تواند همدردی نامناسب را گزارش کند */
+    var rep = el("button", "mine-btn", "گزارش این همدردی");
+    rep.type = "button";
+    rep.addEventListener("click", function (e) {
+      e.stopPropagation();
+      try {
+        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
+        box.push({
+          kind: "condolence", id: id, from: cd.name, text: cd.message,
+          at: Date.now(), to: ["sog-support", "listing-owner"], status: "queued"
+        });
+        localStorage.setItem("sog:reports", JSON.stringify(box));
+      } catch (err) {}
+      toast("گزارش شما ثبت و برای پشتیبانی و ثبت‌کننده‌ی آگهی ارسال شد.");
+    });
+    tools.appendChild(rep);
 
     /* صاحب عزا می‌تواند همین همدردی را مخفی کند */
     if (isOwner && d) {
@@ -1234,10 +1266,9 @@
         toast("این همدردی برای بازدیدکنندگان مخفی شد.");
         render(d);
       });
-      var tools = el("div", "mine-tools");
       tools.appendChild(hide);
-      msg.appendChild(tools);
     }
+    msg.appendChild(tools);
 
     inner.appendChild(msg); body.appendChild(inner);
     item.appendChild(head); item.appendChild(body);

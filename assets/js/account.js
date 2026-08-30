@@ -40,7 +40,7 @@
     root.appendChild(condolenceSection());
     root.appendChild(sectionTitle("آگهی‌ها و فعالیت‌های من"));
     root.appendChild(menuList([
-      { icon: IC.listing, label: "آگهی‌های من", badge: "۰", onClick: function () { toast("هنوز آگهی ثبت نکرده‌اید."); } },
+      { icon: IC.listing, label: "آگهی‌های من", badge: faNum(myListings().length), onClick: showMyListings },
       { icon: IC.saved, label: "ذخیره‌شده‌ها", badge: faNum(SogStore.getSaved().length), href: "index.html?view=saved" },
       { icon: IC.follow, label: "دنبال‌شده‌ها", badge: faNum(SogStore.getFollows().length), onClick: showFollowed },
       { icon: IC.order, label: "سفارش‌های من", onClick: function () { toast("سفارشی ثبت نشده است."); } }
@@ -264,6 +264,38 @@
     var b = el("button", "acc-logout", svg(IC.logout) + " خروج از حساب");
     b.addEventListener("click", function () { SogStore.clearUser(); render(); toast("از حساب خارج شدید."); });
     return b;
+  }
+
+  /* آگهی‌هایی که خودِ کاربر ثبت کرده */
+  function myListings() {
+    try { return JSON.parse(localStorage.getItem("sog:myListings")) || []; }
+    catch (e) { return []; }
+  }
+
+  function showMyListings() {
+    var ids = myListings();
+    if (!ids.length) { toast("هنوز آگهی ثبت نکرده‌اید."); return; }
+    var body = el("div");
+    body.appendChild(el("div", "login-title", "آگهی‌های من"));
+    ids.forEach(function (rawId) {
+      var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
+      if (item) {
+        var a = el("a", "mini-listing");
+        a.href = "listing.html?id=" + item.id;
+        a.innerHTML = '<span class="ml-photo" style="background-image:url(\'' + esc(item.photo) + '\')"></span>' +
+          '<span class="ml-info"><span class="ml-name">' + esc(item.deceased_name) + '</span>' +
+          '<span class="ml-meta">' + esc(item.city || "") + '</span></span>';
+        body.appendChild(a);
+      } else {
+        /* آگهی‌های ثبت‌شده‌ای که هنوز منتشر نشده‌اند */
+        var row = el("div", "mini-listing is-pending");
+        row.innerHTML = '<span class="ml-photo"></span><span class="ml-info">' +
+          '<span class="ml-name">آگهی ثبت‌شده</span>' +
+          '<span class="ml-meta">در انتظار انتشار</span></span>';
+        body.appendChild(row);
+      }
+    });
+    openSheet(body);
   }
 
   /* دنبال‌شده‌ها به‌صورت لیست */

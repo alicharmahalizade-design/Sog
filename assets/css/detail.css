@@ -591,3 +591,10 @@
   background: var(--accent); color: #1c1206; border: none; border-radius: 12px;
   padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit;
 }
+
+/* نشان تأییدشده روی همدردی اداری */
+.cond-verified {
+  display: inline-grid; place-items: center; width: 16px; height: 16px;
+  border-radius: 50%; background: #3f9d6d; color: #fff;
+  margin-inline-start: 6px; vertical-align: middle;
+}

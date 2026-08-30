@@ -133,3 +133,7 @@
   background: var(--accent); color: #1c1206;
   display: grid; place-items: center; border: 2px solid var(--bg);
 }
+
+/* آگهی‌های ثبت‌شده که هنوز منتشر نشده‌اند */
+.mini-listing.is-pending { opacity: .75; }
+.mini-listing.is-pending .ml-photo { background: var(--surface-2); }
