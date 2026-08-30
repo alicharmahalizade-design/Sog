@@ -207,6 +207,65 @@
     }, true);
   }
 
+  /* ---------- انتخاب شهر با جستجو (پاپ‌آپ) ---------- */
+  function openCitySheet() {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "city-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-label", "انتخاب شهر");
+
+    var head = el("div", "sheet-head");
+    head.appendChild(el("span", null, "انتخاب شهر"));
+    var close = el("button", "icon-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button"; close.setAttribute("aria-label", "بستن");
+    head.appendChild(close);
+
+    var search = el("div", "city-search");
+    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    var input = document.createElement("input");
+    input.type = "search"; input.placeholder = "جستجوی شهر…"; input.setAttribute("aria-label", "جستجوی شهر");
+    search.appendChild(input);
+
+    var options = el("div", "city-options");
+
+    function paint(q) {
+      options.innerHTML = "";
+      var term = normalize(q || "");
+      var list = DATA.cities.filter(function (c) { return !term || normalize(c.name).indexOf(term) !== -1; });
+      if (!list.length) { options.appendChild(el("p", "city-empty", "شهری با این نام پیدا نشد.")); return; }
+      list.forEach(function (c) {
+        var btn = el("button", "city-option" + (c.slug === state.city ? " is-active" : ""));
+        btn.type = "button";
+        var n = unseenCountForCity(c.slug);
+        btn.innerHTML = "<span>" + esc(c.name) + "</span>" + (n > 0 ? '<span class="co-badge">' + toFa(n) + "</span>" : "");
+        btn.addEventListener("click", function () {
+          state.city = c.slug; state.year = null;
+          done();
+          renderCities(); renderFeed();
+        });
+        options.appendChild(btn);
+      });
+    }
+
+    sheet.appendChild(head); sheet.appendChild(search); sheet.appendChild(options);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    paint("");
+    setTimeout(function () { input.focus(); }, 60);
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    close.addEventListener("click", done);
+    back.addEventListener("click", done);
+    input.addEventListener("input", function () { paint(input.value); });
+    document.addEventListener("keydown", function esc2(e) {
+      if (e.key === "Escape") { done(); document.removeEventListener("keydown", esc2); }
+    });
+  }
+
   /* ---------- رندر نوار شهرها ---------- */
   function renderCities() {
     var bar = document.getElementById("cityBar");
@@ -242,9 +301,7 @@
         var add = el("button", "city-chip is-add");
         add.type = "button";
         add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
-        add.addEventListener("click", function () {
-          alert("انتخاب شهر — این بخش در نسخه‌ی کامل باز می‌شود.");
-        });
+        add.addEventListener("click", openCitySheet);
         bar.appendChild(add);
       }
     });

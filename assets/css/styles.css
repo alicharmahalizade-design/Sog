@@ -543,3 +543,42 @@ option { direction: rtl; text-align: right; }
   max-width: 86vw; text-align: center;
 }
 .sog-toast.is-in { opacity: 1; transform: translate(-50%, 0); }
+
+/* ===== پاپ‌آپ انتخاب شهر (صفحه‌ی اصلی) ===== */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 90; }
+.city-sheet {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 100;
+  max-width: var(--frame-w); margin: 0 auto;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 14px calc(18px + env(safe-area-inset-bottom));
+  max-height: 82vh; display: flex; flex-direction: column;
+}
+.city-sheet .sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 15px; font-weight: 700; margin-bottom: 10px;
+}
+.city-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 0 12px; margin-bottom: 12px;
+}
+.city-search .search-icon { color: var(--text-mute); flex: 0 0 auto; }
+.city-search input {
+  flex: 1 1 auto; background: none; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 14px; padding: 11px 0;
+}
+.city-options { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.city-option {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: right; background: var(--surface-2);
+  border: 1px solid var(--card-border); border-radius: 12px;
+  color: var(--text); font-family: inherit; font-size: 14px; padding: 12px 14px;
+}
+.city-option.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.co-badge {
+  min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px;
+  background: var(--badge); color: #fff; font-size: 11.5px; font-weight: 700;
+  display: inline-grid; place-items: center;
+}
+.city-empty { color: var(--text-dim); text-align: center; padding: 22px; }

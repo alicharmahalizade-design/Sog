@@ -190,9 +190,10 @@
 
     if ((d.contacts || []).length) {
       root.appendChild(el("h2", "section-title", "ارتباط با خانواده سوگوار"));
-      root.appendChild(contactRow(d.contacts));
+      root.appendChild(contactRow(d.contacts, d));
     }
     root.appendChild(condolenceSection(d));
+    root.appendChild(guestbookSection(d));
 
     if (ownerMode(d)) root.appendChild(ownerNote(d));
     root.appendChild(privateNote(d));
@@ -800,17 +801,109 @@
   }
 
   /* ---------- ارتباط ---------- */
-  function contactRow(contacts) {
+  /* لینک واقعی هر راه ارتباطی؛ اگر مقدارش نبود، شماره‌ی خانواده استفاده می‌شود */
+  function contactHref(c, fallbackPhone) {
+    var v = c.value || fallbackPhone || "";
+    var phone = toEnNum(String(v)).replace(/[^\d+]/g, "");
+    switch (c.type) {
+      case "call": return phone ? "tel:" + phone : null;
+      case "sms": return phone ? "sms:" + phone : null;
+      case "whatsapp": return phone ? SogUtil.waLink(phone, "") : null;
+      case "eitaa": return phone ? "https://eitaa.com/" + phone.replace(/^0/, "98") : null;
+      case "telegram": return "https://t.me/" + String(v).replace(/^@/, "");
+      case "instagram": return "https://instagram.com/" + String(v).replace(/^@/, "");
+      default: return null;
+    }
+  }
+
+  function contactRow(contacts, d) {
     var row = el("div", "contact-row");
+    var fallback = (d && d.contact_phone) || "";
     contacts.forEach(function (c) {
+      var href = contactHref(c, fallback);
       var item = el("div", "contact-item");
-      var b = el("button", "c-btn", ICON[c.type] || ICON.call);
+      var b = el(href ? "a" : "button", "c-btn" + (href ? "" : " is-off"), ICON[c.type] || ICON.call);
       var glyph = b.querySelector("svg"); if (glyph) glyph.classList.add("c-" + c.type);
-      b.addEventListener("click", function () { alert(c.label + " (نمونه)."); });
+      if (href) {
+        b.href = href;
+        if (c.type !== "call" && c.type !== "sms") { b.target = "_blank"; b.rel = "noopener"; }
+        b.setAttribute("aria-label", c.label);
+      } else {
+        b.type = "button";
+        b.addEventListener("click", function () { toast("راه ارتباطی «" + c.label + "» برای این آگهی ثبت نشده است."); });
+      }
       item.appendChild(b); item.appendChild(el("span", null, esc(c.label)));
       row.appendChild(item);
     });
     return row;
+  }
+
+  /* ---------- دفتر یادبود ---------- */
+  function guestbookSection(d) {
+    var wrap = el("div");
+    var list = el("div", "gb-list");
+
+    function paint() {
+      list.innerHTML = "";
+      var items = SogStore.getGuestbook(id);
+      if (!items.length) {
+        list.appendChild(el("p", "gb-empty", "هنوز خاطره‌ای ثبت نشده است. اولین نفری باشید که خاطره‌ای از این عزیز می‌نویسد."));
+      } else {
+        items.forEach(function (g, i) {
+          var item = el("div", "gb-item");
+          var head = el("div", "gb-head");
+          head.appendChild(el("span", "gb-name", esc(g.name || "ناشناس")));
+          head.appendChild(el("time", "gb-date", esc(g.date || "")));
+          item.appendChild(head);
+          item.appendChild(el("p", "gb-text", fmtDesc(g.text)));
+          if (g.mine) {
+            var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
+            del.addEventListener("click", function () {
+              var all = SogStore.getGuestbook(id);
+              all.splice(i, 1);
+              try {
+                var m = JSON.parse(localStorage.getItem("sog:guest")) || {};
+                m[id] = all; localStorage.setItem("sog:guest", JSON.stringify(m));
+              } catch (e) {}
+              paint();
+              toast("خاطره‌ی شما حذف شد.");
+            });
+            var tools = el("div", "mine-tools");
+            tools.appendChild(del);
+            item.appendChild(tools);
+          }
+          list.appendChild(item);
+        });
+      }
+    }
+
+    var form = el("form", "gb-form");
+    var nameInput = document.createElement("input");
+    nameInput.type = "text"; nameInput.placeholder = "نام شما"; nameInput.className = "gb-input"; nameInput.required = true;
+    var textInput = document.createElement("textarea");
+    textInput.rows = 3; textInput.placeholder = "خاطره یا جمله‌ای از این عزیز بنویسید…"; textInput.className = "gb-input"; textInput.required = true;
+    var send = el("button", "gb-send", "ثبت خاطره"); send.type = "submit";
+    form.appendChild(nameInput); form.appendChild(textInput); form.appendChild(send);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!nameInput.value.trim() || !textInput.value.trim()) return;
+      var t = SogUtil.todayJalali();
+      SogStore.addGuestbook(id, {
+        name: nameInput.value.trim(),
+        text: textInput.value.trim(),
+        date: faNum(t.y) + "/" + faNum(t.m < 10 ? "0" + t.m : t.m) + "/" + faNum(t.d < 10 ? "0" + t.d : t.d),
+        mine: true
+      });
+      nameInput.value = ""; textInput.value = "";
+      paint();
+      toast("خاطره‌ی شما در دفتر یادبود ثبت شد.");
+    });
+
+    paint();
+    wrap.appendChild(list);
+    wrap.appendChild(form);
+    return accordion("دفتر یادبود", wrap);
   }
 
   /* ---------- همدردی ---------- */

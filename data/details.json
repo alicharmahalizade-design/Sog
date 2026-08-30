@@ -184,27 +184,33 @@
     "contacts": [
       {
         "type": "call",
-        "label": "تماس"
+        "label": "تماس",
+        "value": "۰۹۱۳۱۱۱۲۲۳۳"
       },
       {
         "type": "sms",
-        "label": "پیامک"
+        "label": "پیامک",
+        "value": "۰۹۱۳۱۱۱۲۲۳۳"
       },
       {
         "type": "whatsapp",
-        "label": "واتساپ"
+        "label": "واتساپ",
+        "value": "۰۹۱۳۱۱۱۲۲۳۳"
       },
       {
         "type": "eitaa",
-        "label": "ایتا"
+        "label": "ایتا",
+        "value": "۰۹۱۳۱۱۱۲۲۳۳"
       },
       {
         "type": "telegram",
-        "label": "تلگرام"
+        "label": "تلگرام",
+        "value": "sog_family"
       },
       {
         "type": "instagram",
-        "label": "اینستاگرام"
+        "label": "اینستاگرام",
+        "value": "sog.family"
       }
     ],
     "condolence_count": "۸۶۴",
@@ -244,6 +250,7 @@
         "message": "مصیبت وارده را تسلیت عرض می‌نماییم.",
         "date": "۱۴۰۵/۰۵/۲۵"
       }
-    ]
+    ],
+    "contact_phone": "۰۹۱۳۱۱۱۲۲۳۳"
   }
 }
