@@ -320,7 +320,87 @@
     more.type = "button";
     more.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
     wrap.appendChild(more);
+
+    var rep = el("button", "acc-report",
+      '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> گزارش خطا');
+    rep.type = "button";
+    rep.addEventListener("click", function () { openBizReport(b); });
+    wrap.appendChild(rep);
     return wrap;
+  }
+
+  /* پیام کوتاه */
+  function toast(msg) {
+    var old = document.querySelector(".sog-toast");
+    if (old) old.remove();
+    var t = el("div", "sog-toast", esc(msg));
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add("is-in"); });
+    setTimeout(function () {
+      t.classList.remove("is-in");
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 300);
+    }, 2600);
+  }
+
+  /* گزارش خطای کسب‌وکار — همان فرم صفحه‌ی کسب‌وکار */
+  var BIZ_REPORT_TYPES = [
+    "این کسب‌وکار تکراری است",
+    "شماره تماس یا آدرس نادرست است",
+    "تصویر نامناسب یا اشتباه است",
+    "خدمات یا قیمت‌ها نادرست است",
+    "محتوای توهین‌آمیز یا نامرتبط",
+    "این کسب‌وکار دیگر فعال نیست"
+  ];
+
+  function openBizReport(b) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "biz-report-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-label", "گزارش خطا");
+
+    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button"; close.setAttribute("aria-label", "بستن");
+
+    var form = el("form", "report-form");
+    form.innerHTML =
+      '<h3 class="report-title">گزارش خطا — ' + esc(b.name) + '</h3>' +
+      '<label class="report-field"><span>نوع خطا</span><select name="type" required>' +
+      BIZ_REPORT_TYPES.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join("") +
+      '</select></label>' +
+      '<label class="report-field"><span>توضیحات</span>' +
+      '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
+      '<div class="report-actions">' +
+      '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
+      '<button type="submit" class="btn-primary">ثبت و ارسال</button></div>';
+
+    sheet.appendChild(close); sheet.appendChild(form);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    close.addEventListener("click", done);
+    back.addEventListener("click", done);
+    form.querySelector("[data-cancel]").addEventListener("click", done);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      try {
+        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
+        box.push({
+          kind: "business", id: b.id, name: b.name,
+          type: fd.get("type"), note: fd.get("note") || "",
+          at: Date.now(), to: ["sog-support", "business-owner"], status: "queued"
+        });
+        localStorage.setItem("sog:reports", JSON.stringify(box));
+      } catch (err) {}
+      done();
+      toast("گزارش شما ثبت و برای پشتیبانی سوگ و صاحب کسب‌وکار ارسال شد.");
+    });
   }
 
   /* ردیف کسب‌وکار — خودش یک آکاردئون تودرتو است */

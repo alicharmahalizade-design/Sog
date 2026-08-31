@@ -413,3 +413,11 @@
 }
 .biz-report-sheet .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
 .biz-report-sheet .btn-ghost { background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim); }
+
+/* گزارش خطا داخل ردیف کسب‌وکار */
+.acc-report {
+  flex: 1 0 100%; margin-top: 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; color: var(--text-mute);
+  font-size: 12px; padding: 4px;
+}
