@@ -843,9 +843,20 @@
     var wrap = el("div");
     var list = el("div", "gb-list");
 
+    var isOwner = ownerMode(d);
+
     function paint() {
       list.innerHTML = "";
-      var items = SogStore.getGuestbook(id);
+      var all = SogStore.getGuestbook(id);
+      /* خانواده همه‌ی یادبودها را می‌بیند؛ بقیه فقط یادبود خودشان را */
+      var items = isOwner ? all : all.filter(function (g) { return g.mine; });
+
+      if (isOwner && all.length) {
+        list.appendChild(el("p", "gb-note", "شما ثبت‌کننده‌ی این آگهی هستید و همه‌ی یادبودهای ثبت‌شده را می‌بینید."));
+      } else if (!isOwner) {
+        list.appendChild(el("p", "gb-note", "یادبودها فقط برای خانواده‌ی سوگوار قابل مشاهده است؛ شما یادبود خودتان را می‌بینید."));
+      }
+
       if (!items.length) {
         list.appendChild(el("p", "gb-empty", "هنوز خاطره‌ای ثبت نشده است. اولین نفری باشید که خاطره‌ای از این عزیز می‌نویسد."));
       } else {
@@ -860,7 +871,9 @@
             var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
             del.addEventListener("click", function () {
               var all = SogStore.getGuestbook(id);
-              all.splice(i, 1);
+              var realIndex = all.indexOf(g);
+              if (realIndex === -1) realIndex = i;
+              all.splice(realIndex, 1);
               try {
                 var m = JSON.parse(localStorage.getItem("sog:guest")) || {};
                 m[id] = all; localStorage.setItem("sog:guest", JSON.stringify(m));
