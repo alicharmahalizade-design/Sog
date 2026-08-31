@@ -1239,23 +1239,6 @@
 
     var tools = el("div", "mine-tools");
 
-    /* هر بازدیدکننده می‌تواند همدردی نامناسب را گزارش کند */
-    var rep = el("button", "mine-btn", "گزارش این همدردی");
-    rep.type = "button";
-    rep.addEventListener("click", function (e) {
-      e.stopPropagation();
-      try {
-        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
-        box.push({
-          kind: "condolence", id: id, from: cd.name, text: cd.message,
-          at: Date.now(), to: ["sog-support", "listing-owner"], status: "queued"
-        });
-        localStorage.setItem("sog:reports", JSON.stringify(box));
-      } catch (err) {}
-      toast("گزارش شما ثبت و برای پشتیبانی و ثبت‌کننده‌ی آگهی ارسال شد.");
-    });
-    tools.appendChild(rep);
-
     /* صاحب عزا می‌تواند همین همدردی را مخفی کند */
     if (isOwner && d) {
       var hide = el("button", "mine-btn", "مخفی‌کردن این همدردی");
