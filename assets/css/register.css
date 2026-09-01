@@ -259,16 +259,21 @@
 }
 
 /* انتخاب تصویرها */
-.photo-slots { display: flex; flex-direction: column; gap: 10px; }
+/* شبکه‌ای: تصویر اصلی تمام‌عرض، دو تصویر بعدی کنار هم */
+.photo-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.photo-slots .photo-slot:first-child { grid-column: 1 / -1; }
 .photo-slot {
-  position: relative; min-height: 54px; border-radius: 12px;
+  position: relative; min-height: 104px; border-radius: 12px;
+  flex-direction: column; text-align: center; padding: 10px;
   border: 1px solid #2e2e2e; background: #171717;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-mute); font-size: 13px; cursor: pointer; overflow: hidden;
 }
-.photo-slot .slot-txt { display: inline-flex; align-items: center; gap: 8px; }
-.photo-slot.has-img { min-height: 190px; border-style: solid; }
-.photo-slot img { width: 100%; height: 190px; object-fit: cover; }
+.photo-slot .slot-txt { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; line-height: 1.7; }
+.photo-slot.has-img { min-height: 0; border-style: solid; padding: 0; }
+.photo-slot img { width: 100%; height: 140px; object-fit: cover; }
+.photo-slots .photo-slot:first-child img { height: 200px; }
+.photo-slots .photo-slot:first-child { min-height: 120px; }
 .slot-x {
   position: absolute; top: 8px; inset-inline-start: 8px;
   width: 26px; height: 26px; border-radius: 50%;
