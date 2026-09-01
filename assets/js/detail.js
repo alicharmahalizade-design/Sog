@@ -787,16 +787,65 @@
   /* ---------- سپاسگزاری ---------- */
   function ackAccordion(ack) {
     var wrap = el("div");
-    wrap.appendChild(el("p", "ack-text", fmtDesc(ack.text)));
-    var foot = el("div", "ack-foot");
-    var st = el("div", "ack-story");
-    var b = el("button", null, ICON.story);
-    b.setAttribute("aria-label", "ساخت استوری سپاسگزاری");
-    b.addEventListener("click", function () { openStory(currentDetail, ack); });
-    st.appendChild(b); st.appendChild(el("span", null, "استوری"));
-    foot.appendChild(st);
-    foot.appendChild(el("div", "ack-sign", esc(ack.signature) + "<br>" + esc(ack.date)));
-    wrap.appendChild(foot);
+    var owner = currentDetail && ownerMode(currentDetail);
+
+    /* متن سپاسگزاری: نسخه‌ی ویرایش‌شده‌ی خانواده بر متن اولیه مقدم است */
+    function currentText() { return SogStore.getAckText(id) || ack.text || ""; }
+
+    var view = el("div");
+
+    function paintView() {
+      view.innerHTML = "";
+      var live = { text: currentText(), signature: ack.signature, date: ack.date };
+
+      view.appendChild(el("p", "ack-text", fmtDesc(live.text)));
+      var foot = el("div", "ack-foot");
+      var st = el("div", "ack-story");
+      var b = el("button", null, ICON.story);
+      b.setAttribute("aria-label", "ساخت استوری سپاسگزاری");
+      b.addEventListener("click", function () { openStory(currentDetail, live); });
+      st.appendChild(b); st.appendChild(el("span", null, "استوری"));
+      foot.appendChild(st);
+      foot.appendChild(el("div", "ack-sign", esc(live.signature) + "<br>" + esc(live.date)));
+      view.appendChild(foot);
+
+      /* خانواده می‌تواند همین‌جا متن را ویرایش کند */
+      if (owner) {
+        var edit = el("button", "mine-btn", "ویرایش متن سپاسگزاری");
+        edit.type = "button";
+        edit.addEventListener("click", paintEditor);
+        var tools = el("div", "mine-tools");
+        tools.appendChild(edit);
+        view.appendChild(tools);
+      }
+    }
+
+    function paintEditor() {
+      view.innerHTML = "";
+      var ta = el("textarea", "note-input");
+      ta.rows = 6;
+      ta.value = currentText();
+      ta.placeholder = "متن سپاسگزاری خانواده…";
+      view.appendChild(ta);
+
+      view.appendChild(readyTextPicker(READY_THANKS, function (t) { ta.value = t; }));
+
+      var row = el("div", "ack-edit-actions");
+      var cancel = el("button", "btn-ghost", "بی‌خیال"); cancel.type = "button";
+      var save = el("button", "btn-primary", "ذخیره‌ی متن"); save.type = "button";
+      cancel.addEventListener("click", paintView);
+      save.addEventListener("click", function () {
+        SogStore.setAckText(id, ta.value);
+        paintView();
+        toast("متن سپاسگزاری به‌روزرسانی شد.");
+      });
+      row.appendChild(cancel); row.appendChild(save);
+      view.appendChild(row);
+      ta.focus();
+    }
+
+    paintView();
+    wrap.appendChild(view);
     return accordion("سپاسگزاری", wrap);
   }
 
