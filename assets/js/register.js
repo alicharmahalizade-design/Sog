@@ -13,13 +13,13 @@
   /* مراسم‌های قابل انتخاب — هرکدام می‌تواند بیش از یک نوبت داشته باشد */
   var CEREMONIES = [
     { key: "tashi", name: "تشییع / خاکسپاری", on: true },
+    { key: "shame-ghariban", name: "شام غریبان" },
     { key: "sevom", name: "سوم" },
     { key: "haftom", name: "هفتم" },
     { key: "sevom-haftom", name: "سوم/هفتم" },
     { key: "khatm", name: "ختم" },
     { key: "sevom-haftom-khatm", name: "سوم/هفتم/ختم" },
     { key: "bozorgdasht", name: "بزرگداشت", on: true, multi: true },
-    { key: "shame-ghariban", name: "شام غریبان" },
     { key: "chehelom", name: "چهلم" },
     { key: "salgard", name: "سالگرد" },
     { key: "shabe-sal", name: "شب سال" }
