@@ -601,8 +601,6 @@
           grid.appendChild(chip);
         });
         p.appendChild(field("نکات مراسم", false, grid));
-        p.appendChild(el("p", "field-hint",
-          "تصاویر مراسم " + ins.name + " را بعد از برگزاری، از خودِ صفحه‌ی آگهی اضافه کنید؛ نیازی به بازگشت به ثبت آگهی نیست."));
         return p;
       }});
     });
