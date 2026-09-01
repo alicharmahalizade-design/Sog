@@ -217,7 +217,8 @@
         if (c) c.textContent = faNum(opts.max - i.value.length);
       }
     });
-    if (!opts.max) return i;
+    /* شمارنده‌ی کاراکتر فقط برای متن‌های بلند معنی دارد، نه فیلدهای کوتاه مثل کد ملی */
+    if (!opts.max || opts.tag !== "textarea") return i;
     var wrap = el("div", "ta-wrap");
     wrap.appendChild(i);
     wrap.appendChild(el("span", "char-count", faNum(opts.max - (i.value.length || 0))));
