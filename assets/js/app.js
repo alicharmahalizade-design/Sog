@@ -371,14 +371,16 @@
     mic.hidden = false;
     var rec = new SR();
     rec.lang = "fa-IR"; rec.interimResults = false; rec.maxAlternatives = 1;
-    /* شمارش معکوس سه‌ثانیه‌ای زیر میکروفون هنگام شنیدن */
+    /* شمارش معکوس پنج‌ثانیه‌ای کنار میکروفون هنگام شنیدن */
     var timer = el("span", "mic-timer");
     timer.hidden = true;
-    (mic.parentNode || mic).appendChild(timer);
+    /* کنار خود میکروفون می‌نشیند تا همیشه دیده شود */
+    if (mic.parentNode) mic.parentNode.insertBefore(timer, mic);
+    else mic.appendChild(timer);
     var tick;
 
     function startCountdown() {
-      var left = 3;
+      var left = 5;
       timer.hidden = false;
       timer.textContent = faNum(left);
       clearInterval(tick);

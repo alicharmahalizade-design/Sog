@@ -421,3 +421,13 @@
   background: none; border: none; color: var(--text-mute);
   font-size: 12px; padding: 4px;
 }
+
+/* امتیاز دادن به کسب‌وکار */
+.rate-stars { display: flex; gap: 8px; margin: 4px 0 8px; }
+.rate-star {
+  background: none; border: none; padding: 2px;
+  color: #3a3a3a; display: grid; place-items: center;
+}
+.rate-star svg { width: 30px; height: 30px; }
+.rate-star.is-on { color: var(--accent); }
+.rate-stars.is-locked { opacity: .35; pointer-events: none; }
