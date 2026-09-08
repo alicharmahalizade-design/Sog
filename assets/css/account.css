@@ -137,3 +137,66 @@
 /* آگهی‌های ثبت‌شده که هنوز منتشر نشده‌اند */
 .mini-listing.is-pending { opacity: .75; }
 .mini-listing.is-pending .ml-photo { background: var(--surface-2); }
+
+
+/* ===== پنل کاربری: چیدمان تازه ===== */
+.acc-section-title { color: var(--accent); font-size: 16px; font-weight: 700; margin: 22px 4px 12px; }
+
+.profile-card {
+  background: var(--surface-2); border: none; border-radius: 18px;
+  padding: 18px; display: flex; align-items: center; gap: 14px; position: relative;
+}
+.profile-name { color: var(--accent); font-size: 17px; font-weight: 700; }
+.profile-phone { color: var(--accent); font-size: 15px; margin-top: 4px; letter-spacing: .5px; }
+.profile-edit {
+  position: absolute; bottom: 12px; inset-inline-end: 14px;
+  background: none; border: none; color: var(--text-dim); padding: 4px;
+}
+
+/* کارت فعالیت‌ها و تنظیمات */
+.acc-menu { background: var(--surface-2); border: none; border-radius: 18px; overflow: hidden; }
+.acc-item + .acc-item > .acc-row, .acc-menu > .acc-row + .acc-row { border-top: 1px solid #2a2a2a; }
+.acc-row {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 17px 16px; background: transparent; border: none;
+  color: var(--text); font-family: inherit; font-size: 15px; font-weight: 700;
+  text-decoration: none; cursor: pointer; text-align: start;
+}
+.acc-row .ar-ic { color: var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
+.acc-row .ar-label { flex: 1 1 auto; }
+.acc-row.is-danger .ar-label, .acc-row.is-danger .ar-ic { color: var(--accent); }
+.ar-count {
+  width: 34px; min-width: 34px; height: 34px; padding: 0; border-radius: 50%;
+  flex: 0 0 34px;
+  background: #333; color: var(--text); font-size: 13px; font-weight: 700;
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+}
+.ar-chev { color: var(--text-dim); display: grid; place-items: center; flex: 0 0 auto; transition: transform .25s; }
+.acc-item.is-open > .acc-row .ar-chev { transform: rotate(180deg); color: var(--accent); }
+
+/* فهرست بازشو */
+.acc-body { display: none; padding: 0 12px 12px; }
+.acc-item.is-open .acc-body { display: flex; flex-direction: column; gap: 8px; }
+.acc-sub {
+  display: flex; align-items: center; gap: 10px;
+  background: #2b2b2b; border-radius: 12px; padding: 10px 12px;
+  color: var(--text); text-decoration: none;
+}
+.acc-sub-photo {
+  flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%;
+  background: #3a3a3a center/cover no-repeat;
+}
+.acc-sub-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.acc-sub-title {
+  font-size: 13.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.acc-sub-meta { font-size: 11.5px; color: var(--text-mute); }
+.acc-sub-x {
+  flex: 0 0 auto; background: none; border: none; color: var(--text-dim);
+  font-size: 20px; line-height: 1; padding: 0 6px;
+}
+.acc-empty-row {
+  background: #2b2b2b; border-radius: 12px; padding: 14px;
+  text-align: center; color: var(--text-mute); font-size: 12.5px; margin: 0;
+}

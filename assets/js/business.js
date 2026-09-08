@@ -549,6 +549,19 @@
       (fd.get("note") ? "• توضیحات: " + fd.get("note") + "\n" : "") +
       "کسب‌وکار: " + currentBiz.name;
     var link = SogUtil.waLink(currentBiz.whatsapp || currentBiz.phone, msg);
+    /* سفارش در حساب کاربری ثبت می‌شود */
+    try {
+      var orders = JSON.parse(localStorage.getItem("sog:orders")) || [];
+      var t = SogUtil.todayJalali();
+      orders.unshift({
+        business: currentBiz.name, logo: currentBiz.logo,
+        service: fd.get("service"), name: fd.get("name"), phone: fd.get("phone"),
+        note: fd.get("note") || "",
+        date: faNum(t.y) + "/" + faNum(t.m < 10 ? "0" + t.m : t.m) + "/" + faNum(t.d < 10 ? "0" + t.d : t.d),
+        at: Date.now()
+      });
+      localStorage.setItem("sog:orders", JSON.stringify(orders));
+    } catch (e) {}
     e.target.replaceWith(el("div", "order-success",
       '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
       '<p>در حال انتقال به واتساپ برای ارسال سفارش به «' + esc(currentBiz.name) + '»…</p>'));

@@ -33,22 +33,142 @@
     root.innerHTML = "";
     var user = SogStore.getUser();
     root.appendChild(profileCard(user));
-    root.appendChild(sectionTitle("فعالیت‌ها"));
-    root.appendChild(statsRow());
-    root.appendChild(quickActions());
-    root.appendChild(sectionTitle("همدردی‌های من"));
-    root.appendChild(condolenceSection());
-    root.appendChild(sectionTitle("آگهی‌ها و فعالیت‌های من"));
-    root.appendChild(menuList([
-      { icon: IC.listing, label: "آگهی‌های من", badge: faNum(myListings().length), onClick: showMyListings },
-      { icon: IC.saved, label: "ذخیره‌شده‌ها", badge: faNum(SogStore.getSaved().length), href: "index.html?view=saved" },
-      { icon: IC.follow, label: "دنبال‌شده‌ها", badge: faNum(SogStore.getFollows().length), onClick: showFollowed },
-      { icon: IC.order, label: "سفارش‌های من", onClick: function () { toast("سفارشی ثبت نشده است."); } }
-    ]));
+    root.appendChild(sectionTitle("فعالیت‌های من"));
+    root.appendChild(activityList());
     root.appendChild(sectionTitle("تنظیمات"));
-    root.appendChild(prefsList());
-    if (user) root.appendChild(logoutBtn());
+    root.appendChild(settingsList(user));
     root.appendChild(el("p", "acc-version", "سوگ — نسخه‌ی پیش‌نمایش"));
+  }
+
+  /* ---------- فعالیت‌های من: چهار ردیف آکاردئونی با شمارنده ---------- */
+  function activityList() {
+    var box = el("div", "acc-menu");
+
+    box.appendChild(accRow("ذخیره‌شده‌ها", savedItems(), function (it) {
+      return { title: it.deceased_name, sub: it.city, photo: it.photo, href: "listing.html?id=" + it.id,
+        onRemove: function () { SogStore.toggleSaved(it.id); } };
+    }, "هنوز آگهی‌ای ذخیره نکرده‌اید."));
+
+    box.appendChild(accRow("همدردی‌های من", myCondolences(), function (c) {
+      var bits = [];
+      if (c.candles) bits.push(faNum(c.candles) + " شمع");
+      if (c.messages) bits.push(faNum(c.messages) + " پیام");
+      if (c.city) bits.push(c.city);
+      return { title: c.name, sub: bits.join(" • "), photo: c.photo, href: "listing.html?id=" + c.id };
+    }, "هنوز در آگهی‌ای همدردی ثبت نکرده‌اید."));
+
+    box.appendChild(accRow("آگهی‌های من", myListingItems(), function (it) {
+      return { title: it.deceased_name, sub: it.city, photo: it.photo,
+        href: it.id ? "listing.html?id=" + it.id : null };
+    }, "هنوز آگهی ثبت نکرده‌اید."));
+
+    box.appendChild(accRow("سفارش‌های من", myOrders(), function (o) {
+      return { title: o.business, sub: (o.service || "") + (o.date ? " • " + o.date : ""), photo: o.logo,
+        onRemove: function () { removeOrder(o); } };
+    }, "سفارشی ثبت نشده است."));
+
+    return box;
+  }
+
+  /* یک ردیف آکاردئونی با شمارنده و فهرست بازشو */
+  function accRow(label, items, mapItem, emptyText) {
+    var wrap = el("div", "acc-item");
+
+    var head = el("button", "acc-row"); head.type = "button";
+    head.setAttribute("aria-expanded", "false");
+    head.innerHTML = '<span class="ar-label">' + esc(label) + '</span>' +
+      '<span class="ar-count">' + faNum(items.length) + '</span>' +
+      '<span class="ar-chev">' + svg("M6 9l6 6 6-6", 20) + '</span>';
+
+    var body = el("div", "acc-body");
+
+    if (!items.length) {
+      body.appendChild(el("p", "acc-empty-row", esc(emptyText)));
+    } else {
+      items.forEach(function (raw) {
+        var it = mapItem(raw);
+        var row = it.href ? el("a", "acc-sub") : el("div", "acc-sub");
+        if (it.href) row.href = it.href;
+
+        var ph = el("span", "acc-sub-photo");
+        if (it.photo) ph.style.backgroundImage = 'url("' + it.photo + '")';
+        row.appendChild(ph);
+
+        var info = el("span", "acc-sub-info");
+        info.appendChild(el("span", "acc-sub-title", esc(it.title || "بدون عنوان")));
+        if (it.sub) info.appendChild(el("span", "acc-sub-meta", esc(it.sub)));
+        row.appendChild(info);
+
+        if (it.onRemove) {
+          var x = el("button", "acc-sub-x", "×"); x.type = "button";
+          x.setAttribute("aria-label", "حذف");
+          x.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            it.onRemove();
+            render();
+          });
+          row.appendChild(x);
+        }
+        body.appendChild(row);
+      });
+    }
+
+    head.addEventListener("click", function () {
+      var open = wrap.classList.toggle("is-open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+
+  /* ---------- داده‌های هر بخش ---------- */
+  function savedItems() {
+    var ids = SogStore.getSaved();
+    return LISTINGS.filter(function (l) { return ids.indexOf(l.id) !== -1; });
+  }
+
+  function myListingItems() {
+    return myListings().map(function (rawId) {
+      var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
+      return item || { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
+    });
+  }
+
+  function myOrders() {
+    try { return JSON.parse(localStorage.getItem("sog:orders")) || []; }
+    catch (e) { return []; }
+  }
+
+  function removeOrder(o) {
+    var all = myOrders();
+    var i = all.indexOf(o);
+    if (i === -1) i = all.findIndex(function (x) { return x.at === o.at; });
+    if (i !== -1) all.splice(i, 1);
+    try { localStorage.setItem("sog:orders", JSON.stringify(all)); } catch (e) {}
+  }
+
+  /* ---------- تنظیمات ---------- */
+  function settingsList(user) {
+    var prefs = SogStore.getPrefs();
+    var list = el("div", "acc-menu");
+    list.appendChild(toggleRow(IC.bell, "اعلان و یادآوری‌های مراسمات", "notify", prefs.notify));
+
+    var sup = el("button", "acc-row"); sup.type = "button";
+    sup.innerHTML = '<span class="ar-ic">' + svg(IC.support) + '</span>' +
+      '<span class="ar-label">پشتیبانی</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    sup.addEventListener("click", contactSupport);
+    list.appendChild(sup);
+
+    var out = el("button", "acc-row is-danger"); out.type = "button";
+    out.innerHTML = '<span class="ar-ic">' + svg(IC.logout) + '</span>' +
+      '<span class="ar-label">خروج از حساب</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    out.addEventListener("click", function () {
+      SogStore.clearUser(); render(); toast("از حساب خارج شدید.");
+    });
+    list.appendChild(out);
+
+    return list;
   }
 
   /* پروفایل */
