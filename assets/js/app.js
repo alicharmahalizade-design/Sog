@@ -299,11 +299,13 @@
       chip.dataset.slug = c.slug;
       if (c.slug === state.city) chip.classList.add("is-active");
 
-      chip.appendChild(el("span", "chip-label", c.name));
-
       if (c.featured && c.total_label) {
-        chip.appendChild(el("span", "chip-badge badge-featured", c.total_label));
+        /* «کل ایران»: نام در سطر اول و شمار کل در سطر دوم (رنگ طلایی) */
+        chip.classList.add("is-all");
+        chip.appendChild(el("span", "chip-label", c.name));
+        chip.appendChild(el("span", "chip-total", c.total_label));
       } else {
+        chip.appendChild(el("span", "chip-label", c.name));
         var unseen = unseenCountForCity(c.slug);
         if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
       }
@@ -318,6 +320,15 @@
       bar.appendChild(chip);
       chip.style.touchAction = "pan-x";
       makeChipDraggable(chip, bar);
+
+      /* «نزدیک من» درست بعد از «کل ایران» در همین ردیف */
+      if (idx === 0) {
+        var gps = el("button", "city-chip is-gps",
+          '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg><span class="chip-label">نزدیک من</span>');
+        gps.type = "button";
+        gps.addEventListener("click", useNearMe);
+        bar.appendChild(gps);
+      }
 
       // دکمه‌ی «انتخاب شهر» بعد از چیپ فعال اول (مطابق طرح)
       if (idx === 3) {
@@ -370,7 +381,7 @@
   /* «نزدیک من»: نزدیک‌ترین شهر بر اساس GPS */
   function useNearMe() {
     if (!navigator.geolocation) { alert("موقعیت‌یابی در این مرورگر پشتیبانی نمی‌شود."); return; }
-    var chip = document.querySelector(".tool-gps");
+    var chip = document.querySelector(".is-gps .chip-label");
     if (chip) chip.textContent = "در حال یافتن…";
     navigator.geolocation.getCurrentPosition(function (pos) {
       var la = pos.coords.latitude, lo = pos.coords.longitude, best = null, bestD = Infinity;

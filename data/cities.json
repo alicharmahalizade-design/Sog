@@ -1,6 +1,6 @@
 {
   "cities": [
-    { "slug": "all", "name": "کل ایران", "total_label": "+۴۰۰/۰۰۰", "featured": true },
+    { "slug": "all", "name": "کل ایران", "total_label": "۳۷۹/۹۱۸", "featured": true },
     { "slug": "ahvaz", "name": "اهواز", "lat": 31.32, "lng": 48.67 },
     { "slug": "fooladshahr", "name": "فولادشهر", "lat": 32.49, "lng": 51.42 },
     { "slug": "behbahan", "name": "بهبهان", "lat": 30.60, "lng": 50.24 },
