@@ -303,7 +303,9 @@
         /* «کل ایران»: نام در سطر اول و شمار کل در سطر دوم (رنگ طلایی) */
         chip.classList.add("is-all");
         chip.appendChild(el("span", "chip-label", c.name));
-        chip.appendChild(el("span", "chip-total", c.total_label));
+        var total = el("span", "chip-total", c.total_label);
+        chip.appendChild(total);
+        countUp(total, c.total_label);
       } else {
         chip.appendChild(el("span", "chip-label", c.name));
         var unseen = unseenCountForCity(c.slug);
@@ -339,6 +341,39 @@
         bar.appendChild(add);
       }
     });
+  }
+
+  /* ---------- انیمیشن شمارش عدد آگهی‌ها ---------- */
+  var countedOnce = false;
+  function countUp(node, label) {
+    if (countedOnce) { node.textContent = label; return; }
+    var target = parseInt(toEn(label).replace(/[^0-9]/g, ""), 10);
+    if (!target || !isFinite(target)) { node.textContent = label; return; }
+    countedOnce = true;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { node.textContent = label; return; }
+    /* جداکننده‌ی هزارگان مطابق برچسب اصلی («/» یا «,») */
+    var sepMatch = toEn(label).match(/[^0-9۰-۹]/);
+    var sep = sepMatch ? sepMatch[0] : "";
+    function fmt(n) {
+      var s = String(n), out = "";
+      for (var i = 0; i < s.length; i++) {
+        if (i > 0 && (s.length - i) % 3 === 0 && sep) out += sep;
+        out += s[i];
+      }
+      return toFa(out);
+    }
+    var dur = 1200, t0 = 0;
+    node.classList.add("is-counting");
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);          /* نرم‌شدن در انتها */
+      node.textContent = fmt(Math.round(target * e));
+      if (p < 1) requestAnimationFrame(step);
+      else { node.textContent = label; node.classList.remove("is-counting"); }
+    }
+    requestAnimationFrame(step);
   }
 
   /* ---------- نوار ابزار (نزدیک‌من، فیلتر نوع مراسم، مرتب‌سازی) ---------- */

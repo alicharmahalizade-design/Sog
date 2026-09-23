@@ -176,7 +176,9 @@ option { direction: rtl; text-align: right; }
 }
 .city-chip.is-all .chip-total {
   color: var(--accent); font-size: 11px; font-weight: 700; direction: ltr;
+  font-variant-numeric: tabular-nums;
 }
+.city-chip.is-all .chip-total.is-counting { opacity: .9; }
 .city-chip.is-gps { gap: 5px; }
 .city-chip.is-add {
   background: transparent;
