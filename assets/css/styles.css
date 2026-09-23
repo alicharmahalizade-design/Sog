@@ -135,11 +135,35 @@ option { direction: rtl; text-align: right; }
 .page-tabs .tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ===== نوار شهرها (تک‌ردیفه، اسکرول افقی) ===== */
+/* ===== کادر شهرها (کل ایران ثابت + نوار اسکرول‌شونده) ===== */
+.home-cities {
+  display: flex; align-items: center; gap: 10px;
+  padding: 15px 0;
+  padding-inline-start: 14px;
+  background: #121212;
+}
+.all-iran {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  background: transparent; border: none; padding: 0;
+  color: var(--text); font-size: 14px; font-weight: 700; line-height: 1.35;
+  white-space: nowrap;
+}
+.all-iran .ai-total {
+  color: var(--accent); font-size: 13px; font-weight: 700;
+  direction: ltr; font-variant-numeric: tabular-nums;
+}
+.all-iran.is-active .ai-name { color: #fff; }
+.hc-div {
+  flex: 0 0 auto; width: 1px; height: 38px; background: #303030;
+}
+.home-cities .city-bar { flex: 1 1 auto; min-width: 0; }
+
 .city-bar {
-  display: flex; flex-wrap: nowrap; gap: 10px;
-  align-items: stretch;
-  padding: 12px 14px;
-  background: var(--surface);
+  display: flex; flex-wrap: nowrap; gap: 8px;
+  align-items: center;
+  padding: 2px 0 2px 2px;
+  background: transparent;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -152,10 +176,10 @@ option { direction: rtl; text-align: right; }
   flex: 0 0 auto;
   scroll-snap-align: start;
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 16px;
-  background: var(--surface-2);
+  height: 34px; padding: 0 14px;
+  background: #1e1e1e;
   color: var(--text-dim);           /* غیرفعال: خاکستری */
-  border: 1px solid #2f2f2f;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 13px; font-weight: 500;
   white-space: nowrap;
@@ -163,35 +187,26 @@ option { direction: rtl; text-align: right; }
 }
 /* شهر فعال: کاملاً متمایز از بقیه */
 .city-chip.is-active {
-  background: var(--accent-soft);
+  background: #1a1713;
   border-color: var(--accent);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 0 0 1px rgba(217,154,91,.35);
 }
-/* «کل ایران» دو سطری: نام + شمار کل */
-.city-chip.is-all {
-  flex-direction: column; align-items: center; gap: 1px;
-  padding: 5px 16px; line-height: 1.5;
-}
-.city-chip.is-all .chip-total {
-  color: var(--accent); font-size: 11px; font-weight: 700; direction: ltr;
-  font-variant-numeric: tabular-nums;
-}
-.city-chip.is-all .chip-total.is-counting { opacity: .9; }
-.city-chip.is-gps { gap: 5px; }
+.city-chip.is-gps { gap: 6px; color: var(--text-dim); }
+.city-chip.is-gps svg { color: var(--text-mute); }
 .city-chip.is-add {
   background: transparent;
   color: var(--text-dim);
-  border-style: dashed;
+  border-color: #3a3a3a; border-style: dashed;
+  padding-inline-start: 6px;
 }
 .city-chip .add-plus {
-  width: 18px; height: 18px; border-radius: 50%;
+  width: 22px; height: 22px; border-radius: 50%;
   background: #333; display: grid; place-items: center;
   font-size: 15px; line-height: 1; color: #ddd;
 }
 .chip-badge {
-  min-width: 20px; height: 20px; padding: 0 6px;
+  min-width: 22px; height: 22px; padding: 0 6px;
   display: inline-grid; place-items: center;
   background: var(--badge); color: #fff;
   font-size: 11px; font-weight: 700;

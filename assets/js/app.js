@@ -293,54 +293,57 @@
   function renderCities() {
     var bar = document.getElementById("cityBar");
     bar.innerHTML = "";
-    orderedCities().forEach(function (c, idx) {
+
+    var list = orderedCities();
+
+    /* «کل ایران» ثابت و بیرون از نوارِ اسکرول‌شونده است */
+    var all = null;
+    list = list.filter(function (c) {
+      if (c.featured && c.total_label) { all = c; return false; }
+      return true;
+    });
+    var allBtn = document.getElementById("allIran");
+    if (allBtn && all) {
+      allBtn.classList.toggle("is-active", all.slug === state.city);
+      var totalNode = document.getElementById("allIranTotal");
+      if (totalNode && !allBtn.dataset.bound) countUp(totalNode, all.total_label);
+      if (!allBtn.dataset.bound) {
+        allBtn.dataset.bound = "1";
+        allBtn.addEventListener("click", function () {
+          state.city = all.slug; state.year = null; renderCities(); renderFeed();
+        });
+      }
+    }
+
+    /* «نزدیک من» اولین چیپ نوار است */
+    var gps = el("button", "city-chip is-gps",
+      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+    gps.type = "button";
+    gps.addEventListener("click", useNearMe);
+    bar.appendChild(gps);
+
+    list.forEach(function (c) {
       var chip = el("button", "city-chip");
       chip.type = "button";
       chip.dataset.slug = c.slug;
       if (c.slug === state.city) chip.classList.add("is-active");
-
-      if (c.featured && c.total_label) {
-        /* «کل ایران»: نام در سطر اول و شمار کل در سطر دوم (رنگ طلایی) */
-        chip.classList.add("is-all");
-        chip.appendChild(el("span", "chip-label", c.name));
-        var total = el("span", "chip-total", c.total_label);
-        chip.appendChild(total);
-        countUp(total, c.total_label);
-      } else {
-        chip.appendChild(el("span", "chip-label", c.name));
-        var unseen = unseenCountForCity(c.slug);
-        if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
-      }
-
+      chip.appendChild(el("span", "chip-label", c.name));
+      var unseen = unseenCountForCity(c.slug);
+      if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
       chip.addEventListener("click", function () {
-        state.city = c.slug;
-        state.year = null;
-        renderCities();
-        renderFeed();
+        state.city = c.slug; state.year = null; renderCities(); renderFeed();
       });
-
       bar.appendChild(chip);
       chip.style.touchAction = "pan-x";
       makeChipDraggable(chip, bar);
-
-      /* «نزدیک من» درست بعد از «کل ایران» در همین ردیف */
-      if (idx === 0) {
-        var gps = el("button", "city-chip is-gps",
-          '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg><span class="chip-label">نزدیک من</span>');
-        gps.type = "button";
-        gps.addEventListener("click", useNearMe);
-        bar.appendChild(gps);
-      }
-
-      // دکمه‌ی «انتخاب شهر» بعد از چیپ فعال اول (مطابق طرح)
-      if (idx === 3) {
-        var add = el("button", "city-chip is-add");
-        add.type = "button";
-        add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
-        add.addEventListener("click", openCitySheet);
-        bar.appendChild(add);
-      }
     });
+
+    /* «انتخاب شهر +» همیشه انتهای ردیف */
+    var add = el("button", "city-chip is-add");
+    add.type = "button";
+    add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
+    add.addEventListener("click", openCitySheet);
+    bar.appendChild(add);
   }
 
   /* ---------- انیمیشن شمارش عدد آگهی‌ها ---------- */

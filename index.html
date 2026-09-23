@@ -37,7 +37,14 @@
     </div>
 
     <!-- ===== نوار انتخاب شهر ===== -->
-    <nav class="city-bar" id="cityBar" aria-label="انتخاب شهر"></nav>
+    <div class="home-cities">
+      <button type="button" class="all-iran" id="allIran">
+        <span class="ai-name">کل ایران</span>
+        <span class="ai-total" id="allIranTotal"></span>
+      </button>
+      <span class="hc-div" aria-hidden="true"></span>
+      <nav class="city-bar" id="cityBar" aria-label="انتخاب شهر"></nav>
+    </div>
 
     <!-- ===== محتوای اصلی (آگهی‌ها) ===== -->
     <main id="feed" class="feed" aria-live="polite"></main>
