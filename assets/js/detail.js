@@ -651,16 +651,42 @@
     return accordion("زندگی‌نامه", wrap);
   }
 
+  /* مراسم پس از نیمه‌شبِ روز برگزاری «تمام‌شده» حساب می‌شود.
+     تاریخ هم به شکل «۱۴۰۴/۰۵/۱۷» و هم «پنج‌شنبه ۱۷ مرداد ۱۴۰۴» خوانده می‌شود. */
+  function eventNum(dateStr) {
+    if (!dateStr || !window.SogUtil) return 0;
+    var t = SogUtil.toEn(dateStr);
+    var m = t.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m) return +m[1] * 10000 + +m[2] * 100 + +m[3];
+    var mi = -1;
+    SogUtil.jMonths.forEach(function (name, i) { if (t.indexOf(name) !== -1) mi = i + 1; });
+    var nums = t.match(/\d{1,4}/g) || [];
+    var day = null, year = null;
+    nums.forEach(function (n) { if (n.length === 4) year = +n; else if (day === null) day = +n; });
+    if (mi < 1 || !year || !day) return 0;
+    return year * 10000 + mi * 100 + day;
+  }
+  function isPastEvent(c) {
+    var ev = eventNum(c && c.date);
+    if (!ev || !window.SogUtil) return false;
+    var t = SogUtil.todayJalali();
+    return ev < t.y * 10000 + t.m * 100 + t.d;
+  }
+
   /* ---------- بلوک رویداد ---------- */
   function eventBody(c) {
     var wrap = el("div");
+    /* مراسمِ تمام‌شده خلاصه می‌شود: نقشه، مسیریابی، یادآوری و چیپ‌ها حذف می‌شوند
+       و فقط زمان، مکان و تصاویر مراسم می‌ماند. */
+    var past = isPastEvent(c);
+    if (past) wrap.className = "event-past";
     if (c.date || c.time_from || c.time_to) {
       var dl = el("div", "event-line");
       dl.innerHTML = '<span class="ev-ico">' + ICON.clock + '</span><span class="ev-lbl">زمان :</span>';
       /* تاریخ و کادر ساعت در یک ستون‌اند تا ساعت دقیقاً زیر متن تاریخ شروع شود */
       var col = el("div", "ev-col");
       if (c.date) col.appendChild(el("span", null, esc(c.date)));
-      if (c.time_from || c.time_to) {
+      if ((c.time_from || c.time_to) && !past) {
         var tp = el("div", "time-pills");
         if (c.time_to) tp.appendChild(el("span", "pill", esc(c.time_to)));
         tp.appendChild(el("span", "to", "تا"));
@@ -675,8 +701,8 @@
       ll.innerHTML = '<span class="ev-ico">' + ICON.pin + '</span><span class="ev-lbl">مکان :</span> <span>' + esc(c.location) + '</span>';
       wrap.appendChild(ll);
     }
-    if (c.map) { var m = el("div", "event-map"); m.style.backgroundImage = 'url("' + c.map + '")'; wrap.appendChild(m); }
-    if (c.location || c.date) {
+    if (c.map && !past) { var m = el("div", "event-map"); m.style.backgroundImage = 'url("' + c.map + '")'; wrap.appendChild(m); }
+    if ((c.location || c.date) && !past) {
       var eb = el("div", "event-btns");
       if (c.location) {
         var route = el("a", "event-btn route", ICON.route + " مسیر تا مراسم");
@@ -692,12 +718,12 @@
       }
       wrap.appendChild(eb);
     }
-    if (c.chips && c.chips.length) {
+    if (c.chips && c.chips.length && !past) {
       var cc = el("div", "chips-col");
       c.chips.forEach(function (t) { cc.appendChild(el("span", "event-chip", esc(t))); });
       wrap.appendChild(cc);
     }
-    if (c.description) {
+    if (c.description && !past) {
       var db = el("div", "desc-box");
       db.appendChild(el("span", "desc-label", "توضیحات"));
       db.appendChild(el("div", null, fmtDesc(c.description)));
@@ -707,7 +733,15 @@
     wrap.appendChild(eventGallery(c));
     return wrap;
   }
-  function eventAccordion(c) { return accordion(c.title, eventBody(c)); }
+  function eventAccordion(c) {
+    var acc = accordion(c.title, eventBody(c));
+    if (isPastEvent(c)) {
+      acc.classList.add("is-past");
+      var head = acc.querySelector(".acc-head");
+      if (head) head.querySelector("span").insertAdjacentHTML("afterend", '<span class="acc-done">برگزار شد</span>');
+    }
+    return acc;
+  }
 
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
