@@ -387,10 +387,10 @@ option { direction: rtl; text-align: right; }
   position: relative;
 }
 .bn-center .bn-ico {
-  width: 44px; height: 44px; margin-top: -16px;
+  width: 36px; height: 36px; margin-top: -6px;
   background: linear-gradient(180deg, #e9c88a, var(--accent));
   color: #2a1a06; border-radius: 50%;
-  box-shadow: 0 5px 14px rgba(217,154,91,.38); border: 3px solid var(--bg);
+  box-shadow: 0 4px 10px rgba(217,154,91,.32); border: 2px solid var(--bg);
 }
 .bn-center.is-active { color: var(--accent); }
 .bn-center .bn-label { margin-top: 2px; }
