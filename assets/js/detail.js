@@ -758,8 +758,15 @@
   }
 
   function anniversaryBody(a) {
-    if (a.empty) return el("div", null, "اطلاعاتی برای این سالگرد ثبت نشده است.");
-    return eventBody(Object.assign({}, a, { title: "سالگرد " + a.year }));
+    var title = "سالگرد " + a.year;
+    if (a.empty) {
+      /* سالگردی که هنوز اطلاعاتی ندارد: خانواده می‌تواند تصاویرش را اضافه کند */
+      var wrap = el("div");
+      wrap.appendChild(el("p", "anniv-empty-text", "اطلاعاتی برای این سالگرد ثبت نشده است."));
+      wrap.appendChild(eventGallery({ title: title, type: "salgard-" + a.year, gallery: [] }));
+      return wrap;
+    }
+    return eventBody(Object.assign({}, a, { title: title }));
   }
   function anniversaryAccordion(a) {
     return accordion("سالگرد " + a.year, anniversaryBody(a), { empty: !!a.empty });

@@ -612,3 +612,5 @@
 }
 .ack-edit-actions .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
 .ack-edit-actions .btn-ghost { background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim); }
+
+.anniv-empty-text { color: var(--text-mute); font-size: 13px; margin: 0 0 12px; text-align: center; }
