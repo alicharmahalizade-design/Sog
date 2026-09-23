@@ -117,11 +117,34 @@
 
   /* شهرها به ترتیب تعداد آگهی‌های جدید (مشاهده‌نشده) — بیشتر، جلوتر.
      شهر ویژه («کل ایران») همیشه اول می‌ماند و ترتیب اصلی، تساوی‌ها را می‌شکند. */
+  /* تازه‌ترین آگهی هر شهر (بر اساس تاریخ ثبت) */
+  function newestListingTime(slug) {
+    var newest = 0;
+    DATA.listings.forEach(function (it) {
+      if (it.city_slug !== slug) return;
+      var t = it.created_at ? Date.parse(it.created_at) : NaN;
+      if (isNaN(t)) {
+        /* اگر تاریخ ثبت نبود، از تاریخ مراسم شمسی استفاده می‌شود */
+        var d = SogUtil ? SogUtil.toEn(it.event_date_jalali || "").split("/") : [];
+        if (d.length === 3) {
+          var g = SogUtil.jalaliToGregorian(+d[0], +d[1], +d[2]);
+          t = new Date(g.y, g.m - 1, g.d).getTime();
+        }
+      }
+      if (!isNaN(t) && t > newest) newest = t;
+    });
+    return newest;
+  }
+
   function orderedCities() {
+    /* شهرها بر اساس تازه‌ترین آگهی مرتب می‌شوند؛ «کل ایران» همیشه اول می‌ماند */
     var auto = DATA.cities.map(function (c, i) {
-      return { city: c, idx: i, unseen: c.featured ? Infinity : unseenCountForCity(c.slug) };
+      return {
+        city: c, idx: i,
+        newest: c.featured ? Infinity : newestListingTime(c.slug)
+      };
     }).sort(function (a, b) {
-      if (a.unseen !== b.unseen) return b.unseen - a.unseen;
+      if (a.newest !== b.newest) return b.newest - a.newest;
       return a.idx - b.idx;
     }).map(function (x) { return x.city; });
 
