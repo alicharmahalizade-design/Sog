@@ -625,6 +625,18 @@
       bio.gallery.forEach(function (src) { var i = el("img"); i.src = src; i.alt = ""; g.appendChild(i); });
       wrap.appendChild(g);
     }
+    /* لینک اختیاری اینستاگرام درگذشته */
+    if (bio.instagram) {
+      var handle = String(bio.instagram).replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/+$/, "");
+      var ig = el("a", "bio-instagram");
+      ig.href = "https://instagram.com/" + handle;
+      ig.target = "_blank"; ig.rel = "noopener";
+      ig.innerHTML = '<span class="bi-ico"><svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg></span>' +
+        '<span class="bi-text">صفحه‌ی اینستاگرام</span>' +
+        '<span class="bi-handle">@' + esc(handle) + '</span>';
+      wrap.appendChild(ig);
+    }
+
     if (bio.relatives && bio.relatives.length) {
       wrap.appendChild(el("h3", "relatives-title", "سوگ‌های خویشاوند"));
       var r = el("div", "relatives");

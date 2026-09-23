@@ -41,7 +41,7 @@
     mother: "", mother_tayefe: "", mother_il: "",
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
-    bio: "", bio_photos: [], bio_layout: "one", music: null,
+    bio: "", bio_photos: [], bio_layout: "one", bio_instagram: "", music: null,
     phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
@@ -611,6 +611,9 @@
       var p = el("section", "reg-panel");
       p.appendChild(field("زندگی‌نامه", false, textInput("bio", "زندگی‌نامه و شرح زندگی درگذشته…", { tag: "textarea", rows: 7, max: 2000 })));
       p.appendChild(field("تصاویر زندگی‌نامه", false, bioPhotosField()));
+      p.appendChild(field("اینستاگرام درگذشته", false,
+        textInput("bio_instagram", "نشانی یا شناسه‌ی اینستاگرام (اختیاری)"),
+        "اگر صفحه‌ی اینستاگرام داشتند، اینجا بنویسید تا در زندگی‌نامه نمایش داده شود."));
       var music = el("div");
       music.appendChild(el("p", "field-hint", "فایل موزیک مورد نظر خود را وارد کنید"));
       var mbtn = el("label", "pick-btn", "انتخاب فایل موزیک");

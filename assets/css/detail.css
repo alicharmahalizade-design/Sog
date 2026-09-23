@@ -614,3 +614,16 @@
 .ack-edit-actions .btn-ghost { background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim); }
 
 .anniv-empty-text { color: var(--text-mute); font-size: 13px; margin: 0 0 12px; text-align: center; }
+
+/* لینک اینستاگرام درگذشته در زندگی‌نامه */
+.bio-instagram {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border-radius: 12px; padding: 12px 14px;
+  margin: 4px 0 16px; text-decoration: none; color: var(--text);
+}
+.bio-instagram .bi-ico { color: var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
+.bio-instagram .bi-text { font-size: 13.5px; font-weight: 700; }
+.bio-instagram .bi-handle {
+  margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute);
+  direction: ltr; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
+}
