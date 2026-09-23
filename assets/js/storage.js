@@ -15,6 +15,7 @@
   var HIDDEN_KEY = "sog:hiddenCond";    // همدردی‌های مخفی‌شده توسط صاحب عزا
   var OWNERNOTE_KEY = "sog:ownerNote";  // یادداشت صاحب عزا روی آگهی خودش
   var EVPHOTO_KEY = "sog:eventPhotos";  // نگاشت «شناسه‌ی آگهی|مراسم» → آرایه‌ی تصاویر
+  var ACK_KEY = "sog:ackText";      // متن سپاسگزاری ویرایش‌شده توسط خانواده
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
@@ -72,6 +73,14 @@
       if (m[k]) { m[k].splice(index, 1); if (!m[k].length) delete m[k]; }
       writeMap(EVPHOTO_KEY, m);
       return m[k] || [];
+    },
+
+    /* ----- متن سپاسگزاری (قابل ویرایش توسط خانواده) ----- */
+    getAckText: function (id) { return readMap(ACK_KEY)[id] || ""; },
+    setAckText: function (id, text) {
+      var m = readMap(ACK_KEY);
+      if (text && text.trim()) m[id] = text; else delete m[id];
+      writeMap(ACK_KEY, m);
     },
 
     /* ----- یادداشت صاحب عزا ----- */

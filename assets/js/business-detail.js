@@ -37,6 +37,68 @@
     }, 2600);
   }
 
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".charAt(+d); }); }
+
+  /* آیا این کاربر آگهی سوگ ثبت کرده است؟ */
+  function hasRegisteredListing() {
+    try { return (JSON.parse(localStorage.getItem("sog:myListings")) || []).length > 0; }
+    catch (e) { return false; }
+  }
+
+  /* امتیاز دادن به کسب‌وکار */
+  function ratingBox(b) {
+    var KEY = "sog:bizRating";
+    function read() { try { return (JSON.parse(localStorage.getItem(KEY)) || {})[b.id] || 0; } catch (e) { return 0; } }
+    function write(v) {
+      try {
+        var m = JSON.parse(localStorage.getItem(KEY)) || {};
+        m[b.id] = v; localStorage.setItem(KEY, JSON.stringify(m));
+      } catch (e) {}
+    }
+
+    var sec = el("div", "bp-section");
+    sec.appendChild(el("h2", null, "امتیاز شما به این کسب‌وکار"));
+
+    var allowed = hasRegisteredListing();
+    if (!allowed) {
+      sec.appendChild(el("p", "bp-hint",
+        "امتیازدهی فقط برای کسانی فعال است که آگهی سوگ ثبت کرده‌اند و از خدمات این کسب‌وکار استفاده کرده‌اند."));
+      var locked = el("div", "rate-stars is-locked");
+      for (var i = 1; i <= 5; i++) locked.insertAdjacentHTML("beforeend", '<span class="rate-star">' + STAR + "</span>");
+      sec.appendChild(locked);
+      return sec;
+    }
+
+    var mine = read();
+    var row = el("div", "rate-stars");
+    var status = el("p", "bp-hint", mine ? "امتیاز شما: " + faNum(mine) + " از ۵" : "با لمس ستاره‌ها امتیاز بدهید.");
+
+    function paint(n) {
+      Array.prototype.forEach.call(row.children, function (st, i) {
+        st.classList.toggle("is-on", i < n);
+      });
+    }
+
+    for (var j = 1; j <= 5; j++) {
+      (function (n) {
+        var st = el("button", "rate-star", STAR);
+        st.type = "button";
+        st.setAttribute("aria-label", n + " ستاره");
+        st.addEventListener("click", function () {
+          write(n); mine = n; paint(n);
+          status.textContent = "امتیاز شما ثبت شد: " + faNum(n) + " از ۵";
+          toast("امتیاز شما ثبت شد. سپاسگزاریم.");
+        });
+        row.appendChild(st);
+      })(j);
+    }
+    paint(mine);
+
+    sec.appendChild(row);
+    sec.appendChild(status);
+    return sec;
+  }
+
   /* ثبت کد ملی صاحب کسب‌وکار */
   function ownerVerify(b) {
     var KEY = "sog:bizMelli";
@@ -290,6 +352,9 @@
       });
       root.appendChild(s6);
     }
+
+    /* ستاره دادن: فقط کسانی که آگهی سوگ ثبت کرده‌اند */
+    root.appendChild(ratingBox(b));
 
     // نوار ثابت پایین
     var cta = el("div", "bp-cta");

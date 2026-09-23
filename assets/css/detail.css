@@ -598,3 +598,42 @@
   border-radius: 50%; background: #3f9d6d; color: #fff;
   margin-inline-start: 6px; vertical-align: middle;
 }
+
+/* توضیح قواعد نمایش دفتر یادبود */
+.gb-note {
+  font-size: 11.5px; color: var(--text-mute); line-height: 1.9;
+  background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin: 0 0 4px;
+}
+
+/* ویرایش متن سپاسگزاری توسط خانواده */
+.ack-edit-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ack-edit-actions .btn-primary, .ack-edit-actions .btn-ghost {
+  flex: 1 1 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit;
+}
+.ack-edit-actions .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
+.ack-edit-actions .btn-ghost { background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim); }
+
+.anniv-empty-text { color: var(--text-mute); font-size: 13px; margin: 0 0 12px; text-align: center; }
+
+/* لینک اینستاگرام درگذشته در زندگی‌نامه */
+.bio-instagram {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border-radius: 12px; padding: 12px 14px;
+  margin: 4px 0 16px; text-decoration: none; color: var(--text);
+}
+.bio-instagram .bi-ico { color: var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
+.bio-instagram .bi-text { font-size: 13.5px; font-weight: 700; }
+.bio-instagram .bi-handle {
+  margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute);
+  direction: ltr; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
+}
+
+/* ===== مراسمِ تمام‌شده: نمای خلاصه ===== */
+.acc-done {
+  margin-inline-start: 8px; padding: 2px 8px; border-radius: 999px;
+  background: #1d1d1d; border: 1px solid #2e2e2e;
+  color: var(--text-mute); font-size: 11px; font-weight: 600;
+}
+.accordion.is-past .acc-head > span:first-child { color: var(--text-dim); }
+.event-past .event-line { margin-bottom: 6px; }
+.event-past .event-gallery { margin-top: 10px; }

@@ -117,11 +117,34 @@
 
   /* شهرها به ترتیب تعداد آگهی‌های جدید (مشاهده‌نشده) — بیشتر، جلوتر.
      شهر ویژه («کل ایران») همیشه اول می‌ماند و ترتیب اصلی، تساوی‌ها را می‌شکند. */
+  /* تازه‌ترین آگهی هر شهر (بر اساس تاریخ ثبت) */
+  function newestListingTime(slug) {
+    var newest = 0;
+    DATA.listings.forEach(function (it) {
+      if (it.city_slug !== slug) return;
+      var t = it.created_at ? Date.parse(it.created_at) : NaN;
+      if (isNaN(t)) {
+        /* اگر تاریخ ثبت نبود، از تاریخ مراسم شمسی استفاده می‌شود */
+        var d = SogUtil ? SogUtil.toEn(it.event_date_jalali || "").split("/") : [];
+        if (d.length === 3) {
+          var g = SogUtil.jalaliToGregorian(+d[0], +d[1], +d[2]);
+          t = new Date(g.y, g.m - 1, g.d).getTime();
+        }
+      }
+      if (!isNaN(t) && t > newest) newest = t;
+    });
+    return newest;
+  }
+
   function orderedCities() {
+    /* شهرها بر اساس تازه‌ترین آگهی مرتب می‌شوند؛ «کل ایران» همیشه اول می‌ماند */
     var auto = DATA.cities.map(function (c, i) {
-      return { city: c, idx: i, unseen: c.featured ? Infinity : unseenCountForCity(c.slug) };
+      return {
+        city: c, idx: i,
+        newest: c.featured ? Infinity : newestListingTime(c.slug)
+      };
     }).sort(function (a, b) {
-      if (a.unseen !== b.unseen) return b.unseen - a.unseen;
+      if (a.newest !== b.newest) return b.newest - a.newest;
       return a.idx - b.idx;
     }).map(function (x) { return x.city; });
 
@@ -270,41 +293,90 @@
   function renderCities() {
     var bar = document.getElementById("cityBar");
     bar.innerHTML = "";
-    orderedCities().forEach(function (c, idx) {
+
+    var list = orderedCities();
+
+    /* «کل ایران» ثابت و بیرون از نوارِ اسکرول‌شونده است */
+    var all = null;
+    list = list.filter(function (c) {
+      if (c.featured && c.total_label) { all = c; return false; }
+      return true;
+    });
+    var allBtn = document.getElementById("allIran");
+    if (allBtn && all) {
+      allBtn.classList.toggle("is-active", all.slug === state.city);
+      var totalNode = document.getElementById("allIranTotal");
+      if (totalNode && !allBtn.dataset.bound) countUp(totalNode, all.total_label);
+      if (!allBtn.dataset.bound) {
+        allBtn.dataset.bound = "1";
+        allBtn.addEventListener("click", function () {
+          state.city = all.slug; state.year = null; renderCities(); renderFeed();
+        });
+      }
+    }
+
+    /* «نزدیک من» اولین چیپ نوار است */
+    var gps = el("button", "city-chip is-gps",
+      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+    gps.type = "button";
+    gps.addEventListener("click", useNearMe);
+    bar.appendChild(gps);
+
+    list.forEach(function (c) {
       var chip = el("button", "city-chip");
       chip.type = "button";
       chip.dataset.slug = c.slug;
       if (c.slug === state.city) chip.classList.add("is-active");
-
       chip.appendChild(el("span", "chip-label", c.name));
-
-      if (c.featured && c.total_label) {
-        chip.appendChild(el("span", "chip-badge badge-featured", c.total_label));
-      } else {
-        var unseen = unseenCountForCity(c.slug);
-        if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
-      }
-
+      var unseen = unseenCountForCity(c.slug);
+      if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
       chip.addEventListener("click", function () {
-        state.city = c.slug;
-        state.year = null;
-        renderCities();
-        renderFeed();
+        state.city = c.slug; state.year = null; renderCities(); renderFeed();
       });
-
       bar.appendChild(chip);
       chip.style.touchAction = "pan-x";
       makeChipDraggable(chip, bar);
-
-      // دکمه‌ی «انتخاب شهر» بعد از چیپ فعال اول (مطابق طرح)
-      if (idx === 3) {
-        var add = el("button", "city-chip is-add");
-        add.type = "button";
-        add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
-        add.addEventListener("click", openCitySheet);
-        bar.appendChild(add);
-      }
     });
+
+    /* «انتخاب شهر +» همیشه انتهای ردیف */
+    var add = el("button", "city-chip is-add");
+    add.type = "button";
+    add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
+    add.addEventListener("click", openCitySheet);
+    bar.appendChild(add);
+  }
+
+  /* ---------- انیمیشن شمارش عدد آگهی‌ها ---------- */
+  var countedOnce = false;
+  function countUp(node, label) {
+    if (countedOnce) { node.textContent = label; return; }
+    var target = parseInt(toEn(label).replace(/[^0-9]/g, ""), 10);
+    if (!target || !isFinite(target)) { node.textContent = label; return; }
+    countedOnce = true;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { node.textContent = label; return; }
+    /* جداکننده‌ی هزارگان مطابق برچسب اصلی («/» یا «,») */
+    var sepMatch = toEn(label).match(/[^0-9۰-۹]/);
+    var sep = sepMatch ? sepMatch[0] : "";
+    function fmt(n) {
+      var s = String(n), out = "";
+      for (var i = 0; i < s.length; i++) {
+        if (i > 0 && (s.length - i) % 3 === 0 && sep) out += sep;
+        out += s[i];
+      }
+      return toFa(out);
+    }
+    var dur = 1200, t0 = 0;
+    node.classList.add("is-counting");
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);          /* نرم‌شدن در انتها */
+      node.textContent = fmt(Math.round(target * e));
+      if (p < 1) requestAnimationFrame(step);
+      else { node.textContent = label; node.classList.remove("is-counting"); }
+    }
+    requestAnimationFrame(step);
   }
 
   /* ---------- نوار ابزار (نزدیک‌من، فیلتر نوع مراسم، مرتب‌سازی) ---------- */
@@ -347,7 +419,7 @@
   /* «نزدیک من»: نزدیک‌ترین شهر بر اساس GPS */
   function useNearMe() {
     if (!navigator.geolocation) { alert("موقعیت‌یابی در این مرورگر پشتیبانی نمی‌شود."); return; }
-    var chip = document.querySelector(".tool-gps");
+    var chip = document.querySelector(".is-gps .chip-label");
     if (chip) chip.textContent = "در حال یافتن…";
     navigator.geolocation.getCurrentPosition(function (pos) {
       var la = pos.coords.latitude, lo = pos.coords.longitude, best = null, bestD = Infinity;
@@ -371,14 +443,16 @@
     mic.hidden = false;
     var rec = new SR();
     rec.lang = "fa-IR"; rec.interimResults = false; rec.maxAlternatives = 1;
-    /* شمارش معکوس سه‌ثانیه‌ای زیر میکروفون هنگام شنیدن */
+    /* شمارش معکوس پنج‌ثانیه‌ای کنار میکروفون هنگام شنیدن */
     var timer = el("span", "mic-timer");
     timer.hidden = true;
-    (mic.parentNode || mic).appendChild(timer);
+    /* کنار خود میکروفون می‌نشیند تا همیشه دیده شود */
+    if (mic.parentNode) mic.parentNode.insertBefore(timer, mic);
+    else mic.appendChild(timer);
     var tick;
 
     function startCountdown() {
-      var left = 3;
+      var left = 5;
       timer.hidden = false;
       timer.textContent = faNum(left);
       clearInterval(tick);

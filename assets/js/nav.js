@@ -10,7 +10,7 @@
     business: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 9l1-4h14l1 4M5 9v10h14V9M4 9h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
     saved: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 3h12v18l-6-4-6 4V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     account: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    register: '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+    register: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
   };
 
   var items = [
@@ -18,7 +18,7 @@
     { key: "business", label: "کسب‌وکار", href: "business.html" },
     { key: "register", label: "ثبت سوگ", href: "register.html", center: true },
     { key: "saved", label: "ذخیره‌ها", href: "index.html?view=saved" },
-    { key: "account", label: "حساب", href: "account.html" }
+    { key: "account", label: "پروفایل", href: "account.html" }
   ];
 
   var nav = document.createElement("nav");

@@ -13,13 +13,13 @@
   /* مراسم‌های قابل انتخاب — هرکدام می‌تواند بیش از یک نوبت داشته باشد */
   var CEREMONIES = [
     { key: "tashi", name: "تشییع / خاکسپاری", on: true },
+    { key: "shame-ghariban", name: "شام غریبان" },
     { key: "sevom", name: "سوم" },
     { key: "haftom", name: "هفتم" },
     { key: "sevom-haftom", name: "سوم/هفتم" },
     { key: "khatm", name: "ختم" },
     { key: "sevom-haftom-khatm", name: "سوم/هفتم/ختم" },
     { key: "bozorgdasht", name: "بزرگداشت", on: true, multi: true },
-    { key: "shame-ghariban", name: "شام غریبان" },
     { key: "chehelom", name: "چهلم" },
     { key: "salgard", name: "سالگرد" },
     { key: "shabe-sal", name: "شب سال" }
@@ -41,7 +41,7 @@
     mother: "", mother_tayefe: "", mother_il: "",
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
-    bio: "", bio_photos: [], bio_layout: "one", music: null,
+    bio: "", bio_photos: [], bio_layout: "one", bio_instagram: "", music: null,
     phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
@@ -194,6 +194,13 @@
     return f;
   }
 
+  /* دو فیلد کنار هم در یک ردیف */
+  function fieldRow(a, b) {
+    var row = el("div", "field-row");
+    row.appendChild(a); row.appendChild(b);
+    return row;
+  }
+
   function textInput(key, placeholder, opts) {
     opts = opts || {};
     var i = document.createElement(opts.tag || "input");
@@ -210,7 +217,8 @@
         if (c) c.textContent = faNum(opts.max - i.value.length);
       }
     });
-    if (!opts.max) return i;
+    /* شمارنده‌ی کاراکتر فقط برای متن‌های بلند معنی دارد، نه فیلدهای کوتاه مثل کد ملی */
+    if (!opts.max || opts.tag !== "textarea") return i;
     var wrap = el("div", "ta-wrap");
     wrap.appendChild(i);
     wrap.appendChild(el("span", "char-count", faNum(opts.max - (i.value.length || 0))));
@@ -489,11 +497,17 @@
     steps.push({ title: "خانواده و طایفه", build: function () {
       var p = el("section", "reg-panel");
       p.appendChild(field("نام پدر", false, textInput("father", "فقط نام پدر نوشته شود")));
-      p.appendChild(field("نام طایفه پدری", true, textInput("father_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
-      p.appendChild(field("نام ایل پدری", false, textInput("father_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
+      /* طایفه و ایل کنار هم، در دو ستون */
+      p.appendChild(fieldRow(
+        field("نام طایفه پدری", true, textInput("father_tayefe", "فقط نام طایفه")),
+        field("نام ایل پدری", false, textInput("father_il", "فقط نام ایل"))
+      ));
       p.appendChild(field("نام مادر", true, textInput("mother", "نام و نام خانوادگی یا فقط نام خانوادگی نوشته شود")));
-      p.appendChild(field("نام طایفه مادری", true, textInput("mother_tayefe", "فقط نام طایفه نوشته شود ( بدون توصیفات )")));
-      p.appendChild(field("نام ایل مادری", false, textInput("mother_il", "فقط نام ایل نوشته شود ( بدون توصیفات )")));
+      p.appendChild(fieldRow(
+        field("نام طایفه مادری", true, textInput("mother_tayefe", "فقط نام طایفه")),
+        field("نام ایل مادری", false, textInput("mother_il", "فقط نام ایل"))
+      ));
+      p.appendChild(el("p", "field-hint", "نام طایفه و ایل را بدون توصیفات اضافه بنویسید."));
       return p;
     }});
 
@@ -588,8 +602,6 @@
           grid.appendChild(chip);
         });
         p.appendChild(field("نکات مراسم", false, grid));
-        p.appendChild(el("p", "field-hint",
-          "تصاویر مراسم " + ins.name + " را بعد از برگزاری، از خودِ صفحه‌ی آگهی اضافه کنید؛ نیازی به بازگشت به ثبت آگهی نیست."));
         return p;
       }});
     });
@@ -599,6 +611,9 @@
       var p = el("section", "reg-panel");
       p.appendChild(field("زندگی‌نامه", false, textInput("bio", "زندگی‌نامه و شرح زندگی درگذشته…", { tag: "textarea", rows: 7, max: 2000 })));
       p.appendChild(field("تصاویر زندگی‌نامه", false, bioPhotosField()));
+      p.appendChild(field("اینستاگرام درگذشته", false,
+        textInput("bio_instagram", "نشانی یا شناسه‌ی اینستاگرام (اختیاری)"),
+        "اگر صفحه‌ی اینستاگرام داشتند، اینجا بنویسید تا در زندگی‌نامه نمایش داده شود."));
       var music = el("div");
       music.appendChild(el("p", "field-hint", "فایل موزیک مورد نظر خود را وارد کنید"));
       var mbtn = el("label", "pick-btn", "انتخاب فایل موزیک");

@@ -625,6 +625,18 @@
       bio.gallery.forEach(function (src) { var i = el("img"); i.src = src; i.alt = ""; g.appendChild(i); });
       wrap.appendChild(g);
     }
+    /* لینک اختیاری اینستاگرام درگذشته */
+    if (bio.instagram) {
+      var handle = String(bio.instagram).replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/+$/, "");
+      var ig = el("a", "bio-instagram");
+      ig.href = "https://instagram.com/" + handle;
+      ig.target = "_blank"; ig.rel = "noopener";
+      ig.innerHTML = '<span class="bi-ico"><svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg></span>' +
+        '<span class="bi-text">صفحه‌ی اینستاگرام</span>' +
+        '<span class="bi-handle">@' + esc(handle) + '</span>';
+      wrap.appendChild(ig);
+    }
+
     if (bio.relatives && bio.relatives.length) {
       wrap.appendChild(el("h3", "relatives-title", "سوگ‌های خویشاوند"));
       var r = el("div", "relatives");
@@ -639,16 +651,42 @@
     return accordion("زندگی‌نامه", wrap);
   }
 
+  /* مراسم پس از نیمه‌شبِ روز برگزاری «تمام‌شده» حساب می‌شود.
+     تاریخ هم به شکل «۱۴۰۴/۰۵/۱۷» و هم «پنج‌شنبه ۱۷ مرداد ۱۴۰۴» خوانده می‌شود. */
+  function eventNum(dateStr) {
+    if (!dateStr || !window.SogUtil) return 0;
+    var t = SogUtil.toEn(dateStr);
+    var m = t.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m) return +m[1] * 10000 + +m[2] * 100 + +m[3];
+    var mi = -1;
+    SogUtil.jMonths.forEach(function (name, i) { if (t.indexOf(name) !== -1) mi = i + 1; });
+    var nums = t.match(/\d{1,4}/g) || [];
+    var day = null, year = null;
+    nums.forEach(function (n) { if (n.length === 4) year = +n; else if (day === null) day = +n; });
+    if (mi < 1 || !year || !day) return 0;
+    return year * 10000 + mi * 100 + day;
+  }
+  function isPastEvent(c) {
+    var ev = eventNum(c && c.date);
+    if (!ev || !window.SogUtil) return false;
+    var t = SogUtil.todayJalali();
+    return ev < t.y * 10000 + t.m * 100 + t.d;
+  }
+
   /* ---------- بلوک رویداد ---------- */
   function eventBody(c) {
     var wrap = el("div");
+    /* مراسمِ تمام‌شده خلاصه می‌شود: نقشه، مسیریابی، یادآوری و چیپ‌ها حذف می‌شوند
+       و فقط زمان، مکان و تصاویر مراسم می‌ماند. */
+    var past = isPastEvent(c);
+    if (past) wrap.className = "event-past";
     if (c.date || c.time_from || c.time_to) {
       var dl = el("div", "event-line");
       dl.innerHTML = '<span class="ev-ico">' + ICON.clock + '</span><span class="ev-lbl">زمان :</span>';
       /* تاریخ و کادر ساعت در یک ستون‌اند تا ساعت دقیقاً زیر متن تاریخ شروع شود */
       var col = el("div", "ev-col");
       if (c.date) col.appendChild(el("span", null, esc(c.date)));
-      if (c.time_from || c.time_to) {
+      if ((c.time_from || c.time_to) && !past) {
         var tp = el("div", "time-pills");
         if (c.time_to) tp.appendChild(el("span", "pill", esc(c.time_to)));
         tp.appendChild(el("span", "to", "تا"));
@@ -663,8 +701,8 @@
       ll.innerHTML = '<span class="ev-ico">' + ICON.pin + '</span><span class="ev-lbl">مکان :</span> <span>' + esc(c.location) + '</span>';
       wrap.appendChild(ll);
     }
-    if (c.map) { var m = el("div", "event-map"); m.style.backgroundImage = 'url("' + c.map + '")'; wrap.appendChild(m); }
-    if (c.location || c.date) {
+    if (c.map && !past) { var m = el("div", "event-map"); m.style.backgroundImage = 'url("' + c.map + '")'; wrap.appendChild(m); }
+    if ((c.location || c.date) && !past) {
       var eb = el("div", "event-btns");
       if (c.location) {
         var route = el("a", "event-btn route", ICON.route + " مسیر تا مراسم");
@@ -680,12 +718,12 @@
       }
       wrap.appendChild(eb);
     }
-    if (c.chips && c.chips.length) {
+    if (c.chips && c.chips.length && !past) {
       var cc = el("div", "chips-col");
       c.chips.forEach(function (t) { cc.appendChild(el("span", "event-chip", esc(t))); });
       wrap.appendChild(cc);
     }
-    if (c.description) {
+    if (c.description && !past) {
       var db = el("div", "desc-box");
       db.appendChild(el("span", "desc-label", "توضیحات"));
       db.appendChild(el("div", null, fmtDesc(c.description)));
@@ -695,7 +733,15 @@
     wrap.appendChild(eventGallery(c));
     return wrap;
   }
-  function eventAccordion(c) { return accordion(c.title, eventBody(c)); }
+  function eventAccordion(c) {
+    var acc = accordion(c.title, eventBody(c));
+    if (isPastEvent(c)) {
+      acc.classList.add("is-past");
+      var head = acc.querySelector(".acc-head");
+      if (head) head.querySelector("span").insertAdjacentHTML("afterend", '<span class="acc-done">برگزار شد</span>');
+    }
+    return acc;
+  }
 
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
@@ -758,8 +804,15 @@
   }
 
   function anniversaryBody(a) {
-    if (a.empty) return el("div", null, "اطلاعاتی برای این سالگرد ثبت نشده است.");
-    return eventBody(Object.assign({}, a, { title: "سالگرد " + a.year }));
+    var title = "سالگرد " + a.year;
+    if (a.empty) {
+      /* سالگردی که هنوز اطلاعاتی ندارد: خانواده می‌تواند تصاویرش را اضافه کند */
+      var wrap = el("div");
+      wrap.appendChild(el("p", "anniv-empty-text", "اطلاعاتی برای این سالگرد ثبت نشده است."));
+      wrap.appendChild(eventGallery({ title: title, type: "salgard-" + a.year, gallery: [] }));
+      return wrap;
+    }
+    return eventBody(Object.assign({}, a, { title: title }));
   }
   function anniversaryAccordion(a) {
     return accordion("سالگرد " + a.year, anniversaryBody(a), { empty: !!a.empty });
@@ -787,16 +840,65 @@
   /* ---------- سپاسگزاری ---------- */
   function ackAccordion(ack) {
     var wrap = el("div");
-    wrap.appendChild(el("p", "ack-text", fmtDesc(ack.text)));
-    var foot = el("div", "ack-foot");
-    var st = el("div", "ack-story");
-    var b = el("button", null, ICON.story);
-    b.setAttribute("aria-label", "ساخت استوری سپاسگزاری");
-    b.addEventListener("click", function () { openStory(currentDetail, ack); });
-    st.appendChild(b); st.appendChild(el("span", null, "استوری"));
-    foot.appendChild(st);
-    foot.appendChild(el("div", "ack-sign", esc(ack.signature) + "<br>" + esc(ack.date)));
-    wrap.appendChild(foot);
+    var owner = currentDetail && ownerMode(currentDetail);
+
+    /* متن سپاسگزاری: نسخه‌ی ویرایش‌شده‌ی خانواده بر متن اولیه مقدم است */
+    function currentText() { return SogStore.getAckText(id) || ack.text || ""; }
+
+    var view = el("div");
+
+    function paintView() {
+      view.innerHTML = "";
+      var live = { text: currentText(), signature: ack.signature, date: ack.date };
+
+      view.appendChild(el("p", "ack-text", fmtDesc(live.text)));
+      var foot = el("div", "ack-foot");
+      var st = el("div", "ack-story");
+      var b = el("button", null, ICON.story);
+      b.setAttribute("aria-label", "ساخت استوری سپاسگزاری");
+      b.addEventListener("click", function () { openStory(currentDetail, live); });
+      st.appendChild(b); st.appendChild(el("span", null, "استوری"));
+      foot.appendChild(st);
+      foot.appendChild(el("div", "ack-sign", esc(live.signature) + "<br>" + esc(live.date)));
+      view.appendChild(foot);
+
+      /* خانواده می‌تواند همین‌جا متن را ویرایش کند */
+      if (owner) {
+        var edit = el("button", "mine-btn", "ویرایش متن سپاسگزاری");
+        edit.type = "button";
+        edit.addEventListener("click", paintEditor);
+        var tools = el("div", "mine-tools");
+        tools.appendChild(edit);
+        view.appendChild(tools);
+      }
+    }
+
+    function paintEditor() {
+      view.innerHTML = "";
+      var ta = el("textarea", "note-input");
+      ta.rows = 6;
+      ta.value = currentText();
+      ta.placeholder = "متن سپاسگزاری خانواده…";
+      view.appendChild(ta);
+
+      view.appendChild(readyTextPicker(READY_THANKS, function (t) { ta.value = t; }));
+
+      var row = el("div", "ack-edit-actions");
+      var cancel = el("button", "btn-ghost", "بی‌خیال"); cancel.type = "button";
+      var save = el("button", "btn-primary", "ذخیره‌ی متن"); save.type = "button";
+      cancel.addEventListener("click", paintView);
+      save.addEventListener("click", function () {
+        SogStore.setAckText(id, ta.value);
+        paintView();
+        toast("متن سپاسگزاری به‌روزرسانی شد.");
+      });
+      row.appendChild(cancel); row.appendChild(save);
+      view.appendChild(row);
+      ta.focus();
+    }
+
+    paintView();
+    wrap.appendChild(view);
     return accordion("سپاسگزاری", wrap);
   }
 
@@ -843,9 +945,20 @@
     var wrap = el("div");
     var list = el("div", "gb-list");
 
+    var isOwner = ownerMode(d);
+
     function paint() {
       list.innerHTML = "";
-      var items = SogStore.getGuestbook(id);
+      var all = SogStore.getGuestbook(id);
+      /* خانواده همه‌ی یادبودها را می‌بیند؛ بقیه فقط یادبود خودشان را */
+      var items = isOwner ? all : all.filter(function (g) { return g.mine; });
+
+      if (isOwner && all.length) {
+        list.appendChild(el("p", "gb-note", "شما ثبت‌کننده‌ی این آگهی هستید و همه‌ی یادبودهای ثبت‌شده را می‌بینید."));
+      } else if (!isOwner) {
+        list.appendChild(el("p", "gb-note", "یادبودها فقط برای خانواده‌ی سوگوار قابل مشاهده است؛ شما یادبود خودتان را می‌بینید."));
+      }
+
       if (!items.length) {
         list.appendChild(el("p", "gb-empty", "هنوز خاطره‌ای ثبت نشده است. اولین نفری باشید که خاطره‌ای از این عزیز می‌نویسد."));
       } else {
@@ -860,7 +973,9 @@
             var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
             del.addEventListener("click", function () {
               var all = SogStore.getGuestbook(id);
-              all.splice(i, 1);
+              var realIndex = all.indexOf(g);
+              if (realIndex === -1) realIndex = i;
+              all.splice(realIndex, 1);
               try {
                 var m = JSON.parse(localStorage.getItem("sog:guest")) || {};
                 m[id] = all; localStorage.setItem("sog:guest", JSON.stringify(m));
@@ -909,11 +1024,26 @@
   /* ---------- همدردی ---------- */
   /* متن‌های آماده‌ی همدردی و سپاسگزاری */
   var READY_CONDOLENCE = [
-    "درگذشت این عزیز را به خانواده‌ی محترم تسلیت عرض می‌کنم. برای آن مرحوم علو درجات و برای بازماندگان صبر و شکیبایی آرزومندم.",
-    "مصیبت وارده را خدمت شما و خانواده‌ی محترمتان تسلیت عرض می‌نمایم. از خداوند منان برای آن مرحوم رحمت واسعه مسئلت دارم.",
-    "فقدان این عزیز موجب تأثر و تألم گردید. برای آن مرحوم آمرزش الهی و برای شما سلامتی و صبر جمیل خواستارم.",
-    "با نهایت تأسف و تأثر، درگذشت این بزرگوار را تسلیت گفته، از درگاه ایزد منان برای ایشان غفران الهی طلب می‌کنم.",
-    "خداوند روح آن عزیز سفرکرده را شاد و قرین رحمت گرداند و به شما و خانواده‌ی محترم صبر عطا فرماید."
+    "با کمال تأسف در غم از دست دادن عزیزتان شریک هستیم. صبر و آرامش برای شما و خانواده محترم آرزومندیم.",
+    "خبر درگذشت ایشان ما را سخت اندوهگین کرد. تسلیت صمیمانه ما را بپذیرید.",
+    "این ضایعه جبران‌ناپذیر را به شما و بازماندگان محترم تسلیت عرض می‌کنیم. روحش شاد و یادش گرامی.",
+    "غم بزرگی است که در آن سهیم هستیم. برای شما صبر و برای آن عزیز رحمت الهی آرزو داریم.",
+    "با شنیدن این خبر تلخ، قلبمان اندوهگین شد. برای خانواده داغدار آرزوی صبر داریم.",
+    "درگذشت این عزیز را تسلیت می‌گوییم. یادش همیشه در دل‌ها زنده خواهد ماند.",
+    "این مصیبت را به شما تسلیت عرض می‌کنیم و برای روح آن مرحوم طلب مغفرت داریم.",
+    "در این لحظات سخت، در کنار شما و خانواده‌تان هستیم. تسلیت صمیمانه ما را بپذیرید.",
+    "فقدان این عزیز، غمی بزرگ برای همه ماست. برایتان صبر و شکیبایی آرزومندیم.",
+    "با تأسف فراوان این خبر تلخ را شنیدیم. تسلیت ما را به شما و خانواده محترم تقدیم می‌کنیم.",
+    "با نهایت تأسف و تألم، درگذشت آن عزیز سفرکرده را به اطلاع رسیدیم. این ضایعه جبران‌ناپذیر را به بازماندگان محترم تسلیت عرض می‌کنیم. برای آن مرحوم علو درجات و برای شما صبر جمیل آرزومندیم.",
+    "خبر تلخ درگذشت ایشان موجب اندوه عمیق ما گردید. در این غم بزرگ، خود را شریک شما و خانواده محترمتان می‌دانیم. روحش شاد، یادش گرامی و راهش پر رهرو باد.",
+    "زندگی گذرگاهی است که همه ما را به سوی ابدیت رهنمون می‌سازد. درگذشت آن عزیز، دل همه دوستداران و آشنایان را اندوهگین ساخت. از خداوند برای آن مرحوم رحمت واسعه و برای شما صبر مسئلت داریم.",
+    "با کمال تأثر و تألم، ضایعه درگذشت عزیز سفرکرده‌تان را شنیدیم. این مصیبت را به شما و سایر بازماندگان محترم تسلیت می‌گوییم. امیدواریم یاد و خاطره او همیشه در قلب‌های شما زنده بماند.",
+    "غم از دست دادن یک عزیز، غمی است که تنها با گذر زمان کمی تسکین می‌یابد. ما نیز در این اندوه بزرگ خود را سهیم می‌دانیم. برای آن مرحوم رحمت الهی و برای بازماندگان صبر و سلامتی آرزومندیم.",
+    "درگذشت ناگهانی این عزیز، بر ما نیز سخت و دشوار گذشت. تسلیت قلبی خود را به شما و خانواده محترمتان تقدیم می‌داریم. یادش گرامی و خاطراتش برای همیشه ماندگار باد.",
+    "هر انسانی روزی این جهان فانی را ترک می‌گوید، اما جای خالی برخی هیچ‌گاه پر نمی‌شود. درگذشت آن عزیز برای همه ما دردناک و غم‌انگیز بود. برای شما صبر و برای روح او آرامش ابدی آرزومندیم.",
+    "با تألم فراوان از درگذشت آن عزیز آگاه شدیم. این خبر تلخ، اندوه عمیقی در دل ما ایجاد کرد. برای خانواده داغدار صبر و برای مرحوم غفران الهی خواستاریم.",
+    "در سوگ عزیز از دست رفته‌تان با شما همراه و همدل هستیم. این ضایعه بزرگ را از صمیم قلب تسلیت عرض می‌کنیم. باشد که خداوند به شما صبر و به روح او آرامش عطا فرماید.",
+    "زندگی او هرچند کوتاه بود، اما خاطره‌ای ماندگار از خود بر جای گذاشت. درگذشتش را به شما و تمامی بازماندگان محترم تسلیت می‌گوییم. یادش جاودان و روحش شاد باد."
   ];
   var READY_THANKS = [
     "از تمامی عزیزانی که در این مصیبت ما را تنها نگذاشتند و با حضور یا پیام خود موجب تسلی خاطر خانواده شدند، صمیمانه سپاسگزاریم.",
@@ -1238,23 +1368,6 @@
     var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p><time>" + esc(cd.date) + "</time>");
 
     var tools = el("div", "mine-tools");
-
-    /* هر بازدیدکننده می‌تواند همدردی نامناسب را گزارش کند */
-    var rep = el("button", "mine-btn", "گزارش این همدردی");
-    rep.type = "button";
-    rep.addEventListener("click", function (e) {
-      e.stopPropagation();
-      try {
-        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
-        box.push({
-          kind: "condolence", id: id, from: cd.name, text: cd.message,
-          at: Date.now(), to: ["sog-support", "listing-owner"], status: "queued"
-        });
-        localStorage.setItem("sog:reports", JSON.stringify(box));
-      } catch (err) {}
-      toast("گزارش شما ثبت و برای پشتیبانی و ثبت‌کننده‌ی آگهی ارسال شد.");
-    });
-    tools.appendChild(rep);
 
     /* صاحب عزا می‌تواند همین همدردی را مخفی کند */
     if (isOwner && d) {
