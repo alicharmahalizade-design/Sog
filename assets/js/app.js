@@ -359,6 +359,10 @@
     input.setAttribute("aria-label", "جستجوی شهر یا استان");
     search.appendChild(input);
 
+    /* انتخاب‌شده‌ها بالای فهرست، برای حذف سریع */
+    var selBox = el("div", "cob-selected");
+    selBox.hidden = true;
+
     var body = el("div", "cob-body");
     body.appendChild(el("p", "cob-loading", "در حال بارگذاری فهرست شهرها…"));
 
@@ -408,10 +412,11 @@
     closeBtn.addEventListener("click", function () { if (opts.multi) close(); else useAllIran(); });
 
     wrap.appendChild(closeBtn);
-    wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(body); wrap.appendChild(foot);
+    wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(selBox); wrap.appendChild(body); wrap.appendChild(foot);
     document.body.appendChild(wrap);
     document.body.style.overflow = "hidden";
     refreshConfirm();
+    paintSelected();
 
     function close() {
       wrap.classList.remove("is-in");
@@ -428,9 +433,37 @@
 
     function toggle(sel, node) {
       var k = selKey(sel);
-      if (picked[k]) { delete picked[k]; node.classList.remove("is-on"); }
-      else { picked[k] = sel; node.classList.add("is-on"); }
+      if (picked[k]) { delete picked[k]; if (node) node.classList.remove("is-on"); }
+      else { picked[k] = sel; if (node) node.classList.add("is-on"); }
       refreshConfirm();
+      paintSelected();
+    }
+
+    /* چیپ‌های انتخاب‌شده بالای فهرست؛ با زدنِ ×، حذف می‌شوند */
+    function paintSelected() {
+      var keys = Object.keys(picked);
+      selBox.innerHTML = "";
+      if (!keys.length) { selBox.hidden = true; return; }
+      selBox.appendChild(el("span", "cob-sel-title", "انتخاب‌شده"));
+      var row = el("div", "cob-sel-row");
+      keys.forEach(function (k) {
+        var c = picked[k];
+        var chip = el("button", "cob-sel-chip");
+        chip.type = "button";
+        chip.innerHTML = "<span>" + esc(c.name) + (c.isProvince ? " (کل استان)" : "") + "</span><span class=\"cob-sel-x\">×</span>";
+        chip.addEventListener("click", function () {
+          delete picked[k];
+          refreshConfirm();
+          paintSelected();
+          /* تیک همان شهر در فهرست هم برداشته شود */
+          Array.prototype.forEach.call(body.querySelectorAll(".cob-city.is-on, .cob-all.is-on"), function (n) {
+            if (n.dataset.key === k) n.classList.remove("is-on");
+          });
+        });
+        row.appendChild(chip);
+      });
+      selBox.appendChild(row);
+      selBox.hidden = false;
     }
 
     fetch("data/provinces.json").then(function (r) { return r.json(); }).then(function (d) {
@@ -441,6 +474,7 @@
         var sel = { slug: citySlugFor(name), name: name, province: prov || "" };
         var b = el("button", "cob-city" + (picked[selKey(sel)] ? " is-on" : ""));
         b.type = "button";
+        b.dataset.key = selKey(sel);
         b.innerHTML = '<span class="cob-tick"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
           "<span class=\"cob-cname\">" + esc(name) + "</span>" +
           (prov && opts.showProv ? '<span class="cob-prov">' + esc(prov) + "</span>" : "");
@@ -480,6 +514,7 @@
 
           var provSel = { slug: "p-" + citySlugFor(p), name: p, isProvince: true, cities: provinces[p] || [] };
           var all = el("span", "cob-all" + (picked[selKey(provSel)] ? " is-on" : ""), "کل استان");
+          all.dataset.key = selKey(provSel);
           all.setAttribute("role", "button");
           all.addEventListener("click", function (e) {
             e.preventDefault(); e.stopPropagation();
