@@ -507,11 +507,22 @@
     });
   }
 
+  /* برچسب دکمه‌ی شهر در هدر: نام شهر یا «n شهر» */
+  function paintCityBtn() {
+    var lbl = document.getElementById("cityBtnLabel");
+    if (!lbl) return;
+    var sel = state.sel.length ? state.sel : [];
+    if (!sel.length) lbl.textContent = "کل ایران";
+    else if (sel.length === 1) lbl.textContent = sel[0].name;
+    else lbl.textContent = toFa(sel.length) + " شهر";
+  }
+
   /* ---------- رندر نوار شهرها ---------- */
   function renderCities() {
     var bar = document.getElementById("cityBar");
     bar.innerHTML = "";
     SogStore.setSelCities(state.sel);   /* انتخاب کاربر بین بازدیدها می‌ماند */
+    paintCityBtn();
 
     var list = orderedCities();
 
