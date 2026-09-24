@@ -335,10 +335,25 @@
     var body = el("div", "cob-body");
     body.appendChild(el("p", "cob-loading", "در حال بارگذاری فهرست شهرها…"));
 
+    /* اگر کاربر چیزی انتخاب نکند، پیش‌فرض «کل ایران» می‌ماند */
+    function useAllIran() {
+      state.city = "all"; state.year = null;
+      SogStore.setCityPicked();
+      renderCities(); renderFeed(); close();
+    }
+
     var skip = el("button", "cob-skip", "فعلاً کل ایران را نشانم بده");
     skip.type = "button";
-    skip.addEventListener("click", function () {
-      state.city = "all"; SogStore.setCityPicked(); renderCities(); renderFeed(); close();
+    skip.addEventListener("click", useAllIran);
+
+    /* بستن با ضربدر یا کلید Esc هم یعنی «کل ایران» */
+    var closeBtn = el("button", "cob-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", "بستن و نمایش کل ایران");
+    closeBtn.addEventListener("click", useAllIran);
+    wrap.appendChild(closeBtn);
+    document.addEventListener("keydown", function esc3(e) {
+      if (e.key === "Escape" && wrap.parentNode) { useAllIran(); document.removeEventListener("keydown", esc3); }
     });
 
     wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(body); wrap.appendChild(skip);
