@@ -364,13 +364,13 @@
 
     /* انتخاب‌های همین صفحه (از انتخاب فعلی کاربر شروع می‌شود) */
     var picked = {};
-    state.sel.forEach(function (c) { picked[selKey(c)] = c; });
+    myCities().forEach(function (c) { picked[selKey(c)] = c; });
 
     var confirm = el("button", "cob-confirm", "تأیید");
     confirm.type = "button";
     function refreshConfirm() {
       var n = Object.keys(picked).length;
-      confirm.textContent = n ? "نمایش آگهی‌های " + toFa(n) + " مورد انتخابی" : "نمایش کل ایران";
+      confirm.textContent = n ? "تأیید " + toFa(n) + " شهر انتخابی" : "نمایش کل ایران";
     }
     confirm.addEventListener("click", function () {
       var list = Object.keys(picked).map(function (k) { return picked[k]; });
@@ -379,8 +379,9 @@
     });
 
     function applyPicked(list) {
-      if (list.length) addMyCities(list);
-      state.sel = list;
+      /* همین فهرست، فهرست شهرهای کاربر است؛ تیک‌نخورده‌ها حذف می‌شوند */
+      SogStore.setMyCities(list);
+      state.sel = list.slice();
       state.city = list.length === 1 ? (list[0].slug || "all") : "all";
       state.year = null;
       SogStore.setCityPicked();
@@ -533,25 +534,11 @@
       }
     }
 
-    /* شهرهای انتخابی کاربر جلوتر از بقیه می‌آیند */
+    /* فقط شهرهای انتخابی کاربر در نوار نشان داده می‌شوند */
     var mine = myCities();
-    var rest = list.filter(function (c) {
-      return !mine.some(function (m) { return selKey(m) === selKey(c); });
-    });
 
-    /* شهرهای انتخابی کاربر، سپس «نزدیک من»، سپس بقیه */
-    var order = mine.slice();
-    mine.concat(rest).forEach(function (c, i) {
-      /* «نزدیک من» درست بعد از شهرهای کاربر */
-      if (i === mine.length) {
-        var gps = el("button", "city-chip is-gps",
-          '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
-        gps.type = "button";
-        gps.addEventListener("click", useNearMe);
-        bar.appendChild(gps);
-      }
-      var own = mine.some(function (m) { return selKey(m) === selKey(c); });
-      var chip = el("button", "city-chip" + (own ? " is-mine" : ""));
+    mine.forEach(function (c) {
+      var chip = el("button", "city-chip is-mine");
       chip.type = "button";
       chip.dataset.slug = c.slug || "";
       if (isSelected(c)) chip.classList.add("is-active");
@@ -568,24 +555,17 @@
         renderCities(); renderFeed();
       });
 
-      /* حذف شهرهای انتخابی از نوار */
-      if (own) {
-        var x = el("span", "chip-x", "×");
-        x.setAttribute("role", "button");
-        x.setAttribute("aria-label", "حذف " + c.name);
-        x.addEventListener("click", function (e) {
-          e.preventDefault(); e.stopPropagation();
-          SogStore.setMyCities(myCities().filter(function (m) { return selKey(m) !== selKey(c); }));
-          state.sel = state.sel.filter(function (m) { return selKey(m) !== selKey(c); });
-          renderCities(); renderFeed();
-        });
-        chip.appendChild(x);
-      }
-
       bar.appendChild(chip);
       chip.style.touchAction = "pan-x";
       makeChipDraggable(chip, bar);
     });
+
+    /* «نزدیک من» بعد از شهرهای کاربر */
+    var gps = el("button", "city-chip is-gps",
+      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+    gps.type = "button";
+    gps.addEventListener("click", useNearMe);
+    bar.appendChild(gps);
 
     /* «انتخاب شهر +» همیشه انتهای ردیف؛ همان صفحه‌ی استان و شهر */
     var add = el("button", "city-chip is-add");
