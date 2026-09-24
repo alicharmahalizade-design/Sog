@@ -432,6 +432,20 @@
   ];
 
   /* ---------- بازشوی یادآوری مراسم‌ها ---------- */
+  /* تاریخ سالگردِ بعدی بر اساس همان روز و ماه */
+  function nextYearlyDate(dateText) {
+    var t = toEnNum(dateText || "");
+    var day = (t.match(/\b([0-3]?\d)\b/) || [])[1];
+    var month = null, monthName = "";
+    for (var k in JMONTHS) if (t.indexOf(k) !== -1) { month = JMONTHS[k]; monthName = k; break; }
+    if (!day || !month || !window.SogUtil) return null;
+    day = parseInt(day, 10);
+    var today = SogUtil.todayJalali();
+    var year = today.y;
+    if (month * 100 + day <= today.m * 100 + today.d) year += 1;
+    return faNum(day) + " " + monthName + " " + faNum(year);
+  }
+
   function openRemindSheet(d) {
     closeReportSheet();
     var back = el("div", "sheet-backdrop");
@@ -454,6 +468,15 @@
       events.push(Object.assign({ type: "salgard-" + a.year, title: "سالگرد " + faNum(a.year) }, a));
     });
 
+    /* سالگرد هر سال تکرار می‌شود؛ اگر تاریخِ ثبت‌شده گذشته باشد،
+       سالگردِ بعدی محاسبه و برای یادآوری پیشنهاد می‌شود. */
+    events = events.map(function (c) {
+      if (!c.date || !/^salgard-/.test(c.type || "") || !isPastEvent(c)) return c;
+      var next = nextYearlyDate(c.date);
+      if (!next) return c;
+      return Object.assign({}, c, { date: next, nextYear: true });
+    });
+
     var upcoming = events.filter(function (c) { return c.date && !isPastEvent(c); });
     var saved = (window.SogStore && SogStore.getReminders && SogStore.getReminders()) || {};
     var chosen = {};
@@ -470,7 +493,8 @@
         var row = el("button", "remind-row" + (on ? " is-on" : "")); row.type = "button";
         var info = el("span", "rr-info");
         info.appendChild(el("span", "rr-title", esc(c.title || "مراسم")));
-        info.appendChild(el("span", "rr-meta", esc([c.date, c.time_from ? "ساعت " + c.time_from : ""].filter(Boolean).join(" • "))));
+        info.appendChild(el("span", "rr-meta",
+          esc([c.nextYear ? "سالگرد بعدی: " + c.date : c.date, c.time_from ? "ساعت " + c.time_from : ""].filter(Boolean).join(" • "))));
         row.appendChild(info);
         row.appendChild(el("span", "rr-check", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'));
         row.addEventListener("click", function () {
@@ -831,15 +855,17 @@
     wrap.appendChild(eventGallery(c));
     return wrap;
   }
-  function eventAccordion(c) {
-    var acc = accordion(c.title, eventBody(c));
-    if (isPastEvent(c)) {
+  function markPast(acc, c) {
+    if (acc && isPastEvent(c)) {
       acc.classList.add("is-past");
       var head = acc.querySelector(".acc-head");
-      if (head) head.querySelector("span").insertAdjacentHTML("afterend", '<span class="acc-done">برگزار شد</span>');
+      if (head && !head.querySelector(".acc-done")) {
+        head.querySelector("span").insertAdjacentHTML("afterend", '<span class="acc-done">برگزار شد</span>');
+      }
     }
     return acc;
   }
+  function eventAccordion(c) { return markPast(accordion(c.title, eventBody(c)), c); }
 
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
@@ -913,7 +939,7 @@
     return eventBody(Object.assign({}, a, { title: title }));
   }
   function anniversaryAccordion(a) {
-    return accordion("سالگرد " + a.year, anniversaryBody(a), { empty: !!a.empty });
+    return markPast(accordion("سالگرد " + a.year, anniversaryBody(a), { empty: !!a.empty }), a);
   }
 
   /* سالگرد جاری (آخرین سالگرد) در بیرون است و سالگردهای سال‌های پیش
@@ -932,7 +958,7 @@
       older.forEach(function (a) { nest.appendChild(anniversaryAccordion(a)); });
       wrap.appendChild(nest);
     }
-    return accordion("سالگرد " + latest.year, wrap, { empty: !!latest.empty && !older.length });
+    return markPast(accordion("سالگرد " + latest.year, wrap, { empty: !!latest.empty && !older.length }), latest);
   }
 
   /* ---------- سپاسگزاری ---------- */
