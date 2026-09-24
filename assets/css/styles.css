@@ -149,6 +149,7 @@ option { direction: rtl; text-align: right; }
   color: var(--text); font-size: 14px; font-weight: 700; line-height: 1.35;
   white-space: nowrap;
 }
+.all-iran .ai-name { display: inline-block; transform-origin: right center; }
 .all-iran .ai-total {
   color: var(--accent); font-size: 13px; font-weight: 700;
   direction: ltr; font-variant-numeric: tabular-nums;
