@@ -1707,60 +1707,120 @@
     var parts = [];
     if (f.name) parts.push("پدر: " + f.name);
     if (f.tayefe) parts.push("طایفه: " + f.tayefe);
-    return parts.join("   •   ");
+    return parts.join("   |   ");
+  }
+
+  /* مسیر مستطیل گِرد */
+  function roundPath(x, left, top, w, h, r) {
+    x.beginPath();
+    x.moveTo(left + r, top);
+    x.arcTo(left + w, top, left + w, top + h, r);
+    x.arcTo(left + w, top + h, left, top + h, r);
+    x.arcTo(left, top + h, left, top, r);
+    x.arcTo(left, top, left + w, top, r);
+    x.closePath();
+  }
+
+  /* تصویر متوفی در قاب مستطیلِ گِرد (cover) */
+  function drawFramedPhoto(x, img, left, top, w, h, r) {
+    x.save();
+    roundPath(x, left, top, w, h, r); x.clip();
+    x.fillStyle = "#151515"; x.fillRect(left, top, w, h);
+    if (img) {
+      var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+      var scale = Math.max(w / iw, h / ih);
+      var dw = iw * scale, dh = ih * scale;
+      x.drawImage(img, left + (w - dw) / 2, top + (h - dh) / 2, dw, dh);
+    }
+    x.restore();
+  }
+
+  /* کادر گِرد با متن وسط‌چین (نوع مراسم / پدر و طایفه) */
+  function drawOutlinePill(x, label, cx, cy, opt) {
+    opt = opt || {};
+    var size = opt.size || 42, maxW = (opt.maxW || x.canvas.width - 300);
+    do { x.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    while (x.measureText(label).width > maxW && size > 24);
+    var w = x.measureText(label).width + (opt.padX || 80), h = opt.h || 86, r = h / 2;
+    roundPath(x, cx - w / 2, cy - h / 2, w, h, r);
+    x.fillStyle = opt.fill || "rgba(255,255,255,.04)"; x.fill();
+    x.strokeStyle = opt.stroke || "rgba(255,255,255,.22)"; x.lineWidth = 2.5; x.stroke();
+    x.fillStyle = opt.color || "#f2f2f2";
+    x.textBaseline = "middle";
+    x.fillText(label, cx, cy + 2);
+    x.textBaseline = "alphabetic";
+  }
+
+  /* شکستن نام به حداکثر دو سطر */
+  function wrapName(x, text, maxW) {
+    if (x.measureText(text).width <= maxW) return [text];
+    var words = String(text).split(" "), line = "", out = [];
+    words.forEach(function (w) {
+      var t = line ? line + " " + w : w;
+      if (x.measureText(t).width > maxW && line) { out.push(line); line = w; }
+      else line = t;
+    });
+    if (line) out.push(line);
+    return out.slice(0, 2);
   }
 
   function makeStory(d, portrait, logo) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
 
-    /* پس‌زمینه */
-    var g = x.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    var glow = x.createRadialGradient(W / 2, 640, 80, W / 2, 640, 720);
-    glow.addColorStop(0, "rgba(217,154,91,.14)"); glow.addColorStop(1, "rgba(217,154,91,0)");
-    x.fillStyle = glow; x.fillRect(0, 0, W, H);
-
-    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3;
-    x.strokeRect(48, 48, W - 96, H - 96);
+    /* پس‌زمینه‌ی تمام‌مشکی */
+    x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
 
     x.direction = "rtl"; x.textAlign = "center";
 
-    /* لوگوی سوگ بالای کارت */
-    if (logo) x.drawImage(logo, W / 2 - 70, 130, 140, 140);
+    /* کارت اصلی */
+    var cardL = 64, cardT = 70, cardW = W - 128, cardH = 1560;
+    roundPath(x, cardL, cardT, cardW, cardH, 60);
+    x.fillStyle = "#070707"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.14)"; x.lineWidth = 3; x.stroke();
 
     /* تصویر متوفی */
-    drawPortrait(x, portrait, W / 2, 640, 240);
+    var phL = cardL + 56, phT = cardT + 50, phW = cardW - 112, phH = 980;
+    drawFramedPhoto(x, portrait, phL, phT, phW, phH, 46);
+
+    var y = phT + phH + 96;
 
     /* نوع مراسم */
-    drawCeremonyBadge(x, ceremonyLabel(d), W / 2, 990);
+    var cl = ceremonyLabel(d);
+    if (cl) { drawOutlinePill(x, cl, W / 2, y, { size: 42, maxW: cardW - 180 }); y += 120; }
 
-    /* نام و نام خانوادگی */
-    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 180, 92);
-    x.fillText(d.deceased_name, W / 2, 1130);
+    /* نام و نام خانوادگی (حداکثر دو سطر) */
+    x.fillStyle = "#ffffff";
+    fitText(x, d.deceased_name, cardW - 150, 88);
+    var lines = wrapName(x, d.deceased_name, cardW - 150);
+    lines.forEach(function (ln, i) { x.fillText(ln, W / 2, y + 30 + i * 104); });
+    y += 30 + (lines.length - 1) * 104;
 
     /* شرح کوتاه */
     if (d.subtitle) {
-      x.fillStyle = "#bdbdbd"; x.font = "400 42px Vazirmatn, Tahoma";
-      x.fillText(d.subtitle, W / 2, 1200);
+      x.fillStyle = "#9a9a9a"; x.font = "400 42px Vazirmatn, Tahoma";
+      x.fillText(d.subtitle, W / 2, y + 86);
+      y += 86;
     }
-
-    /* خط جداکننده */
-    x.strokeStyle = "#333"; x.lineWidth = 2;
-    x.beginPath(); x.moveTo(W / 2 - 180, 1260); x.lineTo(W / 2 + 180, 1260); x.stroke();
 
     /* پدر و طایفه */
     var fl = fatherLine(d);
-    if (fl) {
-      x.fillStyle = "#c9b89c"; x.font = "400 40px Vazirmatn, Tahoma";
-      x.fillText(fl, W / 2, 1340);
-    }
+    if (fl) drawOutlinePill(x, fl, W / 2, y + 116, { size: 38, maxW: cardW - 180, h: 82 });
 
-    /* پاورقی */
-    if (logo) x.drawImage(logo, W / 2 - 44, H - 330, 88, 88);
-    x.fillStyle = "#a08a68"; x.font = "700 40px Vazirmatn, Tahoma";
-    x.fillText("اطلاعات بیشتر در سوگ", W / 2, H - 190);
+    /* نوار پایانی: اطلاعات بیشتر در سایت سوگ */
+    var barW = 720, barH = 104, barL = (W - barW) / 2, barT = cardT + cardH + 60;
+    roundPath(x, barL, barT, barW, barH, 32);
+    x.fillStyle = "#1a1a1a"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.10)"; x.lineWidth = 2; x.stroke();
+    x.fillStyle = "#ffffff"; x.font = "700 44px Vazirmatn, Tahoma";
+    x.textBaseline = "middle";
+    x.fillText("اطلاعات بیشتر در سایت سوگ", W / 2 + 34, barT + barH / 2 + 2);
+    x.textBaseline = "alphabetic";
+
+    /* فلش رو به پایین سمت چپ متن */
+    var ax = barL + 84, ay = barT + barH / 2 - 8;
+    x.strokeStyle = "#ffffff"; x.lineWidth = 6; x.lineCap = "round"; x.lineJoin = "round";
+    x.beginPath(); x.moveTo(ax - 22, ay - 6); x.lineTo(ax, ay + 18); x.lineTo(ax + 22, ay - 6); x.stroke();
 
     return x.canvas;
   }
