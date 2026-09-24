@@ -18,6 +18,8 @@
   var ACK_KEY = "sog:ackText";      // متن سپاسگزاری ویرایش‌شده توسط خانواده
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
   var REMIND_KEY = "sog:reminders"; // نگاشت «شناسه‌ی آگهی|مراسم» → یادآوری ثبت‌شده
+  var EXTRA_CITY_KEY = "sog:extraCities";  // شهرهایی که کاربر از فهرست استان‌ها افزوده است
+  var CITY_PICKED_KEY = "sog:cityPicked";  // آیا شهر در اولین ورود انتخاب شده است
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
   function read(key) {
@@ -173,6 +175,15 @@
     getUser: function () { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; } },
     setUser: function (u) { writeMap(USER_KEY, u); },
     clearUser: function () { try { localStorage.removeItem(USER_KEY); } catch (e) {} },
+
+    /* ----- شهر کاربر ----- */
+    getExtraCities: function () { return read(EXTRA_CITY_KEY); },
+    addExtraCity: function (c) {
+      var all = read(EXTRA_CITY_KEY);
+      if (!all.some(function (x) { return x.slug === c.slug; })) { all.push(c); write(EXTRA_CITY_KEY, all); }
+    },
+    isCityPicked: function () { try { return localStorage.getItem(CITY_PICKED_KEY) === "1"; } catch (e) { return true; } },
+    setCityPicked: function () { try { localStorage.setItem(CITY_PICKED_KEY, "1"); } catch (e) {} },
 
     /* ----- یادآوری مراسم‌ها ----- */
     getReminders: function () { return readMap(REMIND_KEY); },
