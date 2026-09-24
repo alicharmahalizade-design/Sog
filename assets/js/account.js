@@ -232,7 +232,11 @@
     var avatar = avatarPicker(user);
     var info = el("div", "profile-info");
     if (user) {
-      info.appendChild(el("div", "profile-name", esc(user.name || "کاربر سوگ")));
+      var nm = el("button", "profile-name is-editable", esc(user.name || "کاربر سوگ") + svg(IC.edit, 14));
+      nm.type = "button";
+      nm.setAttribute("aria-label", "ویرایش نام و نام خانوادگی");
+      nm.addEventListener("click", function () { openLogin(true); });
+      info.appendChild(nm);
       info.appendChild(el("div", "profile-phone", esc(faNum(user.phone || ""))));
       /* نشان تأیید هویت و دکمه‌ی ویرایش در یک خط و هم‌تراز */
       var foot = el("div", "profile-foot");
@@ -582,14 +586,20 @@
       body.innerHTML = "";
       body.appendChild(el("div", "login-title", editing ? "ویرایش پروفایل" : "ورود / ثبت‌نام"));
       body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود."));
-      var name = el("input", "login-input"); name.placeholder = "نام و نام خانوادگی"; name.value = u.name || ""; name.id = "lgName";
+      var name = el("input", "login-input"); name.placeholder = "مثال: علی چرم‌حلی‌زاده"; name.value = u.name || ""; name.id = "lgName";
       var phone = el("input", "login-input"); phone.placeholder = "۰۹…"; phone.type = "tel"; phone.value = u.phone || ""; phone.id = "lgPhone";
       var melli = el("input", "login-input"); melli.placeholder = "کد ملی ۱۰ رقمی (برای تأیید هویت)";
       melli.type = "tel"; melli.inputMode = "numeric"; melli.maxLength = 10; melli.value = u.melli || ""; melli.id = "lgMelli";
-      body.appendChild(name); body.appendChild(phone); body.appendChild(melli);
+      body.appendChild(el("label", "login-label", "نام و نام خانوادگی"));
+      body.appendChild(name);
+      body.appendChild(el("label", "login-label", "شماره موبایل"));
+      body.appendChild(phone);
+      body.appendChild(el("label", "login-label", "کد ملی (اختیاری، برای تأیید هویت)"));
+      body.appendChild(melli);
       var btn = el("button", "login-btn", editing ? "ذخیره" : "دریافت کد تأیید");
       btn.addEventListener("click", function () {
-        phoneVal = phone.value; u.name = name.value; u.phone = phone.value;
+        if (!name.value.trim()) { toast("نام و نام خانوادگی را وارد کنید."); return; }
+        phoneVal = phone.value; u.name = name.value.trim(); u.phone = phone.value;
         var mv = SogUtil ? SogUtil.toEn(melli.value).replace(/[^0-9]/g, "") : melli.value;
         if (mv) {
           if (!validMelli(mv)) { toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید."); return; }

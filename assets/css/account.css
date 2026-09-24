@@ -261,3 +261,12 @@
 .switch.sm { width: 38px; height: 22px; }
 .switch.sm .knob { top: 3px; width: 16px; height: 16px; }
 .switch.sm.on .knob { inset-inline-start: 19px; }
+
+/* نام قابل ویرایش در کارت پروفایل */
+.profile-name.is-editable {
+  background: none; border: none; padding: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; font-size: 17px; font-weight: 700; color: var(--accent);
+}
+.profile-name.is-editable svg { color: var(--text-mute); }
+.login-label { display: block; margin: 2px 2px 6px; font-size: 12.5px; color: var(--text-dim); }
