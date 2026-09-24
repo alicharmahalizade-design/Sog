@@ -536,8 +536,7 @@
   backdrop.addEventListener("click", closeSheet);
 
   function contactSupport() {
-    if (window.SogUtil) location.href = SogUtil.waLink("۰۹۱۲۰۰۰۰۰۰۰", "سلام، درباره‌ی اپلیکیشن سوگ سوال داشتم.");
-    else toast("پشتیبانی: ۰۹۱۲۰۰۰۰۰۰۰");
+    location.href = "support.html";
   }
 
   /* توست */
