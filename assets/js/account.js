@@ -233,7 +233,7 @@
     var info = el("div", "profile-info");
     if (user) {
       info.appendChild(el("div", "profile-name", esc(user.name || "کاربر سوگ")));
-      info.appendChild(el("div", "profile-phone", esc(user.phone || "")));
+      info.appendChild(el("div", "profile-phone", esc(faNum(user.phone || ""))));
       /* نشان تأیید هویت و دکمه‌ی ویرایش در یک خط و هم‌تراز */
       var foot = el("div", "profile-foot");
       if (user.verified && validMelli(user.melli)) {
