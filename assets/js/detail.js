@@ -19,6 +19,7 @@
     soundOff: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9l4 6M21 9l-4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
     report: '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    pencil: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
     candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
     route: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
@@ -1023,7 +1024,30 @@
 
     paintView();
     wrap.appendChild(view);
-    return accordion("سپاسگزاری", wrap);
+
+    var acc = accordion("سپاسگزاری", wrap);
+
+    /* مداد ویرایش روی سربرگ: فقط برای ثبت‌کننده‌ی آگهی */
+    if (owner) {
+      var head = acc.querySelector(".acc-head");
+      if (head) {
+        var pen = el("span", "acc-edit", ICON.pencil);
+        pen.setAttribute("role", "button");
+        pen.tabIndex = 0;
+        pen.setAttribute("aria-label", "ویرایش متن سپاسگزاری");
+        function openEditor(e) {
+          e.preventDefault(); e.stopPropagation();
+          if (!acc.classList.contains("is-open")) head.click();
+          paintEditor();
+        }
+        pen.addEventListener("click", openEditor);
+        pen.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") openEditor(e);
+        });
+        head.querySelector("span").insertAdjacentElement("afterend", pen);
+      }
+    }
+    return acc;
   }
 
   /* ---------- ارتباط ---------- */
