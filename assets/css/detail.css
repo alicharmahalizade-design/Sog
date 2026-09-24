@@ -72,7 +72,7 @@
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
-.family-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; font-size: 13px; }
+.family-row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; font-size: 13px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
@@ -681,10 +681,12 @@
   cursor: pointer;
 }
 
-/* شمارنده‌ی آگهی‌های طایفه و ایل */
-.clan-link .clan-count {
+
+/* شمارنده‌ی آگهی‌های طایفه و ایل: خاکستری و هم‌تراز در ستون چپ */
+.family-row .clan-count {
   display: inline-grid; place-items: center;
-  min-width: 20px; height: 20px; padding: 0 6px; margin-inline-start: 6px;
-  border-radius: 999px; background: rgba(217,154,91,.18); color: var(--accent);
+  min-width: 22px; height: 22px; padding: 0 6px; margin-inline-start: 8px;
+  border-radius: 999px; background: #33373b; color: var(--text-dim);
   font-size: 11px; font-weight: 700;
 }
+.family-row .clan-count.is-none { background: transparent; }
