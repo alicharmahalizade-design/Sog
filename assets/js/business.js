@@ -139,6 +139,9 @@
     var back = document.getElementById("cityBackdrop");
     var input = document.getElementById("citySearchInput");
     if (btn) btn.addEventListener("click", openCitySheet);
+    /* دکمه‌ی انتخاب شهر در هدر صفحه‌ی خدمات */
+    var headBtn = document.getElementById("cityBtn");
+    if (headBtn) headBtn.addEventListener("click", openCitySheet);
     if (close) close.addEventListener("click", closeCitySheet);
     if (back) back.addEventListener("click", closeCitySheet);
     if (input) input.addEventListener("input", function () { renderCityOptions(input.value); });
