@@ -805,6 +805,14 @@
     try {
       localStorage.setItem("sog:draftListing", JSON.stringify(data));
       /* تا وقتی حساب کاربری واقعی وصل نشده، ثبت‌کننده روی همین دستگاه شناخته می‌شود */
+      /* کد ملیِ تأییدشده‌ی ثبت‌کننده روی حساب کاربر ثبت می‌شود تا نشان «تأیید هویت شده» بگیرد */
+      var user = JSON.parse(localStorage.getItem("sog:user")) || {};
+      user.melli = data.melli;
+      user.verified = true;
+      if (!user.name && data.applicant_name) user.name = data.applicant_name;
+      if (!user.phone && data.phone) user.phone = data.phone;
+      localStorage.setItem("sog:user", JSON.stringify(user));
+
       var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
       var newId = "draft-" + Date.now();
       mine.push(newId);

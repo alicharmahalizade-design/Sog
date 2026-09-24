@@ -21,7 +21,8 @@
     support: 'M12 3a9 9 0 00-9 9v5a2 2 0 002 2h1v-6H5a7 7 0 0114 0h-1v6h1a2 2 0 002-2v-5a9 9 0 00-9-9z',
     edit: 'M4 20l4-1 11-11-3-3L5 16z',
     logout: 'M15 4h4v16h-4M11 8l-4 4 4 4M7 12h10',
-    chev: 'M15 5l-7 7 7 7'
+    chev: 'M15 5l-7 7 7 7',
+    check: 'M20 6L9 17l-5-5'
   };
   function svg(path, w) { w = w || 20; return '<svg viewBox="0 0 24 24" width="' + w + '" height="' + w + '"><path d="' + path + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
 
@@ -164,7 +165,9 @@
     out.innerHTML = '<span class="ar-ic">' + svg(IC.logout) + '</span>' +
       '<span class="ar-label">خروج از حساب</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
     out.addEventListener("click", function () {
-      SogStore.clearUser(); render(); toast("از حساب خارج شدید.");
+      confirmDialog("خروج از حساب", "می‌خواهید از حساب کاربری خارج شوید؟", function () {
+        SogStore.clearUser(); render(); toast("از حساب خارج شدید.");
+      });
     });
     list.appendChild(out);
 
@@ -231,6 +234,10 @@
     if (user) {
       info.appendChild(el("div", "profile-name", esc(user.name || "کاربر سوگ")));
       info.appendChild(el("div", "profile-phone", esc(user.phone || "")));
+      if (user.verified && validMelli(user.melli)) {
+        info.appendChild(el("div", "profile-verified",
+          '<span class="pv-tick">' + svg(IC.check, 13) + '</span><span>تأیید هویت شده</span>'));
+      }
       var edit = el("button", "profile-edit", svg(IC.edit, 16) + " ویرایش");
       edit.addEventListener("click", function () { openLogin(true); });
       info.appendChild(edit);
@@ -366,6 +373,43 @@
     list.appendChild(sup);
     return list;
   }
+  /* اعتبارسنجی کد ملی ایرانی (رقم کنترل) */
+  function validMelli(code) {
+    code = String(code == null ? "" : code);
+    if (window.SogUtil) code = SogUtil.toEn(code);
+    code = code.replace(/[^0-9]/g, "");
+    if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) return false;
+    var sum = 0;
+    for (var i = 0; i < 9; i++) sum += parseInt(code[i], 10) * (10 - i);
+    var r = sum % 11, c = parseInt(code[9], 10);
+    return (r < 2 && c === r) || (r >= 2 && c === 11 - r);
+  }
+
+  /* پاپ‌آپ تأیید با «بله / خیر» */
+  function confirmDialog(title, text, onYes) {
+    var back = el("div", "confirm-backdrop");
+    var box = el("div", "confirm-box");
+    box.appendChild(el("h3", "confirm-title", esc(title)));
+    box.appendChild(el("p", "confirm-text", esc(text)));
+    var row = el("div", "confirm-btns");
+    var no = el("button", "confirm-btn no", "خیر"); no.type = "button";
+    var yes = el("button", "confirm-btn yes", "بله"); yes.type = "button";
+    row.appendChild(yes); row.appendChild(no);
+    box.appendChild(row);
+    back.appendChild(box);
+    document.body.appendChild(back);
+    document.body.style.overflow = "hidden";
+    function close() {
+      back.classList.remove("is-in");
+      document.body.style.overflow = "";
+      setTimeout(function () { if (back.parentNode) back.remove(); }, 200);
+    }
+    no.addEventListener("click", close);
+    back.addEventListener("click", function (e) { if (e.target === back) close(); });
+    yes.addEventListener("click", function () { close(); onYes(); });
+    requestAnimationFrame(function () { back.classList.add("is-in"); });
+  }
+
   function toggleRow(icon, label, key, on) {
     var row = el("div", "acc-row");
     row.innerHTML = '<span class="ar-ic">' + svg(icon) + '</span><span class="ar-label">' + esc(label) + '</span>';
@@ -446,10 +490,17 @@
       body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود."));
       var name = el("input", "login-input"); name.placeholder = "نام و نام خانوادگی"; name.value = u.name || ""; name.id = "lgName";
       var phone = el("input", "login-input"); phone.placeholder = "۰۹…"; phone.type = "tel"; phone.value = u.phone || ""; phone.id = "lgPhone";
-      body.appendChild(name); body.appendChild(phone);
+      var melli = el("input", "login-input"); melli.placeholder = "کد ملی ۱۰ رقمی (برای تأیید هویت)";
+      melli.type = "tel"; melli.inputMode = "numeric"; melli.maxLength = 10; melli.value = u.melli || ""; melli.id = "lgMelli";
+      body.appendChild(name); body.appendChild(phone); body.appendChild(melli);
       var btn = el("button", "login-btn", editing ? "ذخیره" : "دریافت کد تأیید");
       btn.addEventListener("click", function () {
         phoneVal = phone.value; u.name = name.value; u.phone = phone.value;
+        var mv = SogUtil ? SogUtil.toEn(melli.value).replace(/[^0-9]/g, "") : melli.value;
+        if (mv) {
+          if (!validMelli(mv)) { toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید."); return; }
+          u.melli = mv; u.verified = true;
+        } else { u.melli = ""; u.verified = false; }
         if (editing) { SogStore.setUser(u); closeSheet(); render(); toast("پروفایل ذخیره شد."); }
         else { step = 2; paintCode(); }
       });
@@ -463,7 +514,7 @@
       body.appendChild(code);
       var btn = el("button", "login-btn", "ورود");
       btn.addEventListener("click", function () {
-        SogStore.setUser({ name: u.name || "کاربر سوگ", phone: u.phone || phoneVal });
+        SogStore.setUser({ name: u.name || "کاربر سوگ", phone: u.phone || phoneVal, melli: u.melli || "", verified: !!u.verified });
         closeSheet(); render(); toast("خوش آمدید 🌿");
       });
       body.appendChild(btn);
