@@ -142,6 +142,14 @@
     /* دکمه‌ی انتخاب شهر در هدر صفحه‌ی خدمات */
     var headBtn = document.getElementById("cityBtn");
     if (headBtn) headBtn.addEventListener("click", openCitySheet);
+    /* برچسب دکمه‌ی شهر در هدر با شهر انتخابی هماهنگ می‌ماند */
+    var headLbl = document.getElementById("cityBtnLabel");
+    if (headLbl) {
+      var pick = document.getElementById("cityPickerLabel");
+      var sync = function () { headLbl.textContent = pick ? pick.textContent : "کل ایران"; };
+      sync();
+      if (pick && window.MutationObserver) new MutationObserver(sync).observe(pick, { childList: true, characterData: true, subtree: true });
+    }
     if (close) close.addEventListener("click", closeCitySheet);
     if (back) back.addEventListener("click", closeCitySheet);
     if (input) input.addEventListener("input", function () { renderCityOptions(input.value); });
