@@ -454,9 +454,14 @@
 /* «استوری» دو سوم و «ذخیره‌ی تصویر» یک سوم عرض */
 .story-actions .btn-ghost { flex: 2 1 0; }
 .story-actions .btn-primary { flex: 1 1 0; }
-.story-actions .btn-primary { background: var(--accent); border: 1px solid var(--accent); color: #1c1206; }
+/* «استوری» دکمه‌ی اصلی و رنگی است؛ «ذخیره‌ی تصویر» طلاییِ ملایم */
+.story-actions .btn-primary {
+  background: #2a2016; border: 1px solid var(--accent); color: var(--accent);
+}
 .story-actions .btn-ghost {
-  background: var(--surface-2); border: 1px solid var(--card-border); color: var(--text-dim);
+  background: linear-gradient(180deg, #e9c88a, var(--accent));
+  border: 1px solid var(--accent); color: #1c1206;
+  box-shadow: 0 4px 12px rgba(217,154,91,.28);
 }
 
 /* شمع روشن‌شده‌ی کاربر (هر کاربر فقط یک‌بار) */
