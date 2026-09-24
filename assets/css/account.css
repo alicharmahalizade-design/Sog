@@ -248,3 +248,14 @@
 }
 .confirm-btn.yes { background: var(--accent); border: none; color: #1e1406; }
 .confirm-btn.no { background: transparent; border: 1px solid #3a3a3a; color: var(--text-dim); }
+
+/* ردیف اعلان: کلید همگانی + یادآوری‌های تک‌تک */
+.acc-item.notify-off .acc-body { opacity: .45; }
+.acc-subs-note { margin: 0 2px 4px; font-size: 11.5px; color: var(--text-mute); }
+.acc-sub-link {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px;
+  color: inherit; text-decoration: none;
+}
+.switch.sm { width: 38px; height: 22px; }
+.switch.sm .knob { top: 3px; width: 16px; height: 16px; }
+.switch.sm.on .knob { inset-inline-start: 19px; }

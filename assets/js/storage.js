@@ -17,6 +17,7 @@
   var EVPHOTO_KEY = "sog:eventPhotos";  // نگاشت «شناسه‌ی آگهی|مراسم» → آرایه‌ی تصاویر
   var ACK_KEY = "sog:ackText";      // متن سپاسگزاری ویرایش‌شده توسط خانواده
   var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
+  var REMIND_KEY = "sog:reminders"; // نگاشت «شناسه‌ی آگهی|مراسم» → یادآوری ثبت‌شده
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
 
   function read(key) {
@@ -172,6 +173,23 @@
     getUser: function () { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; } },
     setUser: function (u) { writeMap(USER_KEY, u); },
     clearUser: function () { try { localStorage.removeItem(USER_KEY); } catch (e) {} },
+
+    /* ----- یادآوری مراسم‌ها ----- */
+    getReminders: function () { return readMap(REMIND_KEY); },
+    addReminder: function (r) {
+      var all = readMap(REMIND_KEY);
+      all[r.key] = { key: r.key, id: r.id, name: r.name || "", photo: r.photo || "",
+                     title: r.title || "", date: r.date || "", on: true, at: Date.now() };
+      writeMap(REMIND_KEY, all);
+    },
+    setReminderOn: function (key, on) {
+      var all = readMap(REMIND_KEY);
+      if (all[key]) { all[key].on = !!on; writeMap(REMIND_KEY, all); }
+    },
+    removeReminder: function (key) {
+      var all = readMap(REMIND_KEY);
+      delete all[key]; writeMap(REMIND_KEY, all);
+    },
 
     /* ----- تنظیمات ----- */
     getPrefs: function () { var p = readMap(PREFS_KEY); return { notify: p.notify !== false, privacy: !!p.privacy }; },
