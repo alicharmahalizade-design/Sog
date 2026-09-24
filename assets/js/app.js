@@ -306,7 +306,7 @@
     if (allBtn && all) {
       allBtn.classList.toggle("is-active", all.slug === state.city);
       var totalNode = document.getElementById("allIranTotal");
-      if (totalNode && !allBtn.dataset.bound) countUp(totalNode, all.total_label);
+      if (totalNode && !allBtn.dataset.bound) { countUp(totalNode, all.total_label); stretchAllName(allBtn, all.total_label); }
       if (!allBtn.dataset.bound) {
         allBtn.dataset.bound = "1";
         allBtn.addEventListener("click", function () {
@@ -344,6 +344,28 @@
     add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
     add.addEventListener("click", openCitySheet);
     bar.appendChild(add);
+  }
+
+  /* «کل ایران» به عرض عددِ زیرش کشیده می‌شود تا دو سطر هم‌اندازه دیده شوند */
+  function stretchAllName(btn, label) {
+    var name = btn.querySelector(".ai-name"), total = btn.querySelector(".ai-total");
+    if (!name || !total) return;
+    function apply() {
+      name.style.transform = "none";
+      /* عرض نهایی عدد با یک نمونه‌ی پنهان اندازه گرفته می‌شود (نه مقدار در حال شمارش) */
+      var probe = total.cloneNode(false);
+      probe.textContent = label;
+      probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+      btn.appendChild(probe);
+      var tw = probe.getBoundingClientRect().width;
+      probe.remove();
+      var nw = name.getBoundingClientRect().width;
+      if (!tw || !nw) return;
+      var k = Math.max(0.75, Math.min(1.6, tw / nw));
+      name.style.transform = "scaleX(" + k.toFixed(3) + ")";
+    }
+    apply();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(apply);
   }
 
   /* ---------- انیمیشن شمارش عدد آگهی‌ها ---------- */
