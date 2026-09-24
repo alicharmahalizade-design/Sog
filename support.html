@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>پشتیبانی | سوگ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/img/icon-192-v2.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/styles.css?v=82">
+  <link rel="stylesheet" href="assets/css/support.css?v=82">
+</head>
+<body data-nav="account">
+  <div class="app-frame chat-frame">
+    <header class="chat-header">
+      <a class="chat-back" href="account.html" aria-label="بازگشت">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 7l-4 4 4 4M5 11h9a5 5 0 010 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="chat-who">
+        <span class="chat-name">پشتیبانی سوگ</span>
+        <span class="chat-status" id="chatStatus">در دسترس ۹ تا ۲۱</span>
+      </div>
+      <span class="chat-avatar">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 00-9 9v5a2 2 0 002 2h1v-6H5a7 7 0 0114 0h-1v6h1a2 2 0 002-2v-5a9 9 0 00-9-9z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </header>
+
+    <main class="chat-log" id="chatLog" aria-live="polite"></main>
+
+    <div class="rec-bar" id="recBar" hidden>
+      <span class="rec-dot"></span>
+      <span class="rec-time" id="recTime">۰:۰۰</span>
+      <span class="rec-hint">در حال ضبط پیام صوتی…</span>
+      <button type="button" class="rec-cancel" id="recCancel">انصراف</button>
+    </div>
+
+    <form class="chat-bar" id="chatBar">
+      <button type="button" class="chat-ic" id="micBtn" aria-label="ضبط پیام صوتی">
+        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 12a6 6 0 0012 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <textarea id="chatInput" rows="1" placeholder="پیام‌تان را بنویسید…" aria-label="متن پیام"></textarea>
+      <button type="submit" class="chat-send" id="sendBtn" aria-label="ارسال">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <script src="assets/js/splash.js?v=82"></script>
+  <script src="assets/js/util.js?v=82"></script>
+  <script src="assets/js/storage.js?v=82"></script>
+  <script src="assets/js/support.js?v=82"></script>
+</body>
+</html>
