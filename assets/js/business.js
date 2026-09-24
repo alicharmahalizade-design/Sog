@@ -635,6 +635,12 @@
   });
 
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () { navigator.serviceWorker.register("service-worker.js").catch(function () {}); });
+    window.addEventListener("load", function () { navigator.serviceWorker.register("service-worker.js", { updateViaCache: "none" })
+        .then(function (r) {
+          r.update();
+          document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) r.update();
+          });
+        }).catch(function () {}); });
   }
 })();
