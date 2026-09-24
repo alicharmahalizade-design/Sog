@@ -246,8 +246,9 @@
   flex: 1 1 0; height: 42px; border-radius: 12px;
   font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
 }
-.confirm-btn.yes { background: var(--accent); border: none; color: #1e1406; }
-.confirm-btn.no { background: transparent; border: 1px solid #3a3a3a; color: var(--text-dim); }
+/* «خیر» دکمه‌ی اصلی (طلایی) است تا خروج ناخواسته پیش نیاید */
+.confirm-btn.no { background: var(--accent); border: none; color: #1e1406; }
+.confirm-btn.yes { background: transparent; border: 1px solid #3a3a3a; color: var(--text-dim); }
 
 /* ردیف اعلان: کلید همگانی + یادآوری‌های تک‌تک */
 .acc-item.notify-off .acc-body { opacity: .45; }
