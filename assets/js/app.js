@@ -1019,13 +1019,62 @@
     input.addEventListener("click", maybeShowHistory);
     input.addEventListener("blur", function () { setTimeout(function () { panel.hidden = true; }, 120); });
 
+    /* پیشنهاد طایفه و ایل با تعداد آگهی‌ها */
+    function clanSuggestions(q) {
+      var term = normalize(q || "");
+      panel.innerHTML = "";
+      if (!term) { panel.hidden = true; return; }
+
+      var groups = [
+        { key: "tayefe", label: "طایفه", map: {} },
+        { key: "il", label: "ایل", map: {} }
+      ];
+      DATA.listings.forEach(function (it) {
+        groups.forEach(function (g) {
+          var v = String(it[g.key] || "").trim();
+          if (v && normalize(v).indexOf(term) !== -1) g.map[v] = (g.map[v] || 0) + 1;
+        });
+      });
+
+      var rows = [];
+      groups.forEach(function (g) {
+        Object.keys(g.map).forEach(function (v) { rows.push({ key: g.key, label: g.label, value: v, n: g.map[v] }); });
+      });
+      if (!rows.length) { panel.hidden = true; return; }
+      rows.sort(function (a, b) { return b.n - a.n; });
+
+      panel.appendChild(el("div", "sh-head", "<span>طایفه و ایل</span>"));
+      rows.slice(0, 8).forEach(function (r) {
+        var go = el("button", "sh-go clan-go",
+          '<span class="clan-kind">' + r.label + "</span><span>" + esc(r.value) + "</span>" +
+          '<span class="clan-n">' + toFa(r.n) + " آگهی</span>");
+        go.type = "button";
+        go.addEventListener("mousedown", function (e) { e.preventDefault(); });
+        go.addEventListener("click", function () {
+          /* فقط آگهی‌های همان طایفه یا ایل */
+          state.tayefe = r.key === "tayefe" ? r.value : null;
+          state.il = r.key === "il" ? r.value : null;
+          state.query = ""; state.year = null;
+          input.value = "";
+          SogStore.addSearch(r.value);
+          panel.hidden = true; input.blur();
+          renderFeed();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        panel.appendChild(go);
+      });
+      panel.hidden = false;
+    }
+
     input.addEventListener("input", function () {
       clearTimeout(saveT);
       panel.hidden = true;
       /* نتیجه‌ها با هر حرف و بدون تأخیر به‌روز می‌شوند */
       state.query = input.value;
+      state.tayefe = null; state.il = null;
       state.year = null;
       renderFeed();
+      clanSuggestions(input.value);
       /* عبارت پس از مکث ذخیره می‌شود تا هر حرف یک ردیف تاریخچه نسازد */
       saveT = setTimeout(function () { SogStore.addSearch(input.value); }, 1400);
     });

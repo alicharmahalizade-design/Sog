@@ -53,6 +53,7 @@
 
   /* ---------- بارگذاری ---------- */
   var deceasedCity = null;
+  var ALL_LISTINGS = [];
 
   Promise.all([
     fetch("data/details.json").then(function (r) { return r.json(); }),
@@ -61,6 +62,7 @@
   ]).then(function (res) {
     var details = res[0] || {};
     var listings = (res[1] && res[1].listings) || [];
+    ALL_LISTINGS = listings;
     var lst = listings.filter(function (x) { return String(x.id) === String(id); })[0];
     if (lst) { deceasedCity = lst.city; }
     var d = details[id];
@@ -289,6 +291,13 @@
     grid.appendChild(familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]]));
     return grid;
   }
+  /* شمار آگهی‌های یک طایفه یا ایل */
+  function clanCount(key, value) {
+    var v = String(value || "").trim();
+    if (!v) return 0;
+    return ALL_LISTINGS.filter(function (it) { return String(it[key] || "").trim() === v; }).length;
+  }
+
   function familyCard(rows) {
     var card = el("div", "family-card");
     rows.forEach(function (r) {
@@ -303,6 +312,9 @@
         var a = el("a", "val clan-link", esc(r[1]));
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
+        /* تعداد آگهی‌های همین طایفه/ایل */
+        var n = clanCount(key, r[1]);
+        if (n > 0) a.insertAdjacentHTML("beforeend", '<span class="clan-count">' + faNum(n) + "</span>");
         row.appendChild(a);
       } else {
         row.appendChild(el("span", "val", esc(r[1])));
