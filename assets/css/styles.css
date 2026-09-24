@@ -679,12 +679,6 @@ option { direction: rtl; text-align: right; }
 
 /* چیپ شهرهای انتخابی کاربر */
 .city-chip.is-mine:not(.is-active) { border-color: #3a3a3a; }
-.city-chip .chip-x {
-  margin-inline-start: 2px; width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(255,255,255,.08); color: var(--text-mute);
-  display: inline-grid; place-items: center; font-size: 13px; line-height: 1;
-}
-.city-chip.is-active .chip-x { background: rgba(0,0,0,.28); color: #fff; }
 
 /* انتخاب چندتایی در صفحه‌ی استان و شهر */
 .cob-all {
