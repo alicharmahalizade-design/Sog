@@ -79,6 +79,10 @@
     ]).then(function (res) {
       DATA.listings = res[0].listings || [];
       DATA.cities = res[1].cities || [];
+      /* شهرهایی که کاربر از فهرست استان‌ها انتخاب کرده است */
+      (SogStore.getExtraCities() || []).forEach(function (c) {
+        if (!DATA.cities.some(function (x) { return x.slug === c.slug; })) DATA.cities.push(c);
+      });
     });
   }
 
@@ -286,6 +290,126 @@
     input.addEventListener("input", function () { paint(input.value); });
     document.addEventListener("keydown", function esc2(e) {
       if (e.key === "Escape") { done(); document.removeEventListener("keydown", esc2); }
+    });
+  }
+
+  /* ---------- انتخاب استان و شهر در اولین ورود ---------- */
+  function citySlugFor(name) {
+    var found = DATA.cities.filter(function (c) { return normalize(c.name) === normalize(name); })[0];
+    if (found) return found.slug;
+    return "c-" + encodeURIComponent(normalize(name)).replace(/%/g, "");
+  }
+
+  function chooseCity(name, province) {
+    var slug = citySlugFor(name);
+    if (!DATA.cities.some(function (c) { return c.slug === slug; })) {
+      var city = { slug: slug, name: name, province: province || "" };
+      DATA.cities.push(city);
+      SogStore.addExtraCity(city);
+    }
+    state.city = slug; state.year = null;
+    SogStore.setCityPicked();
+    renderCities(); renderFeed();
+  }
+
+  function openProvincePicker(opts) {
+    opts = opts || {};
+    var wrap = el("div", "city-onboard");
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("aria-label", "انتخاب استان و شهر");
+
+    var head = el("div", "cob-head");
+    head.innerHTML =
+      '<img class="cob-logo" src="assets/img/logo.png" alt="سوگ" width="56" height="56">' +
+      '<h1>شهر خود را انتخاب کنید</h1>' +
+      '<p>آگهی‌های سوگ و خدمات مراسم شهر شما اول نشان داده می‌شود.</p>';
+
+    var search = el("div", "cob-search");
+    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    var input = document.createElement("input");
+    input.type = "search"; input.placeholder = "جستجوی شهر یا استان…";
+    input.setAttribute("aria-label", "جستجوی شهر یا استان");
+    search.appendChild(input);
+
+    var body = el("div", "cob-body");
+    body.appendChild(el("p", "cob-loading", "در حال بارگذاری فهرست شهرها…"));
+
+    var skip = el("button", "cob-skip", "فعلاً کل ایران را نشانم بده");
+    skip.type = "button";
+    skip.addEventListener("click", function () {
+      state.city = "all"; SogStore.setCityPicked(); renderCities(); renderFeed(); close();
+    });
+
+    wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(body); wrap.appendChild(skip);
+    document.body.appendChild(wrap);
+    document.body.style.overflow = "hidden";
+
+    function close() {
+      wrap.classList.remove("is-in");
+      document.body.style.overflow = "";
+      setTimeout(function () { if (wrap.parentNode) wrap.remove(); }, 220);
+    }
+    requestAnimationFrame(function () { wrap.classList.add("is-in"); });
+
+    fetch("data/provinces.json").then(function (r) { return r.json(); }).then(function (d) {
+      var provinces = d.provinces || {};
+      var names = Object.keys(provinces);
+
+      function paint(q) {
+        body.innerHTML = "";
+        var term = normalize(q || "");
+
+        if (term) {
+          /* جستجو: شهرهای همه‌ی استان‌ها */
+          var hits = [];
+          names.forEach(function (p) {
+            (provinces[p] || []).forEach(function (c) {
+              if (normalize(c).indexOf(term) !== -1 || normalize(p).indexOf(term) !== -1) hits.push({ city: c, prov: p });
+            });
+          });
+          if (!hits.length) { body.appendChild(el("p", "cob-empty", "شهری با این نام پیدا نشد.")); return; }
+          var list = el("div", "cob-cities");
+          hits.slice(0, 80).forEach(function (h) {
+            var b = el("button", "cob-city");
+            b.type = "button";
+            b.innerHTML = "<span>" + esc(h.city) + "</span><span class=\"cob-prov\">" + esc(h.prov) + "</span>";
+            b.addEventListener("click", function () { chooseCity(h.city, h.prov); close(); });
+            list.appendChild(b);
+          });
+          body.appendChild(list);
+          return;
+        }
+
+        /* حالت عادی: آکاردئون استان‌ها */
+        names.forEach(function (p) {
+          var item = el("div", "cob-item");
+          var h = el("button", "cob-head-row"); h.type = "button";
+          h.setAttribute("aria-expanded", "false");
+          h.innerHTML = '<span class="cob-name">' + esc(p) + '</span>' +
+            '<span class="cob-count">' + toFa((provinces[p] || []).length) + '</span>' +
+            '<span class="cob-chev"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+          var bodyIn = el("div", "cob-sub");
+          (provinces[p] || []).forEach(function (c) {
+            var b = el("button", "cob-city"); b.type = "button";
+            b.innerHTML = "<span>" + esc(c) + "</span>";
+            b.addEventListener("click", function () { chooseCity(c, p); close(); });
+            bodyIn.appendChild(b);
+          });
+          h.addEventListener("click", function () {
+            var open = item.classList.toggle("is-open");
+            h.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+          item.appendChild(h); item.appendChild(bodyIn);
+          body.appendChild(item);
+        });
+      }
+
+      paint("");
+      input.addEventListener("input", function () { paint(input.value); });
+    }).catch(function () {
+      body.innerHTML = "";
+      body.appendChild(el("p", "cob-empty", "فهرست شهرها بارگذاری نشد؛ می‌توانید بعداً از نوار بالای صفحه شهر را انتخاب کنید."));
     });
   }
 
@@ -788,6 +912,8 @@
     document.getElementById("cityBar").classList.remove("is-loading");
     renderCities();
     renderToolbar();
+    /* اولین ورود: صفحه‌ی انتخاب استان و شهر */
+    if (!SogStore.isCityPicked()) setTimeout(function () { openProvincePicker(); }, 300);
     renderFeed();
     bindSearch();
     bindVoice();
