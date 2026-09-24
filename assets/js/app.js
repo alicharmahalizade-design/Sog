@@ -1078,6 +1078,9 @@
     renderFeed();
     bindSearch();
     bindVoice();
+    /* دکمه‌ی انتخاب شهر در هدر */
+    var cityBtn = document.getElementById("cityBtn");
+    if (cityBtn) cityBtn.addEventListener("click", function () { openProvincePicker({ multi: true }); });
   }).catch(function (err) {
     document.getElementById("cityBar").classList.remove("is-loading");
     document.getElementById("feed").innerHTML =
