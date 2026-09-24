@@ -5,7 +5,7 @@
   "use strict";
 
   var DATA = { listings: [], cities: [] };
-  var state = { city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false, tayefe: null, il: null };
+  var state = { sel: [], city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false, tayefe: null, il: null };
   var PARAMS = new URLSearchParams(location.search);
   if (PARAMS.get("view") === "saved") state.savedOnly = true;
   // ورود از لینک «طایفه» / «ایل» در صفحه‌ی آگهی
@@ -86,12 +86,39 @@
     });
   }
 
+  /* چیپ انتخاب‌شده (شهر یا کل استان) با آگهی می‌خواند؟ */
+  function chipMatches(sel, item) {
+    if (!sel) return false;
+    if (sel.isProvince) {
+      return (sel.cities || []).some(function (n) { return normalize(n) === normalize(item.city || ""); });
+    }
+    if (sel.slug && item.city_slug && sel.slug === item.city_slug) return true;
+    return normalize(sel.name || "") === normalize(item.city || "");
+  }
+  function selKey(sel) { return (sel.isProvince ? "p:" : "c:") + normalize(sel.name || sel.slug || ""); }
+  function isSelected(sel) {
+    return state.sel.some(function (x) { return selKey(x) === selKey(sel); });
+  }
+  /* تعداد آگهی‌های جاری هر چیپ */
+  function countForChip(sel) {
+    return DATA.listings.filter(function (it) { return isCurrent(it) && chipMatches(sel, it); }).length;
+  }
+  function myCities() { return SogStore.getMyCities() || []; }
+  function addMyCities(list) {
+    var mine = myCities();
+    list.forEach(function (c) {
+      mine = mine.filter(function (x) { return selKey(x) !== selKey(c); });
+      mine.unshift(c);
+    });
+    SogStore.setMyCities(mine);
+  }
+
   /* ---------- فیلترها ---------- */
   function matchesFilters(item) {
     /* در نمای پیش‌فرض، آگهی‌های تمام‌شده فقط در کالکشن سال‌ها دیده می‌شوند */
     if (state.year == null && !state.query && !state.tayefe && !state.il &&
         !state.followOnly && !state.savedOnly && !isCurrent(item)) return false;
-    if (state.city !== "all" && item.city_slug !== state.city) return false;
+    if (state.sel.length && !state.sel.some(function (sel) { return chipMatches(sel, item); })) return false;
     if (state.year != null && item.death_year !== state.year) return false;
     if (state.ceremony && item.ceremony_type !== state.ceremony) return false;
     if (state.tayefe && item.tayefe !== state.tayefe) return false;
@@ -322,8 +349,8 @@
     var head = el("div", "cob-head");
     head.innerHTML =
       '<img class="cob-logo" src="assets/img/logo.png" alt="سوگ" width="56" height="56">' +
-      '<h1>شهر خود را انتخاب کنید</h1>' +
-      '<p>آگهی‌های سوگ و خدمات مراسم شهر شما اول نشان داده می‌شود.</p>';
+      '<h1>' + (opts.multi ? "انتخاب استان و شهر" : "شهر خود را انتخاب کنید") + '</h1>' +
+      '<p>می‌توانید چند شهر یا کل یک استان را انتخاب کنید.</p>';
 
     var search = el("div", "cob-search");
     search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -335,30 +362,55 @@
     var body = el("div", "cob-body");
     body.appendChild(el("p", "cob-loading", "در حال بارگذاری فهرست شهرها…"));
 
+    /* انتخاب‌های همین صفحه (از انتخاب فعلی کاربر شروع می‌شود) */
+    var picked = {};
+    state.sel.forEach(function (c) { picked[selKey(c)] = c; });
+
+    var confirm = el("button", "cob-confirm", "تأیید");
+    confirm.type = "button";
+    function refreshConfirm() {
+      var n = Object.keys(picked).length;
+      confirm.textContent = n ? "نمایش آگهی‌های " + toFa(n) + " مورد انتخابی" : "نمایش کل ایران";
+    }
+    confirm.addEventListener("click", function () {
+      var list = Object.keys(picked).map(function (k) { return picked[k]; });
+      applyPicked(list);
+      close();
+    });
+
+    function applyPicked(list) {
+      if (list.length) addMyCities(list);
+      state.sel = list;
+      state.city = list.length === 1 ? (list[0].slug || "all") : "all";
+      state.year = null;
+      SogStore.setCityPicked();
+      renderCities(); renderFeed();
+    }
+
     /* اگر کاربر چیزی انتخاب نکند، پیش‌فرض «کل ایران» می‌ماند */
     function useAllIran() {
-      state.city = "all"; state.year = null;
+      state.sel = []; state.city = "all"; state.year = null;
       SogStore.setCityPicked();
       renderCities(); renderFeed(); close();
     }
 
-    var skip = el("button", "cob-skip", "فعلاً کل ایران را نشانم بده");
+    var skip = el("button", "cob-skip", "کل ایران");
     skip.type = "button";
     skip.addEventListener("click", useAllIran);
 
-    /* بستن با ضربدر یا کلید Esc هم یعنی «کل ایران» */
+    var foot = el("div", "cob-foot");
+    foot.appendChild(skip); foot.appendChild(confirm);
+
     var closeBtn = el("button", "cob-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
     closeBtn.type = "button";
-    closeBtn.setAttribute("aria-label", "بستن و نمایش کل ایران");
-    closeBtn.addEventListener("click", useAllIran);
-    wrap.appendChild(closeBtn);
-    document.addEventListener("keydown", function esc3(e) {
-      if (e.key === "Escape" && wrap.parentNode) { useAllIran(); document.removeEventListener("keydown", esc3); }
-    });
+    closeBtn.setAttribute("aria-label", "بستن");
+    closeBtn.addEventListener("click", function () { if (opts.multi) close(); else useAllIran(); });
 
-    wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(body); wrap.appendChild(skip);
+    wrap.appendChild(closeBtn);
+    wrap.appendChild(head); wrap.appendChild(search); wrap.appendChild(body); wrap.appendChild(foot);
     document.body.appendChild(wrap);
     document.body.style.overflow = "hidden";
+    refreshConfirm();
 
     function close() {
       wrap.classList.remove("is-in");
@@ -366,17 +418,40 @@
       setTimeout(function () { if (wrap.parentNode) wrap.remove(); }, 220);
     }
     requestAnimationFrame(function () { wrap.classList.add("is-in"); });
+    document.addEventListener("keydown", function esc3(e) {
+      if (e.key === "Escape" && wrap.parentNode) {
+        if (opts.multi) close(); else useAllIran();
+        document.removeEventListener("keydown", esc3);
+      }
+    });
+
+    function toggle(sel, node) {
+      var k = selKey(sel);
+      if (picked[k]) { delete picked[k]; node.classList.remove("is-on"); }
+      else { picked[k] = sel; node.classList.add("is-on"); }
+      refreshConfirm();
+    }
 
     fetch("data/provinces.json").then(function (r) { return r.json(); }).then(function (d) {
       var provinces = d.provinces || {};
       var names = Object.keys(provinces);
+
+      function cityChip(name, prov) {
+        var sel = { slug: citySlugFor(name), name: name, province: prov || "" };
+        var b = el("button", "cob-city" + (picked[selKey(sel)] ? " is-on" : ""));
+        b.type = "button";
+        b.innerHTML = '<span class="cob-tick"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+          "<span class=\"cob-cname\">" + esc(name) + "</span>" +
+          (prov && opts.showProv ? '<span class="cob-prov">' + esc(prov) + "</span>" : "");
+        b.addEventListener("click", function () { toggle(sel, b); });
+        return b;
+      }
 
       function paint(q) {
         body.innerHTML = "";
         var term = normalize(q || "");
 
         if (term) {
-          /* جستجو: شهرهای همه‌ی استان‌ها */
           var hits = [];
           names.forEach(function (p) {
             (provinces[p] || []).forEach(function (c) {
@@ -384,19 +459,16 @@
             });
           });
           if (!hits.length) { body.appendChild(el("p", "cob-empty", "شهری با این نام پیدا نشد.")); return; }
-          var list = el("div", "cob-cities");
+          var listBox = el("div", "cob-cities");
           hits.slice(0, 80).forEach(function (h) {
-            var b = el("button", "cob-city");
-            b.type = "button";
-            b.innerHTML = "<span>" + esc(h.city) + "</span><span class=\"cob-prov\">" + esc(h.prov) + "</span>";
-            b.addEventListener("click", function () { chooseCity(h.city, h.prov); close(); });
-            list.appendChild(b);
+            opts.showProv = true;
+            listBox.appendChild(cityChip(h.city, h.prov));
           });
-          body.appendChild(list);
+          body.appendChild(listBox);
           return;
         }
 
-        /* حالت عادی: آکاردئون استان‌ها */
+        opts.showProv = false;
         names.forEach(function (p) {
           var item = el("div", "cob-item");
           var h = el("button", "cob-head-row"); h.type = "button";
@@ -404,18 +476,24 @@
           h.innerHTML = '<span class="cob-name">' + esc(p) + '</span>' +
             '<span class="cob-count">' + toFa((provinces[p] || []).length) + '</span>' +
             '<span class="cob-chev"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-          var bodyIn = el("div", "cob-sub");
-          (provinces[p] || []).forEach(function (c) {
-            var b = el("button", "cob-city"); b.type = "button";
-            b.innerHTML = "<span>" + esc(c) + "</span>";
-            b.addEventListener("click", function () { chooseCity(c, p); close(); });
-            bodyIn.appendChild(b);
+
+          var provSel = { slug: "p-" + citySlugFor(p), name: p, isProvince: true, cities: provinces[p] || [] };
+          var all = el("span", "cob-all" + (picked[selKey(provSel)] ? " is-on" : ""), "کل استان");
+          all.setAttribute("role", "button");
+          all.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            toggle(provSel, all);
           });
+          h.insertBefore(all, h.querySelector(".cob-chev"));
+
+          var sub = el("div", "cob-sub");
+          (provinces[p] || []).forEach(function (c) { sub.appendChild(cityChip(c, p)); });
+
           h.addEventListener("click", function () {
             var open = item.classList.toggle("is-open");
             h.setAttribute("aria-expanded", open ? "true" : "false");
           });
-          item.appendChild(h); item.appendChild(bodyIn);
+          item.appendChild(h); item.appendChild(sub);
           body.appendChild(item);
         });
       }
@@ -424,7 +502,7 @@
       input.addEventListener("input", function () { paint(input.value); });
     }).catch(function () {
       body.innerHTML = "";
-      body.appendChild(el("p", "cob-empty", "فهرست شهرها بارگذاری نشد؛ می‌توانید بعداً از نوار بالای صفحه شهر را انتخاب کنید."));
+      body.appendChild(el("p", "cob-empty", "فهرست شهرها بارگذاری نشد؛ بعداً دوباره تلاش کنید."));
     });
   }
 
@@ -432,6 +510,7 @@
   function renderCities() {
     var bar = document.getElementById("cityBar");
     bar.innerHTML = "";
+    SogStore.setSelCities(state.sel);   /* انتخاب کاربر بین بازدیدها می‌ماند */
 
     var list = orderedCities();
 
@@ -443,45 +522,76 @@
     });
     var allBtn = document.getElementById("allIran");
     if (allBtn && all) {
-      allBtn.classList.toggle("is-active", all.slug === state.city);
+      allBtn.classList.toggle("is-active", !state.sel.length);
       var totalNode = document.getElementById("allIranTotal");
       if (totalNode && !allBtn.dataset.bound) { countUp(totalNode, all.total_label); stretchAllName(allBtn, all.total_label); }
       if (!allBtn.dataset.bound) {
         allBtn.dataset.bound = "1";
         allBtn.addEventListener("click", function () {
-          state.city = all.slug; state.year = null; renderCities(); renderFeed();
+          state.sel = []; state.city = "all"; state.year = null; renderCities(); renderFeed();
         });
       }
     }
 
-    /* «نزدیک من» اولین چیپ نوار است */
-    var gps = el("button", "city-chip is-gps",
-      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
-    gps.type = "button";
-    gps.addEventListener("click", useNearMe);
-    bar.appendChild(gps);
+    /* شهرهای انتخابی کاربر جلوتر از بقیه می‌آیند */
+    var mine = myCities();
+    var rest = list.filter(function (c) {
+      return !mine.some(function (m) { return selKey(m) === selKey(c); });
+    });
 
-    list.forEach(function (c) {
-      var chip = el("button", "city-chip");
+    /* شهرهای انتخابی کاربر، سپس «نزدیک من»، سپس بقیه */
+    var order = mine.slice();
+    mine.concat(rest).forEach(function (c, i) {
+      /* «نزدیک من» درست بعد از شهرهای کاربر */
+      if (i === mine.length) {
+        var gps = el("button", "city-chip is-gps",
+          '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+        gps.type = "button";
+        gps.addEventListener("click", useNearMe);
+        bar.appendChild(gps);
+      }
+      var own = mine.some(function (m) { return selKey(m) === selKey(c); });
+      var chip = el("button", "city-chip" + (own ? " is-mine" : ""));
       chip.type = "button";
-      chip.dataset.slug = c.slug;
-      if (c.slug === state.city) chip.classList.add("is-active");
+      chip.dataset.slug = c.slug || "";
+      if (isSelected(c)) chip.classList.add("is-active");
       chip.appendChild(el("span", "chip-label", c.name));
-      var unseen = unseenCountForCity(c.slug);
-      if (unseen > 0) chip.appendChild(el("span", "chip-badge", toFa(unseen)));
+
+      /* تعداد آگهی‌های همان شهر/استان */
+      var n = countForChip(c);
+      if (n > 0) chip.appendChild(el("span", "chip-badge", toFa(n)));
+
       chip.addEventListener("click", function () {
-        state.city = c.slug; state.year = null; renderCities(); renderFeed();
+        if (isSelected(c)) state.sel = state.sel.filter(function (x) { return selKey(x) !== selKey(c); });
+        else state.sel = state.sel.concat([c]);
+        state.year = null;
+        renderCities(); renderFeed();
       });
+
+      /* حذف شهرهای انتخابی از نوار */
+      if (own) {
+        var x = el("span", "chip-x", "×");
+        x.setAttribute("role", "button");
+        x.setAttribute("aria-label", "حذف " + c.name);
+        x.addEventListener("click", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          SogStore.setMyCities(myCities().filter(function (m) { return selKey(m) !== selKey(c); }));
+          state.sel = state.sel.filter(function (m) { return selKey(m) !== selKey(c); });
+          renderCities(); renderFeed();
+        });
+        chip.appendChild(x);
+      }
+
       bar.appendChild(chip);
       chip.style.touchAction = "pan-x";
       makeChipDraggable(chip, bar);
     });
 
-    /* «انتخاب شهر +» همیشه انتهای ردیف */
+    /* «انتخاب شهر +» همیشه انتهای ردیف؛ همان صفحه‌ی استان و شهر */
     var add = el("button", "city-chip is-add");
     add.type = "button";
     add.innerHTML = '<span class="chip-label">انتخاب شهر</span><span class="add-plus">+</span>';
-    add.addEventListener("click", openCitySheet);
+    add.addEventListener("click", function () { openProvincePicker({ multi: true }); });
     bar.appendChild(add);
   }
 
@@ -589,7 +699,12 @@
         var d = Math.pow(c.lat - la, 2) + Math.pow(c.lng - lo, 2);
         if (d < bestD) { bestD = d; best = c; }
       });
-      if (best) { state.city = best.slug; state.year = null; state.sort = "soonest"; renderCities(); renderToolbar(); renderFeed(); }
+      if (best) {
+        addMyCities([{ slug: best.slug, name: best.name }]);
+        state.sel = [{ slug: best.slug, name: best.name }];
+        state.year = null; state.sort = "soonest";
+        renderCities(); renderToolbar(); renderFeed();
+      }
     }, function () {
       alert("دسترسی به موقعیت داده نشد. لطفاً شهر را دستی انتخاب کنید.");
       renderToolbar();
@@ -775,7 +890,7 @@
       yc.appendChild(el("span", "year-label", toFa(y)));
       yc.addEventListener("click", function () {
         state.year = (state.year === y ? null : y);
-        state.city = "all";
+        state.sel = []; state.city = "all";
         renderCities();
         renderFeed();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -788,15 +903,15 @@
 
   /* ---------- بنر فیلتر فعال ---------- */
   function filterBanner() {
-    if (state.year == null && state.city === "all" && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il) return null;
+    if (state.year == null && !state.sel.length && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il) return null;
     var label = [];
     if (state.savedOnly) label.push("ذخیره‌شده‌ها");
     if (state.followOnly) label.push("دنبال‌شده‌ها");
     if (state.tayefe) label.push("طایفه: " + state.tayefe);
     if (state.il) label.push("ایل: " + state.il);
-    if (state.city !== "all") {
-      var c = DATA.cities.filter(function (x) { return x.slug === state.city; })[0];
-      if (c) label.push("شهر: " + c.name);
+    if (state.sel.length) {
+      label.push((state.sel.length > 1 ? "شهرها: " : "شهر: ") +
+        state.sel.map(function (c) { return c.name; }).join("، "));
     }
     if (state.ceremony) {
       var ct = CEREMONY_TYPES.filter(function (x) { return x.type === state.ceremony; })[0];
@@ -809,7 +924,7 @@
     var btn = el("button", null, "حذف فیلتر");
     btn.type = "button";
     btn.addEventListener("click", function () {
-      state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false; state.savedOnly = false;
+      state.sel = []; state.city = "all"; state.year = null; state.query = ""; state.ceremony = null; state.followOnly = false; state.savedOnly = false;
       state.tayefe = null; state.il = null;
       // پارامترهای فیلتر را از URL هم پاک کن تا رفرش دوباره فیلتر نکند
       if (history.replaceState) history.replaceState(null, "", location.pathname);
@@ -925,6 +1040,8 @@
   var minDelay = new Promise(function (r) { setTimeout(r, 550); }); // حداقل نمایش اسکلتون
   Promise.all([load(), minDelay]).then(function () {
     document.getElementById("cityBar").classList.remove("is-loading");
+    /* انتخاب شهرِ بازدید قبلی */
+    state.sel = SogStore.getSelCities() || [];
     renderCities();
     renderToolbar();
     /* اولین ورود: صفحه‌ی انتخاب استان و شهر */
