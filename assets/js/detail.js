@@ -22,6 +22,7 @@
     plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
     candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
     route: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     calAdd: '<svg viewBox="0 0 24 24" width="17" height="17"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
     call: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
     sms: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 5h16v11H8l-4 3V5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
@@ -313,7 +314,7 @@
   /* ---------- دکمه‌های عمل ---------- */
   function actionRow(d) {
     var row = el("div", "action-row");
-    row.appendChild(actionItem(ICON.share, "اشتراک", function () { shareCard(d); }));
+    row.appendChild(actionItem(ICON.bell, "یادآوری", function () { openRemindSheet(d); }));
     if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { openStory(d); }));
     if (d.has_audio !== false) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
@@ -429,6 +430,91 @@
     "محتوای توهین‌آمیز یا نامرتبط",
     "اطلاعات آگهی اشتباه است"
   ];
+
+  /* ---------- بازشوی یادآوری مراسم‌ها ---------- */
+  function openRemindSheet(d) {
+    closeReportSheet();
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "report-sheet remind-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-label", "یادآوری مراسم");
+
+    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button"; close.setAttribute("aria-label", "بستن");
+
+    sheet.appendChild(close);
+    sheet.appendChild(el("h3", "report-title", "یادآوری مراسم"));
+    sheet.appendChild(el("p", "remind-hint", "مراسم‌هایی را که می‌خواهید یادآوری‌شان را داشته باشید انتخاب کنید."));
+
+    /* همه‌ی رویدادها: مراسم‌ها، چهلم و سالگردها */
+    var events = (d.ceremonies || []).slice();
+    if (d.chehelom) events.push(Object.assign({ type: "chehelom", title: "چهلم" }, d.chehelom));
+    (d.anniversaries || []).forEach(function (a) {
+      events.push(Object.assign({ type: "salgard-" + a.year, title: "سالگرد " + faNum(a.year) }, a));
+    });
+
+    var upcoming = events.filter(function (c) { return c.date && !isPastEvent(c); });
+    var saved = (window.SogStore && SogStore.getReminders && SogStore.getReminders()) || {};
+    var chosen = {};
+
+    if (!upcoming.length) {
+      sheet.appendChild(el("p", "remind-empty", "مراسمِ پیش‌روی ثبت‌شده‌ای برای این آگهی وجود ندارد."));
+    } else {
+      var list = el("div", "remind-list");
+      upcoming.forEach(function (c) {
+        var key = id + "|" + (c.type || c.title || "event");
+        var on = !!(saved[key] && saved[key].on);
+        chosen[key] = on;
+
+        var row = el("button", "remind-row" + (on ? " is-on" : "")); row.type = "button";
+        var info = el("span", "rr-info");
+        info.appendChild(el("span", "rr-title", esc(c.title || "مراسم")));
+        info.appendChild(el("span", "rr-meta", esc([c.date, c.time_from ? "ساعت " + c.time_from : ""].filter(Boolean).join(" • "))));
+        row.appendChild(info);
+        row.appendChild(el("span", "rr-check", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'));
+        row.addEventListener("click", function () {
+          chosen[key] = !chosen[key];
+          row.classList.toggle("is-on", chosen[key]);
+        });
+        row.dataset.key = key;
+        row._ev = c;
+        list.appendChild(row);
+      });
+      sheet.appendChild(list);
+
+      var save = el("button", "remind-save", "ثبت یادآوری"); save.type = "button";
+      save.addEventListener("click", function () {
+        var n = 0;
+        Array.prototype.forEach.call(list.querySelectorAll(".remind-row"), function (row) {
+          var key = row.dataset.key, c = row._ev;
+          if (chosen[key]) {
+            n++;
+            if (window.SogStore && SogStore.addReminder) {
+              SogStore.addReminder({
+                key: key, id: id, name: currentName || "",
+                photo: (currentDetail && (currentDetail.photo || (currentDetail.photos || [])[0])) || "",
+                title: c.title || "مراسم", date: c.date || ""
+              });
+            }
+            downloadICS(c);
+          } else if (window.SogStore && SogStore.removeReminder) {
+            SogStore.removeReminder(key);
+          }
+        });
+        closeReportSheet();
+        toast(n ? "یادآوری " + faNum(n) + " مراسم ثبت شد؛ در «پروفایل ← اعلان» قابل مدیریت است."
+                : "همه‌ی یادآوری‌های این آگهی برداشته شد.");
+      });
+      sheet.appendChild(save);
+    }
+
+    close.addEventListener("click", closeReportSheet);
+    back.addEventListener("click", closeReportSheet);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { back.classList.add("is-in"); sheet.classList.add("is-in"); });
+  }
 
   function openReportSheet(d) {
     closeReportSheet();
