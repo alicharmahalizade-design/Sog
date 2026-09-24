@@ -232,7 +232,7 @@
     var avatar = avatarPicker(user);
     var info = el("div", "profile-info");
     if (user) {
-      var nm = el("button", "profile-name is-editable", esc(user.name || "کاربر سوگ") + svg(IC.edit, 14));
+      var nm = el("button", "profile-name is-editable", esc(user.name || "کاربر سوگ"));
       nm.type = "button";
       nm.setAttribute("aria-label", "ویرایش نام و نام خانوادگی");
       nm.addEventListener("click", function () { openLogin(true); });
