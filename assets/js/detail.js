@@ -312,10 +312,10 @@
         var a = el("a", "val clan-link", esc(r[1]));
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
-        /* تعداد آگهی‌های همین طایفه/ایل */
-        var n = clanCount(key, r[1]);
-        if (n > 0) a.insertAdjacentHTML("beforeend", '<span class="clan-count">' + faNum(n) + "</span>");
         row.appendChild(a);
+        /* شمارنده در ستون خودش، هم‌تراز با بقیه‌ی ردیف‌ها */
+        var n = clanCount(key, r[1]);
+        row.appendChild(n > 0 ? el("span", "clan-count", faNum(n)) : el("span", "clan-count is-none"));
       } else {
         row.appendChild(el("span", "val", esc(r[1])));
       }
