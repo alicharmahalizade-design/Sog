@@ -1587,7 +1587,7 @@
     var tribes = tribesLine(d);
     if (tribes) { x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText(tribes, W / 2, 1110); }
     // پاورقی
-    x.fillStyle = "#7a6a4f"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText("مشاهده‌ی آگهی و مراسم‌ها در اپلیکیشن سوگ", W / 2, H - 110);
+    x.fillStyle = "#7a6a4f"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText("مشاهده‌ی آگهی و مراسم‌ها در سایت سوگ", W / 2, H - 110);
     return x.canvas;
   }
 
@@ -1793,7 +1793,7 @@
           var share = el("button", "btn-ghost", "استوری"); share.type = "button";
           share.addEventListener("click", function () {
             var file = new File([blob], fileName, { type: "image/png" });
-            var payload = { title: d.deceased_name, text: "آگهی ترحیم " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };
+            var payload = { title: d.deceased_name, text: "آگهی ترحیم " + d.deceased_name + " — سایت سوگ", url: location.href };
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               navigator.share(Object.assign({ files: [file] }, payload)).catch(function () {});
             } else if (navigator.share) {
@@ -1833,7 +1833,7 @@
       var canvas = makeCard(d, portrait);
       canvas.toBlob(function (blob) {
         var file = new File([blob], "sog-" + d.deceased_name + ".png", { type: "image/png" });
-        var payload = { title: d.deceased_name, text: "به یادِ " + d.deceased_name + " — اپلیکیشن سوگ", url: location.href };
+        var payload = { title: d.deceased_name, text: "به یادِ " + d.deceased_name + " — سایت سوگ", url: location.href };
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           navigator.share(Object.assign({ files: [file] }, payload)).catch(function () {});
         } else {
