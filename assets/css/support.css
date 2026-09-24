@@ -1,5 +1,14 @@
 /* ===== چت پشتیبانی ===== */
-.chat-frame { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+/* صفحه‌ی چت تمام‌قد و بدون اسکرول بدنه؛ فقط فهرست پیام‌ها اسکرول می‌شود
+   تا نوار نوشتن همیشه چسبیده به پایین بماند. */
+html:has(.chat-frame), body:has(.chat-frame),
+html.chat-html, html.chat-html body { height: 100%; overflow: hidden; }
+.chat-frame {
+  position: fixed; inset: 0; margin: 0 auto;
+  width: 100%; max-width: var(--frame-w);
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 0;
+}
 
 .chat-header {
   position: sticky; top: 0; z-index: 20; flex: 0 0 auto;
@@ -18,7 +27,8 @@
 }
 
 .chat-log {
-  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 16px 14px 10px;
   display: flex; flex-direction: column; gap: 10px;
   background: var(--bg);
@@ -98,3 +108,27 @@
 .chat-ic { background: var(--surface-2); color: var(--text-dim); }
 .chat-ic.is-rec { background: #e05252; color: #fff; }
 .chat-send { background: var(--accent); color: #1e1406; }
+
+/* دکمه‌ی خواندن متن با صدا (زیر پیام متنی) */
+.say-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.06); border: none; border-radius: 999px;
+  padding: 3px 10px; color: var(--text-mute);
+  font-family: inherit; font-size: 11px; cursor: pointer;
+}
+.say-btn.is-on { background: var(--accent); color: #1e1406; }
+
+/* دکمه‌ی تبدیل صوت به متن روی حباب صوتی */
+.voice-text-btn {
+  flex: 0 0 auto; min-width: 30px; height: 24px; padding: 0 8px;
+  border-radius: 8px; border: none; cursor: pointer;
+  background: rgba(255,255,255,.08); color: var(--text-dim);
+  font-family: inherit; font-size: 12px; font-weight: 700;
+}
+.voice-text-btn.is-on { background: var(--accent); color: #1e1406; }
+.voice-text {
+  flex: 1 1 100%; margin-top: 2px; padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 13px; line-height: 1.9; color: var(--text-dim);
+}
+.voice-text[hidden] { display: none; }

@@ -11,6 +11,8 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
+  document.documentElement.classList.add("chat-html");  /* برای مرورگرهایی که :has ندارند */
+
   var log = document.getElementById("chatLog");
   var form = document.getElementById("chatBar");
   var input = document.getElementById("chatInput");
@@ -70,10 +72,29 @@
         dur.textContent = toFa(fmtDur(m.dur || 0));
       });
       b.appendChild(play); b.appendChild(bar); b.appendChild(dur);
+
+      /* تبدیل صوت به متن (متنی که هنگام ضبط تشخیص داده شده) */
+      var t2 = el("button", "voice-text-btn", "فا"); t2.type = "button";
+      t2.title = "تبدیل صوت به متن";
+      var out = el("div", "voice-text");
+      out.hidden = true;
+      if (m.transcript) out.textContent = m.transcript;
+      t2.addEventListener("click", function () {
+        if (!m.transcript) { toast("متنِ این پیام صوتی در دسترس نیست."); return; }
+        out.hidden = !out.hidden;
+        t2.classList.toggle("is-on", !out.hidden);
+        log.scrollTop = log.scrollHeight;
+      });
+      b.appendChild(t2);
+      b.appendChild(out);
     } else if (m.expired) {
       b.appendChild(el("span", "msg-text msg-faded", "پیام صوتی (برای آزاد شدن حافظه حذف شد)"));
     } else {
       b.appendChild(el("span", "msg-text", esc(m.text).replace(/\n/g, "<br>")));
+      /* خواندن متن با صدا */
+      var say = el("button", "say-btn", iconSpeaker() + '<span>خواندن</span>'); say.type = "button";
+      say.addEventListener("click", function () { speak(m.text, say); });
+      b.appendChild(say);
     }
 
     var meta = el("span", "msg-meta", esc(m.at || ""));
@@ -88,6 +109,29 @@
     var m = Math.floor(sec / 60), s = sec % 60;
     return m + ":" + (s < 10 ? "0" + s : s);
   }
+  function iconSpeaker() { return '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8 8 0 010 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'; }
+  var speaking = null;
+  function speak(text, btn) {
+    if (!("speechSynthesis" in window)) { toast("خواندن متن در این مرورگر پشتیبانی نمی‌شود."); return; }
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      if (speaking.btn) speaking.btn.classList.remove("is-on");
+      var same = speaking.btn === btn;
+      speaking = null;
+      if (same) return;
+    }
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "fa-IR"; u.rate = 1;
+    var voices = window.speechSynthesis.getVoices() || [];
+    for (var i = 0; i < voices.length; i++) {
+      if (/fa|per/i.test(voices[i].lang)) { u.voice = voices[i]; break; }
+    }
+    u.onend = u.onerror = function () { btn.classList.remove("is-on"); speaking = null; };
+    btn.classList.add("is-on");
+    speaking = { btn: btn };
+    window.speechSynthesis.speak(u);
+  }
+
   function iconPlay() { return '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>'; }
   function iconPause() { return '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor"/></svg>'; }
 
@@ -176,6 +220,7 @@
 
   /* ---------- پیام صوتی ---------- */
   var rec = null, chunks = [], startAt = 0, timer = null, cancelled = false;
+  var sr = null, srText = "";
   var MAX_MS = 120000;   /* حداکثر دو دقیقه */
 
   function stopTimer() { clearInterval(timer); timer = null; }
@@ -191,14 +236,32 @@
       rec.addEventListener("dataavailable", function (e) { if (e.data && e.data.size) chunks.push(e.data); });
       rec.addEventListener("stop", function () {
         stream.getTracks().forEach(function (t) { t.stop(); });
+        if (sr) { try { sr.stop(); } catch (e) {} }
         stopTimer(); recBar.hidden = true; micBtn.classList.remove("is-rec");
         var sec = Math.round((Date.now() - startAt) / 1000);
         if (cancelled || !chunks.length || sec < 1) return;
         var blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
         var fr = new FileReader();
-        fr.onload = function () { push({ from: "me", audio: fr.result, dur: sec }); };
+        var caught = srText;
+        fr.onload = function () { push({ from: "me", audio: fr.result, dur: sec, transcript: caught }); };
         fr.readAsDataURL(blob);
       });
+      /* هم‌زمان با ضبط، گفتار به متن تبدیل می‌شود تا بعداً با دکمه‌ی «فا» دیده شود */
+      srText = "";
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) {
+        try {
+          sr = new SR();
+          sr.lang = "fa-IR"; sr.continuous = true; sr.interimResults = false;
+          sr.addEventListener("result", function (ev) {
+            for (var i = ev.resultIndex; i < ev.results.length; i++) {
+              if (ev.results[i].isFinal) srText += (srText ? " " : "") + ev.results[i][0].transcript;
+            }
+          });
+          sr.start();
+        } catch (e) { sr = null; }
+      }
+
       rec.start();
       startAt = Date.now();
       recBar.hidden = false; micBtn.classList.add("is-rec");
