@@ -153,7 +153,7 @@
   function settingsList(user) {
     var prefs = SogStore.getPrefs();
     var list = el("div", "acc-menu");
-    list.appendChild(toggleRow(IC.bell, "اعلان و یادآوری‌های مراسمات", "notify", prefs.notify));
+    list.appendChild(notifyRow(prefs.notify));
 
     var sup = el("button", "acc-row"); sup.type = "button";
     sup.innerHTML = '<span class="ar-ic">' + svg(IC.support) + '</span>' +
@@ -376,6 +376,97 @@
     list.appendChild(sup);
     return list;
   }
+  /* ردیف اعلان: کلید همگانی + فهرست بازشوی یادآوری‌های ثبت‌شده */
+  function notifyRow(on) {
+    var wrap = el("div", "acc-item");
+    var rems = remindersList();
+
+    var head = el("div", "acc-row"); head.setAttribute("role", "button");
+    head.setAttribute("aria-expanded", "false"); head.tabIndex = 0;
+    head.innerHTML = '<span class="ar-ic">' + svg(IC.bell) + '</span>' +
+      '<span class="ar-label">اعلان و یادآوری‌های مراسمات</span>' +
+      '<span class="ar-count">' + faNum(rems.length) + '</span>';
+
+    var sw = el("button", "switch" + (on ? " on" : ""));
+    sw.type = "button"; sw.setAttribute("aria-pressed", on ? "true" : "false");
+    sw.setAttribute("aria-label", "اعلان همگانی");
+    sw.innerHTML = '<span class="knob"></span>';
+    sw.addEventListener("click", function (e) {
+      e.stopPropagation();
+      on = !on; sw.classList.toggle("on", on); sw.setAttribute("aria-pressed", on ? "true" : "false");
+      SogStore.setPref("notify", on);
+      wrap.classList.toggle("notify-off", !on);
+      toast(on ? "اعلان‌ها روشن شد." : "همه‌ی اعلان‌ها خاموش شد.");
+    });
+    head.appendChild(sw);
+    head.insertAdjacentHTML("beforeend", '<span class="ar-chev">' + svg("M6 9l6 6 6-6", 20) + '</span>');
+
+    var body = el("div", "acc-body");
+    if (!rems.length) {
+      body.appendChild(el("p", "acc-empty-row", "هنوز برای مراسمی یادآوری ثبت نکرده‌اید. در صفحه‌ی هر آگهی دکمه‌ی «یادآوری مراسم» را بزنید."));
+    } else {
+      body.appendChild(el("p", "acc-subs-note", "یادآوری هر آگهی را می‌توانید جداگانه خاموش کنید."));
+      rems.forEach(function (r) {
+        var row = el("div", "acc-sub");
+
+        var link = el("a", "acc-sub-link");
+        link.href = "listing.html?id=" + r.id;
+        var ph = el("span", "acc-sub-photo");
+        if (r.photo) ph.style.backgroundImage = 'url("' + r.photo + '")';
+        link.appendChild(ph);
+        var info = el("span", "acc-sub-info");
+        info.appendChild(el("span", "acc-sub-title", esc(r.name || "آگهی سوگ")));
+        info.appendChild(el("span", "acc-sub-meta", esc([r.title, r.date].filter(Boolean).join(" • "))));
+        link.appendChild(info);
+        row.appendChild(link);
+
+        var one = el("button", "switch sm" + (r.on ? " on" : ""));
+        one.type = "button"; one.setAttribute("aria-pressed", r.on ? "true" : "false");
+        one.setAttribute("aria-label", "یادآوری " + (r.name || ""));
+        one.innerHTML = '<span class="knob"></span>';
+        one.addEventListener("click", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          r.on = !r.on;
+          one.classList.toggle("on", r.on);
+          one.setAttribute("aria-pressed", r.on ? "true" : "false");
+          SogStore.setReminderOn(r.key, r.on);
+          toast(r.on ? "یادآوری این مراسم روشن شد." : "یادآوری این مراسم خاموش شد.");
+        });
+        row.appendChild(one);
+
+        var x = el("button", "acc-sub-x", "×"); x.type = "button";
+        x.setAttribute("aria-label", "حذف یادآوری");
+        x.addEventListener("click", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          SogStore.removeReminder(r.key); render();
+        });
+        row.appendChild(x);
+
+        body.appendChild(row);
+      });
+    }
+
+    function toggleOpen() {
+      var open = wrap.classList.toggle("is-open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    head.addEventListener("click", toggleOpen);
+    head.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleOpen(); }
+    });
+
+    if (!on) wrap.classList.add("notify-off");
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+
+  /* یادآوری‌های ثبت‌شده، تازه‌ترین اول */
+  function remindersList() {
+    var all = (SogStore.getReminders && SogStore.getReminders()) || {};
+    return Object.keys(all).map(function (k) { return all[k]; })
+      .sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+  }
+
   /* اعتبارسنجی کد ملی ایرانی (رقم کنترل) */
   function validMelli(code) {
     code = String(code == null ? "" : code);

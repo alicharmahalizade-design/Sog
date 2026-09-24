@@ -713,7 +713,19 @@
       if (c.date) {
         var cal = el("button", "event-btn cal", ICON.calAdd + " یادآوری مراسم");
         cal.type = "button";
-        cal.addEventListener("click", function () { downloadICS(c); });
+        cal.addEventListener("click", function () {
+          downloadICS(c);
+          /* یادآوری در پنل کاربری ثبت می‌شود تا کاربر بتواند جداگانه خاموشش کند */
+          if (window.SogStore && SogStore.addReminder) {
+            SogStore.addReminder({
+              key: id + "|" + (c.type || c.title || "event"),
+              id: id, name: currentName || "",
+              photo: (currentDetail && (currentDetail.photo || (currentDetail.photos || [])[0])) || "",
+              title: c.title || "مراسم", date: c.date || ""
+            });
+          }
+          toast("یادآوری این مراسم ثبت شد؛ در «تنظیمات ← اعلان» قابل مدیریت است.");
+        });
         eb.appendChild(cal);
       }
       wrap.appendChild(eb);
