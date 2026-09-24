@@ -542,7 +542,7 @@
     if (!e.target.matches("#orderForm")) return;
     e.preventDefault();
     var fd = new FormData(e.target);
-    var msg = "سلام، سفارش از اپلیکیشن سوگ:\n" +
+    var msg = "سلام، سفارش از سایت سوگ:\n" +
       "• خدمت: " + fd.get("service") + "\n" +
       "• نام: " + fd.get("name") + "\n" +
       "• تماس: " + fd.get("phone") + "\n" +

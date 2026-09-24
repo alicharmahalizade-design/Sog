@@ -290,7 +290,7 @@
     // دکمه‌های عمل
     var actions = el("div", "bp-actions");
     var wa = el("a", "bp-wa", IC.wa + " واتساپ");
-    wa.href = SogUtil.waLink(b.whatsapp || b.phone, "سلام، از طریق اپلیکیشن سوگ با شما تماس می‌گیرم. درباره‌ی خدمات «" + b.name + "» سوال داشتم.");
+    wa.href = SogUtil.waLink(b.whatsapp || b.phone, "سلام، از طریق سایت سوگ با شما تماس می‌گیرم. درباره‌ی خدمات «" + b.name + "» سوال داشتم.");
     wa.target = "_blank"; wa.rel = "noopener";
     var call = el("a", "bp-call", IC.call + " تماس"); call.href = "tel:" + SogUtil.toEn(b.phone);
     var map = el("a", "bp-map", IC.map + " مسیر"); map.href = "#map"; map.addEventListener("click", function (e) { e.preventDefault(); document.getElementById("map").scrollIntoView({ behavior: "smooth" }); });
@@ -384,7 +384,7 @@
     if (!e.target.matches("#orderForm")) return;
     e.preventDefault();
     var fd = new FormData(e.target);
-    var msg = "سلام، سفارش از اپلیکیشن سوگ:\n" +
+    var msg = "سلام، سفارش از سایت سوگ:\n" +
       "• خدمت: " + fd.get("service") + "\n" +
       "• نام: " + fd.get("name") + "\n" +
       "• تماس: " + fd.get("phone") + "\n" +

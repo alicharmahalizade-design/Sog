@@ -28,7 +28,7 @@
   var box = document.createElement("div");
   box.id = "sogSplash";
   box.setAttribute("role", "status");
-  box.setAttribute("aria-label", "در حال بارگذاری اپلیکیشن سوگ");
+  box.setAttribute("aria-label", "در حال بارگذاری سایت سوگ");
   box.innerHTML =
     '<video class="splash-video" src="assets/video/splash.mp4" autoplay muted loop playsinline ' +
       'preload="auto" aria-hidden="true" tabindex="-1"></video>' +
