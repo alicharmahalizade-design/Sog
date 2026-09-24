@@ -712,3 +712,12 @@ option { direction: rtl; text-align: right; }
   background: linear-gradient(180deg, #e9c88a, var(--accent)); color: #1c1206;
   font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
 }
+
+/* پیشنهاد طایفه و ایل در جستجو */
+.sh-go.clan-go { display: flex; align-items: center; gap: 8px; }
+.clan-kind {
+  flex: 0 0 auto; padding: 2px 8px; border-radius: 999px;
+  background: rgba(217,154,91,.16); color: var(--accent);
+  font-size: 11px; font-weight: 700;
+}
+.clan-n { margin-inline-start: auto; color: var(--text-mute); font-size: 11.5px; }

@@ -680,3 +680,11 @@
   background: rgba(217,154,91,.14); color: var(--accent);
   cursor: pointer;
 }
+
+/* شمارنده‌ی آگهی‌های طایفه و ایل */
+.clan-link .clan-count {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 6px; margin-inline-start: 6px;
+  border-radius: 999px; background: rgba(217,154,91,.18); color: var(--accent);
+  font-size: 11px; font-weight: 700;
+}
