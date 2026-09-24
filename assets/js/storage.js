@@ -178,6 +178,10 @@
 
     /* ----- شهر کاربر ----- */
     getExtraCities: function () { return read(EXTRA_CITY_KEY); },
+    getMyCities: function () { return read("sog:myCities"); },
+    getSelCities: function () { return read("sog:selCities"); },
+    setSelCities: function (list) { write("sog:selCities", list || []); },
+    setMyCities: function (list) { write("sog:myCities", list || []); },
     addExtraCity: function (c) {
       var all = read(EXTRA_CITY_KEY);
       if (!all.some(function (x) { return x.slug === c.slug; })) { all.push(c); write(EXTRA_CITY_KEY, all); }

@@ -676,3 +676,39 @@ option { direction: rtl; text-align: right; }
   background: var(--surface-2); border: none; color: var(--text-dim);
   display: grid; place-items: center; cursor: pointer;
 }
+
+/* چیپ شهرهای انتخابی کاربر */
+.city-chip.is-mine:not(.is-active) { border-color: #3a3a3a; }
+.city-chip .chip-x {
+  margin-inline-start: 2px; width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(255,255,255,.08); color: var(--text-mute);
+  display: inline-grid; place-items: center; font-size: 13px; line-height: 1;
+}
+.city-chip.is-active .chip-x { background: rgba(0,0,0,.28); color: #fff; }
+
+/* انتخاب چندتایی در صفحه‌ی استان و شهر */
+.cob-all {
+  flex: 0 0 auto; margin-inline-end: 8px; padding: 4px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.06); color: var(--text-dim);
+  font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.cob-all.is-on { background: var(--accent); color: #1c1206; }
+.cob-city { gap: 8px; }
+.cob-tick {
+  flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid #4a4a4a; color: transparent;
+  display: grid; place-items: center;
+}
+.cob-city.is-on { border-color: var(--accent); background: #211a12; }
+.cob-city.is-on .cob-tick { background: var(--accent); border-color: var(--accent); color: #1c1206; }
+.cob-cname { flex: 1 1 auto; min-width: 0; }
+.cob-foot {
+  flex: 0 0 auto; display: flex; gap: 10px;
+  margin: 0 16px calc(14px + env(safe-area-inset-bottom));
+}
+.cob-foot .cob-skip { flex: 1 1 0; margin: 0; }
+.cob-confirm {
+  flex: 2 1 0; height: 46px; border-radius: 12px; border: none;
+  background: linear-gradient(180deg, #e9c88a, var(--accent)); color: #1c1206;
+  font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
