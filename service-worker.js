@@ -1,39 +1,34 @@
-/* Service Worker ساده برای پیش‌نمایش PWA سوگ.
-   استراتژی: cache-first برای دارایی‌های ثابت، network-first برای داده‌ی JSON. */
-var CACHE = "sog-preview-v80";
-var ASSETS = [
-  "./",
-  "index.html",
-  "listing.html",
-  "business.html",
-  "business-detail.html",
-  "register.html",
-  "account.html",
-  "assets/css/styles.css",
-  "assets/css/detail.css",
-  "assets/css/business.css",
-  "assets/js/app.js",
-  "assets/js/detail.js",
-  "assets/js/business.js",
-  "assets/js/business-detail.js",
-  "assets/js/util.js",
-  "assets/js/nav.js",
-  "assets/js/account.js",
-  "assets/css/account.css",
-  "assets/js/register.js",
-  "assets/css/register.css",
-  "assets/js/storage.js",
-  "assets/fonts/Vazirmatn-Regular.woff2",
-  "assets/fonts/Vazirmatn-Medium.woff2",
-  "assets/fonts/Vazirmatn-Bold.woff2",
-  "assets/img/logo.png",
-  "assets/js/splash.js",
-  "assets/img/candles.jpg",
-  "manifest.webmanifest"
-];
+/* Service Worker سوگ.
+   سیاست: هیچ چیزی از کش سرو نمی‌شود مگر اینکه شبکه در دسترس نباشد.
+   همه‌ی درخواست‌ها با cache:"no-store" می‌روند تا کش خود مرورگر هم دور زده شود؛
+   کپی‌ها فقط برای حالت آفلاین نگه داشته می‌شوند. */
+var CACHE = "sog-live-v81";
+
+/* فقط چیزهای سنگین و بدون تغییر از کش خوانده می‌شوند */
+function isStatic(url, dest) {
+  return dest === "font" || dest === "audio" ||
+         /\.(woff2?|ttf|mp3|m4a)(\?|$)/.test(url);
+}
+
+function fresh(request) {
+  /* درخواست تازه و بدون کش؛ برای منابع هم‌ریشه از URL نو ساخته می‌شود */
+  try {
+    if (new URL(request.url).origin === self.location.origin) {
+      return new Request(request.url, {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: request.headers,
+        mode: request.mode === "navigate" ? "same-origin" : request.mode,
+        redirect: "follow"
+      });
+    }
+  } catch (e) {}
+  return request;
+}
 
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
+  /* بدون پیش‌کش؛ نسخه‌ی تازه بلافاصله فعال می‌شود */
+  e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", function (e) {
@@ -44,59 +39,44 @@ self.addEventListener("activate", function (e) {
   );
 });
 
+self.addEventListener("message", function (e) {
+  if (e.data === "skipWaiting") self.skipWaiting();
+});
+
 self.addEventListener("fetch", function (e) {
-  var url = e.request.url;
-  if (e.request.method !== "GET") return;
+  var req = e.request;
+  var url = req.url;
+  if (req.method !== "GET") return;
 
-  // ویدیو را دست‌نخورده به مرورگر بسپار؛ درخواست‌های Range در Cache API قابل ذخیره نیستند.
-  if (e.request.destination === "video" || url.indexOf(".mp4") !== -1) return;
+  /* ویدیو دست‌نخورده به مرورگر سپرده می‌شود (درخواست‌های Range) */
+  if (req.destination === "video" || url.indexOf(".mp4") !== -1) return;
 
-  // داده‌ی JSON: network-first تا آگهی‌ها تازه بمانند
-  if (url.indexOf("/data/") !== -1 && url.indexOf(".json") !== -1) {
+  /* فونت و صدا: از کش، چون تغییر نمی‌کنند */
+  if (isStatic(url, req.destination)) {
     e.respondWith(
-      fetch(e.request).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-        return res;
-      }).catch(function () { return caches.match(e.request); })
-    );
-    return;
-  }
-
-  // صفحه‌های HTML: network-first تا کاربر هیچ‌وقت یک نسخه عقب نماند
-  if (e.request.mode === "navigate" || (e.request.destination === "document")) {
-    e.respondWith(
-      fetch(e.request).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-        return res;
-      }).catch(function () {
-        return caches.match(e.request).then(function (c) { return c || caches.match("index.html"); });
+      caches.match(req).then(function (hit) {
+        return hit || fetch(req).then(function (res) {
+          var copy = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(req, copy); });
+          return res;
+        });
       })
     );
     return;
   }
 
-  // اسکریپت و استایل: network-first تا نسخه‌ی HTML و JS هیچ‌وقت ناهماهنگ نشوند
-  if (e.request.destination === "script" || e.request.destination === "style" ||
-      /\/assets\/(js|css)\//.test(url)) {
-    e.respondWith(
-      fetch(e.request).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-        return res;
-      }).catch(function () { return caches.match(e.request); })
-    );
-    return;
-  }
-
-  // بقیه (تصویر، فونت، صدا): cache-first
+  /* بقیه (HTML، JS، CSS، JSON، تصویر): همیشه از شبکه‌ی تازه؛
+     کش فقط پشتیبانِ آفلاین است. */
   e.respondWith(
-    caches.match(e.request).then(function (cached) {
-      return cached || fetch(e.request).then(function (res) {
+    fetch(fresh(req)).then(function (res) {
+      if (res && res.ok) {
         var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-        return res;
+        caches.open(CACHE).then(function (c) { c.put(req, copy); });
+      }
+      return res;
+    }).catch(function () {
+      return caches.match(req).then(function (hit) {
+        return hit || (req.mode === "navigate" ? caches.match("index.html") : undefined);
       });
     })
   );
