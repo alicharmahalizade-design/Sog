@@ -234,13 +234,16 @@
     if (user) {
       info.appendChild(el("div", "profile-name", esc(user.name || "کاربر سوگ")));
       info.appendChild(el("div", "profile-phone", esc(user.phone || "")));
+      /* نشان تأیید هویت و دکمه‌ی ویرایش در یک خط و هم‌تراز */
+      var foot = el("div", "profile-foot");
       if (user.verified && validMelli(user.melli)) {
-        info.appendChild(el("div", "profile-verified",
+        foot.appendChild(el("span", "profile-verified",
           '<span class="pv-tick">' + svg(IC.check, 13) + '</span><span>تأیید هویت شده</span>'));
       }
       var edit = el("button", "profile-edit", svg(IC.edit, 16) + " ویرایش");
       edit.addEventListener("click", function () { openLogin(true); });
-      info.appendChild(edit);
+      foot.appendChild(edit);
+      info.appendChild(foot);
     } else {
       info.appendChild(el("div", "profile-name", "مهمان"));
       info.appendChild(el("div", "profile-phone", "برای مدیریت آگهی‌ها وارد شوید"));
