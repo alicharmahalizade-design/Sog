@@ -32,6 +32,7 @@
     { key: "account", label: "پروفایل", href: "account.html" }
   ];
 
+  var accountTab = null;
   var nav = document.createElement("nav");
   nav.className = "bottom-nav";
   nav.setAttribute("aria-label", "ناوبری اصلی");
@@ -41,8 +42,19 @@
     a.href = it.href;
     var ico = it.key === "account" ? (avatarIcon() || ICON[it.key]) : ICON[it.key];
     a.innerHTML = '<span class="bn-ico">' + ico + '</span><span class="bn-label">' + it.label + '</span>';
+    if (it.key === "account") accountTab = a;
     nav.appendChild(a);
   });
+
+  /* نگه‌داشتن روی تب پروفایل = تعویض حساب.
+     در صفحه‌ی حساب کاربری فهرست همان‌جا باز می‌شود؛ در بقیه‌ی صفحه‌ها
+     با نشانه‌ی ‎#accounts‎ به صفحه‌ی حساب می‌رویم و آنجا باز می‌شود. */
+  if (accountTab && window.SogUtil && SogUtil.longPress) {
+    SogUtil.longPress(accountTab, function () {
+      if (typeof window.SogOpenAccounts === "function") window.SogOpenAccounts();
+      else location.href = "account.html#accounts";
+    });
+  }
   document.body.appendChild(nav);
   document.body.classList.add("has-bottom-nav");
 

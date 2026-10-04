@@ -750,3 +750,10 @@ option { direction: rtl; text-align: right; }
   border: 1px solid rgba(255,255,255,.18);
 }
 .bn-item.is-active .bn-avatar { border-color: var(--accent); }
+
+/* نگه‌داشتن روی تب‌های نوار پایین نباید منوی لمسی مرورگر را باز کند */
+.bn-item {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none;
+  touch-action: manipulation;
+}

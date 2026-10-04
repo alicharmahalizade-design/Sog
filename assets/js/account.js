@@ -28,7 +28,14 @@
 
   fetch("data/listings.json").then(function (r) { return r.json(); }).then(function (d) {
     LISTINGS = d.listings || [];
-  }).catch(function () {}).then(render);
+  }).catch(function () {}).then(function () {
+    render();
+    /* اگر از نوار پایینِ صفحه‌ی دیگری با نگه‌داشتن آمده‌ایم، فهرست حساب‌ها باز شود */
+    if (location.hash === "#accounts") {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+      if (SogStore.getUser()) openAccounts();
+    }
+  });
 
   function render() {
     root.innerHTML = "";
@@ -181,56 +188,7 @@
   /* پروفایل */
   /* نگه‌داشتن روی پروفایل (حدود ۰٫۶ ثانیه) = باز شدن تعویض حساب.
      بعد از آن کلیکِ همان لمس خنثی می‌شود تا مثلاً گالری باز نشود. */
-  function swallowNextClick() {
-    function kill(e) { e.preventDefault(); e.stopPropagation(); done(); }
-    function done() {
-      document.removeEventListener("click", kill, true);
-      clearTimeout(t);
-    }
-    document.addEventListener("click", kill, true);
-    var t = setTimeout(done, 900);
-  }
-
-  function longPress(node, fn) {
-    var timer = null, fired = false, sx = 0, sy = 0;
-    function at(e) {
-      var t = (e.touches && e.touches[0]) || e;
-      return { x: t.clientX || 0, y: t.clientY || 0 };
-    }
-    function start(e) {
-      if (timer) return;                       /* pointerdown و touchstart با هم نیایند */
-      var p0 = at(e); sx = p0.x; sy = p0.y; fired = false;
-      timer = setTimeout(function () {
-        timer = null; fired = true;
-        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e2) {} }
-        /* کلیکِ ناشی از رها کردن انگشت، روی بک‌دراپِ تازه‌بازشده می‌نشیند و
-           آن را می‌بندد؛ پس همان یک کلیک بعدی در کل صفحه خنثی می‌شود. */
-        swallowNextClick();
-        fn();
-      }, 600);
-    }
-    function move(e) {
-      /* فقط اگر انگشت واقعاً حرکت کرد (اسکرول) لغو شود */
-      if (!timer) return;
-      var p1 = at(e);
-      if (Math.abs(p1.x - sx) > 12 || Math.abs(p1.y - sy) > 12) stop();
-    }
-    function stop() { if (timer) { clearTimeout(timer); timer = null; } }
-
-    node.addEventListener("pointerdown", start);
-    node.addEventListener("touchstart", start, { passive: true });
-    node.addEventListener("pointermove", move, { passive: true });
-    node.addEventListener("touchmove", move, { passive: true });
-    ["pointerup", "touchend", "touchcancel"].forEach(function (ev) {
-      node.addEventListener(ev, stop);
-    });
-    /* pointercancel عمداً تایمر را پاک نمی‌کند: مرورگرهای موبایل با شروع
-       ژست نگه‌داشتن همین رویداد را می‌فرستند و باعث می‌شد هیچ‌وقت کار نکند. */
-    node.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-    node.addEventListener("click", function (e) {
-      if (fired) { e.preventDefault(); e.stopPropagation(); fired = false; }
-    }, true);
-  }
+  function longPress(node, fn) { SogUtil.longPress(node, fn); }
 
   /* عکس پروفایل: انتخاب از گالری و ذخیره روی همین دستگاه */
   function avatarPicker(user) {
@@ -658,6 +616,7 @@
     return box;
   }
 
+  window.SogOpenAccounts = function () { openAccounts(); };
   function openAccounts() {
     var body = el("div", "acc-sheet");
     body.appendChild(el("div", "login-title", "حساب‌های کاربری"));
