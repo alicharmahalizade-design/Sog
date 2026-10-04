@@ -718,3 +718,82 @@
   font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--accent);
 }
 .report-sub { margin: -6px 0 14px; font-size: 12.5px; color: var(--text-dim); line-height: 1.9; }
+
+/* ---------- کاروسل افقی ---------- */
+.carousel { margin: 0 0 18px; }
+.car-track {
+  display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 8px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.car-track::-webkit-scrollbar { display: none; }
+.car-slide {
+  position: relative;
+  /* کمتر از تمام عرض، تا بخشی از تصویر بعدی هم دیده شود */
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+.car-img {
+  display: block; width: 100%; aspect-ratio: 4/3; border-radius: 14px;
+  background: #222 center/cover no-repeat; border: 1px solid #2c2c2c;
+  padding: 0; cursor: pointer;
+}
+.car-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.car-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #3f3a33;
+  transition: background .2s, width .2s;
+}
+.car-dot.is-on { background: var(--accent); width: 16px; border-radius: 3px; }
+
+/* ---------- نمایشگر تمام‌صفحه ---------- */
+.lb {
+  position: fixed; inset: 0; z-index: 90; background: #000;
+  display: flex; flex-direction: column;
+  opacity: 0; transition: opacity .18s ease;
+}
+.lb.is-in { opacity: 1; }
+.lb-bar {
+  flex: 0 0 auto; display: flex; gap: 10px; padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+}
+.lb-btn {
+  width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
+  background: #1d1d1d; border: none; color: #eee;
+  display: grid; place-items: center;
+}
+.lb-stage { position: relative; flex: 1 1 auto; display: grid; place-items: center; min-height: 0; padding: 0 8px; }
+.lb-frame { position: relative; display: flex; max-width: 100%; max-height: 100%; }
+.lb-img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 56px; border: none; border-radius: 10px; cursor: pointer;
+  background: rgba(30,30,30,.72); color: #fff; display: grid; place-items: center;
+}
+.lb-prev { inset-inline-end: 10px; }
+.lb-next { inset-inline-start: 10px; }
+.lb-count {
+  position: absolute; bottom: 8px; inset-inline-start: 8px;
+  background: rgba(0,0,0,.65); color: #ddd; font-size: 12px;
+  padding: 4px 9px; border-radius: 7px;
+}
+/* واترمارک سوگ روی تصویر */
+.lb-mark {
+  position: absolute; bottom: 8px; inset-inline-end: 8px;
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(0,0,0,.55); border-radius: 8px; padding: 5px 9px;
+  color: #e9dcc8; font-size: 11.5px; font-weight: 700; opacity: .92;
+}
+.lb-mark img { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; }
+
+.lb-strip {
+  flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto;
+  padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background: #121212; scrollbar-width: none;
+}
+.lb-strip::-webkit-scrollbar { display: none; }
+.lb-thumb {
+  flex: 0 0 84px; height: 62px; border-radius: 9px; cursor: pointer;
+  background: #222 center/cover no-repeat;
+  border: 2px solid transparent; padding: 0;
+}
+.lb-thumb.is-on { border-color: var(--accent); }

@@ -744,9 +744,7 @@
     wrap.appendChild(el("p", "bio-text", fmtDesc(bio.text)));
     if (bio.gallery && bio.gallery.length) {
       /* چیدمان تصاویر همان چیزی است که هنگام ثبت انتخاب شده (پیش‌فرض: دو ستونه) */
-      var g = el("div", "bio-gallery lay-" + (bio.layout || "two"));
-      bio.gallery.forEach(function (src) { var i = el("img"); i.src = src; i.alt = ""; g.appendChild(i); });
-      wrap.appendChild(g);
+      wrap.appendChild(carousel(bio.gallery, function (n) { openLightbox(bio.gallery, n); }));
     }
     /* لینک اختیاری اینستاگرام درگذشته */
     if (bio.instagram) {
@@ -880,6 +878,168 @@
   }
   function eventAccordion(c) { return markPast(accordion(c.title, eventBody(c)), c); }
 
+  /* ---------- کاروسل افقی ----------
+     اسکرول افقی با snap، بخشی از تصویر بعدی پیداست و خودکار می‌چرخد.
+     با دست زدن کاربر مکث می‌کند و بعد از چند ثانیه دوباره راه می‌افتد. */
+  function carousel(images, onOpen, extra) {
+    var box = el("div", "carousel");
+    var track = el("div", "car-track");
+
+    images.forEach(function (src, i) {
+      var slide = el("div", "car-slide");
+      var btn = el("button", "car-img"); btn.type = "button";
+      btn.style.backgroundImage = 'url("' + src + '")';
+      btn.setAttribute("aria-label", "بزرگ‌نمایی تصویر " + faNum(i + 1));
+      btn.addEventListener("click", function () { onOpen(i); });
+      slide.appendChild(btn);
+      if (extra) extra(slide, i);
+      track.appendChild(slide);
+    });
+    box.appendChild(track);
+
+    if (images.length < 2) return box;
+
+    var dots = el("div", "car-dots");
+    images.forEach(function (_, i) {
+      var d = el("span", "car-dot" + (i === 0 ? " is-on" : ""));
+      dots.appendChild(d);
+    });
+    box.appendChild(dots);
+
+    function slideAt() {
+      var first = track.firstChild;
+      return first ? first.getBoundingClientRect().width + 10 : 1;
+    }
+    /* در چیدمان راست‌به‌چپ، scrollLeft منفی می‌شود؛ جهت باید لحاظ شود
+       وگرنه scrollTo به صفر چسبانده می‌شود و کاروسل تکان نمی‌خورد. */
+    /* جهت باید هنگام استفاده خوانده شود، نه هنگام ساخت: عنصرِ هنوز
+       اضافه‌نشده به صفحه همیشه ltr گزارش می‌شود. */
+    function dir() { return getComputedStyle(track).direction === "rtl" ? -1 : 1; }
+    function current() { return Math.round(Math.abs(track.scrollLeft) / slideAt()); }
+    function goTo(n) { track.scrollTo({ left: dir() * n * slideAt(), behavior: "smooth" }); }
+    function markDots() {
+      var n = Math.min(images.length - 1, Math.max(0, current()));
+      Array.prototype.forEach.call(dots.children, function (d, i) {
+        d.classList.toggle("is-on", i === n);
+      });
+    }
+    track.addEventListener("scroll", markDots, { passive: true });
+
+    /* چرخش خودکار */
+    var paused = false, resume = null;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) {
+      var timer = setInterval(function () {
+        /* وقتی صفحه دوباره ساخته شد، تایمر قدیمی خودش را جمع می‌کند */
+        if (!document.body.contains(box)) { clearInterval(timer); return; }
+        if (paused || document.hidden) return;
+        var r = box.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;   /* بیرون از دید */
+        var next = current() + 1;
+        if (next >= images.length) next = 0;
+        goTo(next);
+      }, 4000);
+    }
+    function pause() {
+      paused = true;
+      clearTimeout(resume);
+      resume = setTimeout(function () { paused = false; }, 6000);
+    }
+    ["pointerdown", "touchstart", "wheel"].forEach(function (ev) {
+      track.addEventListener(ev, pause, { passive: true });
+    });
+
+    return box;
+  }
+
+  /* ---------- نمایشگر تمام‌صفحه ----------
+     تصویر بزرگ با نوار بندانگشتی پایین؛ کلیک روی هر بندانگشتی آن را بالا می‌آورد. */
+  function openLightbox(images, start) {
+    var i = start || 0;
+    var lb = el("div", "lb");
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+
+    var bar = el("div", "lb-bar");
+    var close = el("button", "lb-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    close.type = "button"; close.setAttribute("aria-label", "بستن");
+    var share = el("button", "lb-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 16V4M8 8l4-4 4 4M5 14v5h14v-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    share.type = "button"; share.setAttribute("aria-label", "هم‌رسانی");
+    bar.appendChild(close); bar.appendChild(share);
+
+    var stage = el("div", "lb-stage");
+    var img = el("img", "lb-img"); img.alt = "";
+    var prev = el("button", "lb-nav lb-prev", '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var next = el("button", "lb-nav lb-next", '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    prev.type = next.type = "button";
+    prev.setAttribute("aria-label", "تصویر قبلی"); next.setAttribute("aria-label", "تصویر بعدی");
+    var count = el("span", "lb-count");
+    /* واترمارک سوگ، روی خود تصویر */
+    var mark = el("span", "lb-mark",
+      '<img src="assets/img/logo.png" alt=""><span>سوگ — مرجع آگهی‌های سوگ ایران</span>');
+    /* شمارنده و واترمارک داخل قابِ خودِ تصویر می‌نشینند، نه گوشه‌ی صفحه */
+    var frame = el("div", "lb-frame");
+    frame.appendChild(img); frame.appendChild(count); frame.appendChild(mark);
+    stage.appendChild(frame); stage.appendChild(prev); stage.appendChild(next);
+
+    var strip = el("div", "lb-strip");
+    images.forEach(function (src, n) {
+      var t = el("button", "lb-thumb"); t.type = "button";
+      t.style.backgroundImage = 'url("' + src + '")';
+      t.setAttribute("aria-label", "تصویر " + faNum(n + 1));
+      t.addEventListener("click", function () { show(n); });
+      strip.appendChild(t);
+    });
+
+    lb.appendChild(bar); lb.appendChild(stage); lb.appendChild(strip);
+
+    function show(n) {
+      i = (n + images.length) % images.length;
+      img.src = images[i];
+      count.textContent = faNum(i + 1) + " از " + faNum(images.length);
+      Array.prototype.forEach.call(strip.children, function (t, k) {
+        t.classList.toggle("is-on", k === i);
+      });
+      var on = strip.children[i];
+      if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }
+    prev.addEventListener("click", function () { show(i - 1); });
+    next.addEventListener("click", function () { show(i + 1); });
+
+    /* کشیدن انگشت چپ و راست */
+    var x0 = null;
+    stage.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", function (e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) show(dx > 0 ? i - 1 : i + 1);   /* RTL: کشیدن به راست = قبلی */
+      x0 = null;
+    });
+
+    function done() {
+      lb.remove();
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") done();
+      else if (e.key === "ArrowLeft") show(i + 1);
+      else if (e.key === "ArrowRight") show(i - 1);
+    }
+    close.addEventListener("click", done);
+    document.addEventListener("keydown", onKey);
+    share.addEventListener("click", function () {
+      var url = location.href;
+      if (navigator.share) navigator.share({ title: document.title, url: url }).catch(function () {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("نشانی کپی شد."); });
+    });
+
+    document.body.appendChild(lb);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { lb.classList.add("is-in"); });
+    show(i);
+  }
+
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
     var box = el("div", "event-gallery");
@@ -893,10 +1053,7 @@
 
       if (all.length) {
         box.appendChild(el("h3", "gallery-title", "تصاویر مراسم " + esc(c.title || "")));
-        var hs = el("div", "hscroll");
-        all.forEach(function (src, i) {
-          var t = el("div", "thumb");
-          t.style.backgroundImage = 'url("' + src + '")';
+        box.appendChild(carousel(all, function (n) { openLightbox(all, n); }, function (slide, i) {
           /* فقط تصاویری که خود کاربر اضافه کرده قابل حذف‌اند */
           if (owner && i >= (c.gallery || []).length) {
             var x = el("button", "thumb-x", "×"); x.type = "button";
@@ -906,11 +1063,9 @@
               SogStore.removeEventPhoto(id, key, i - (c.gallery || []).length);
               paint();
             });
-            t.appendChild(x);
+            slide.appendChild(x);
           }
-          hs.appendChild(t);
-        });
-        box.appendChild(hs);
+        }));
       }
 
       if (!owner) return;
