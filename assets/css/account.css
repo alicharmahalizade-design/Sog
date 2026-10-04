@@ -279,7 +279,7 @@
   display: inline-flex; align-items: center; gap: 6px;
   font-family: inherit; font-size: 17px; font-weight: 700; color: var(--accent);
 }
-.profile-name.is-switch .pn-chev { display: inline-flex; opacity: .75; transform: rotate(90deg); }
+.profile-name.is-switch .pn-chev { display: inline-flex; opacity: .75; transform: rotate(-90deg); }
 
 /* بۀ‌شیت حساب‌های کاربری */
 .acc-switch { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 14px; }

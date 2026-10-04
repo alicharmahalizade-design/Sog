@@ -179,6 +179,29 @@
   }
 
   /* پروفایل */
+  /* نگه‌داشتن روی پروفایل (حدود ۰٫۶ ثانیه) = باز شدن تعویض حساب.
+     بعد از آن کلیکِ همان لمس خنثی می‌شود تا مثلاً گالری باز نشود. */
+  function longPress(node, fn) {
+    var timer = null, fired = false;
+    function start() {
+      clear(); fired = false;
+      timer = setTimeout(function () {
+        fired = true; timer = null;
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+        fn();
+      }, 600);
+    }
+    function clear() { if (timer) { clearTimeout(timer); timer = null; } }
+    node.addEventListener("pointerdown", start);
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) {
+      node.addEventListener(ev, clear);
+    });
+    node.addEventListener("contextmenu", function (e) { if (fired) e.preventDefault(); });
+    node.addEventListener("click", function (e) {
+      if (fired) { e.preventDefault(); e.stopPropagation(); fired = false; }
+    }, true);
+  }
+
   /* عکس پروفایل: انتخاب از گالری و ذخیره روی همین دستگاه */
   function avatarPicker(user) {
     var AV_KEY = "sog:avatar:" + (SogStore.getActiveId() || "guest");
@@ -234,6 +257,7 @@
   function profileCard(user) {
     var card = el("div", "profile-card");
     var avatar = avatarPicker(user);
+    if (user) { longPress(avatar, openAccounts); longPress(card, openAccounts); }
     var info = el("div", "profile-info");
     if (user) {
       var nm = el("button", "profile-name is-switch",
