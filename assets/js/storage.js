@@ -24,6 +24,7 @@
   var EXTRA_CITY_KEY = "sog:extraCities";  // شهرهایی که کاربر از فهرست استان‌ها افزوده است
   var CITY_PICKED_KEY = "sog:cityPicked";  // آیا شهر در اولین ورود انتخاب شده است
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
+  var CONDREPLY_KEY = "sog:condReplies"; // نگاشت «شناسه‌ی آگهی|کلید همدردی» → آرایه‌ی پاسخ‌ها
 
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -204,6 +205,23 @@
       if (m[id]) return false;          /* قبلاً روشن کرده است */
       m[id] = 1; writeMap(SALAVAT_KEY, m);
       return true;
+    },
+
+    /* ----- پاسخ به همدردی ----- */
+    getCondReplies: function (id, key) { return readMap(CONDREPLY_KEY)[id + "|" + key] || []; },
+    addCondReply: function (id, key, r) {
+      var m = readMap(CONDREPLY_KEY), k = id + "|" + key;
+      if (!m[k]) m[k] = [];
+      m[k].push({ name: r.name || "", message: r.message || "", date: r.date || "",
+                  at: Date.now(), mine: true });
+      writeMap(CONDREPLY_KEY, m);
+      return m[k];
+    },
+    removeCondReply: function (id, key, at) {
+      var m = readMap(CONDREPLY_KEY), k = id + "|" + key;
+      m[k] = (m[k] || []).filter(function (x) { return x.at !== at; });
+      writeMap(CONDREPLY_KEY, m);
+      return m[k];
     },
 
     /* ----- دفتر یادبود ----- */
