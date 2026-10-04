@@ -10,6 +10,15 @@
     reloading = true;
     location.reload();
   });
+
+  /* ثبت و بررسی نسخه‌ی تازه روی «هر» صفحه.
+     پیش‌تر فقط چند صفحه این کار را می‌کردند و صفحه‌هایی مثل حساب کاربری
+     روی نسخه‌ی قدیمیِ کش‌شده گیر می‌کردند. */
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("service-worker.js", { updateViaCache: "none" })
+      .then(function (reg) { return reg.update(); })
+      .catch(function () {});
+  });
 })();
 
 (function () {
