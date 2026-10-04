@@ -743,3 +743,10 @@ option { direction: rtl; text-align: right; }
   background: rgba(255,255,255,.12); color: #fff;
   display: inline-grid; place-items: center; font-size: 12px; line-height: 1;
 }
+
+/* عکس پروفایل کاربر به‌جای آیکون آدمک در نوار پایین */
+.bn-avatar {
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; display: block;
+  border: 1px solid rgba(255,255,255,.18);
+}
+.bn-item.is-active .bn-avatar { border-color: var(--accent); }

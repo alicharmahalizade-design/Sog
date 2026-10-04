@@ -13,6 +13,17 @@
     register: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
   };
 
+  /* اگر کاربر عکس پروفایل دارد، به‌جای آیکون آدمک همان عکس در نوار پایین می‌نشیند */
+  function avatarIcon() {
+    try {
+      var id = localStorage.getItem("sog:activeAccount");
+      if (!id) return "";
+      var src = localStorage.getItem("sog:avatar:" + id);
+      if (!src) return "";
+      return '<img class="bn-avatar" src="' + src + '" alt="">';
+    } catch (e) { return ""; }
+  }
+
   var items = [
     { key: "home", label: "آگهی‌ها", href: "index.html" },
     { key: "business", label: "کسب‌وکار", href: "business.html" },
@@ -28,7 +39,8 @@
     var a = document.createElement("a");
     a.className = "bn-item" + (it.center ? " bn-center" : "") + (active === it.key ? " is-active" : "");
     a.href = it.href;
-    a.innerHTML = '<span class="bn-ico">' + ICON[it.key] + '</span><span class="bn-label">' + it.label + '</span>';
+    var ico = it.key === "account" ? (avatarIcon() || ICON[it.key]) : ICON[it.key];
+    a.innerHTML = '<span class="bn-ico">' + ico + '</span><span class="bn-label">' + it.label + '</span>';
     nav.appendChild(a);
   });
   document.body.appendChild(nav);

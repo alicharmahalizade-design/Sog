@@ -308,3 +308,11 @@
   font-family: inherit; font-size: 15px; font-weight: 700;
 }
 .acc-add .aa-plus { font-size: 22px; line-height: 1; width: 42px; text-align: center; }
+
+/* نگه‌داشتن روی پروفایل: جلوگیری از منوی لمسی و انتخاب متن مرورگر
+   تا ژست نگه‌داشتن قطع نشود */
+.profile-card, .profile-avatar {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none;
+  touch-action: manipulation;
+}
