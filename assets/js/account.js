@@ -577,6 +577,14 @@
     openSheet(body);
   }
 
+  /* نام و نام خانوادگی: هر دو بخش الزامی است */
+  function fullNameOf(v) {
+    var n = String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+    if (/[0-9\u06F0-\u06F9]/.test(n)) return "";
+    var parts = n.split(" ").filter(function (x) { return x.length >= 2; });
+    return parts.length >= 2 ? parts.join(" ") : "";
+  }
+
   /* ورود (OTP نمونه) */
   function openLogin(editing) {
     var body = document.getElementById("loginBody");
@@ -590,7 +598,7 @@
       var phone = el("input", "login-input"); phone.placeholder = "۰۹…"; phone.type = "tel"; phone.value = u.phone || ""; phone.id = "lgPhone";
       var melli = el("input", "login-input"); melli.placeholder = "کد ملی ۱۰ رقمی (برای تأیید هویت)";
       melli.type = "tel"; melli.inputMode = "numeric"; melli.maxLength = 10; melli.value = u.melli || ""; melli.id = "lgMelli";
-      body.appendChild(el("label", "login-label", "نام و نام خانوادگی"));
+      body.appendChild(el("label", "login-label", 'نام و نام خانوادگی <span class="req">*</span>'));
       body.appendChild(name);
       body.appendChild(el("label", "login-label", "شماره موبایل"));
       body.appendChild(phone);
@@ -598,8 +606,9 @@
       body.appendChild(melli);
       var btn = el("button", "login-btn", editing ? "ذخیره" : "دریافت کد تأیید");
       btn.addEventListener("click", function () {
-        if (!name.value.trim()) { toast("نام و نام خانوادگی را وارد کنید."); return; }
-        phoneVal = phone.value; u.name = name.value.trim(); u.phone = phone.value;
+        var fullName = fullNameOf(name.value);
+        if (!fullName) { toast("نام و نام خانوادگی را کامل وارد کنید (مثلاً: علی چرم‌حلی‌زاده)."); name.focus(); return; }
+        phoneVal = phone.value; u.name = fullName; u.phone = phone.value;
         var mv = SogUtil ? SogUtil.toEn(melli.value).replace(/[^0-9]/g, "") : melli.value;
         if (mv) {
           if (!validMelli(mv)) { toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید."); return; }
@@ -618,7 +627,7 @@
       body.appendChild(code);
       var btn = el("button", "login-btn", "ورود");
       btn.addEventListener("click", function () {
-        SogStore.setUser({ name: u.name || "کاربر سوگ", phone: u.phone || phoneVal, melli: u.melli || "", verified: !!u.verified });
+        SogStore.setUser({ name: u.name, phone: u.phone || phoneVal, melli: u.melli || "", verified: !!u.verified });
         closeSheet(); render(); toast("خوش آمدید 🌿");
       });
       body.appendChild(btn);
