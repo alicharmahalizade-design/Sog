@@ -16,7 +16,10 @@
   var OWNERNOTE_KEY = "sog:ownerNote";  // یادداشت صاحب عزا روی آگهی خودش
   var EVPHOTO_KEY = "sog:eventPhotos";  // نگاشت «شناسه‌ی آگهی|مراسم» → آرایه‌ی تصاویر
   var ACK_KEY = "sog:ackText";      // متن سپاسگزاری ویرایش‌شده توسط خانواده
-  var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده
+  var USER_KEY = "sog:user";        // اطلاعات کاربر واردشده (نسخه‌ی قدیمی؛ فقط برای مهاجرت)
+  var ACCOUNTS_KEY = "sog:accounts";      // آرایه‌ی حساب‌های کاربری دستگاه
+  var ACTIVE_KEY = "sog:activeAccount";   // شناسه‌ی حساب فعال
+  var MAX_ACCOUNTS = 3;                   // حداکثر حساب هم‌زمان روی یک دستگاه
   var REMIND_KEY = "sog:reminders"; // نگاشت «شناسه‌ی آگهی|مراسم» → یادآوری ثبت‌شده
   var EXTRA_CITY_KEY = "sog:extraCities";  // شهرهایی که کاربر از فهرست استان‌ها افزوده است
   var CITY_PICKED_KEY = "sog:cityPicked";  // آیا شهر در اولین ورود انتخاب شده است
@@ -35,6 +38,45 @@
   }
   function writeMap(key, m) {
     try { localStorage.setItem(key, JSON.stringify(m)); } catch (e) {}
+  }
+
+  /* ---------- حساب‌های کاربری ---------- */
+  function newId() { return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  /* شماره‌ی موبایل را برای مقایسه یکدست می‌کند: ارقام فارسی → انگلیسی، حذف غیر رقم */
+  function phoneKey(p) {
+    var s = String(p == null ? "" : p);
+    var out = "";
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i);
+      if (c >= 0x06F0 && c <= 0x06F9) out += String(c - 0x06F0);        /* ۰-۹ فارسی */
+      else if (c >= 0x0660 && c <= 0x0669) out += String(c - 0x0660);   /* ٠-٩ عربی */
+      else if (c >= 48 && c <= 57) out += s.charAt(i);
+    }
+    return out.replace(/^(\+?98|0098)/, "0").replace(/^9/, "09");
+  }
+  function writeAccounts(a) { try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(a || [])); } catch (e) {} }
+  function activeId() { try { return localStorage.getItem(ACTIVE_KEY) || ""; } catch (e) { return ""; } }
+  function setActiveId(id) {
+    try { if (id) localStorage.setItem(ACTIVE_KEY, id); else localStorage.removeItem(ACTIVE_KEY); } catch (e) {}
+  }
+  function accounts() {
+    var a = [];
+    try { a = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || []; } catch (e) { a = []; }
+    if (a.length) return a;
+    /* مهاجرت از نسخه‌ی تک‌حسابی */
+    var legacy = null;
+    try { legacy = JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) {}
+    if (legacy && (legacy.phone || legacy.name)) {
+      legacy.id = legacy.id || newId();
+      writeAccounts([legacy]); setActiveId(legacy.id);
+      try {
+        var av = localStorage.getItem("sog:avatar");
+        if (av) localStorage.setItem("sog:avatar:" + legacy.id, av);
+      } catch (e) {}
+      try { localStorage.removeItem(USER_KEY); } catch (e) {}
+      return [legacy];
+    }
+    return [];
   }
 
   var Store = {
@@ -171,10 +213,63 @@
       m[id].unshift(entry); writeMap(GUEST_KEY, m); return m[id];
     },
 
-    /* ----- کاربر ----- */
-    getUser: function () { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) { return null; } },
-    setUser: function (u) { writeMap(USER_KEY, u); },
-    clearUser: function () { try { localStorage.removeItem(USER_KEY); } catch (e) {} },
+    /* ----- کاربر و حساب‌ها -----
+       تا سه حساب با شماره‌های مختلف روی یک دستگاه نگه داشته می‌شود؛
+       getUser/setUser همیشه روی «حساب فعال» کار می‌کنند. */
+    MAX_ACCOUNTS: MAX_ACCOUNTS,
+    getAccounts: accounts,
+    getActiveId: activeId,
+    canAddAccount: function () { return accounts().length < MAX_ACCOUNTS; },
+    phoneKey: phoneKey,
+    findByPhone: function (phone) {
+      var k = phoneKey(phone);
+      if (!k) return null;
+      var hit = accounts().filter(function (a) { return phoneKey(a.phone) === k; });
+      return hit.length ? hit[0] : null;
+    },
+    switchAccount: function (id) {
+      var hit = accounts().filter(function (a) { return a.id === id; });
+      if (!hit.length) return false;
+      setActiveId(id);
+      return true;
+    },
+    getUser: function () {
+      var all = accounts();
+      if (!all.length) return null;
+      var id = activeId(), hit = all.filter(function (a) { return a.id === id; });
+      if (hit.length) return hit[0];
+      setActiveId(all[0].id);
+      return all[0];
+    },
+    setUser: function (u) {
+      if (!u) return null;
+      /* بدون id یعنی حساب تازه؛ نباید روی حساب فعال بنشیند */
+      var all = accounts(), id = u.id || "", i = -1;
+      if (id) all.forEach(function (a, n) { if (a.id === id) i = n; });
+      if (i === -1) {
+        /* حساب تازه: اگر شماره تکراری باشد همان حساب به‌روزرسانی می‌شود */
+        var k = phoneKey(u.phone);
+        all.forEach(function (a, n) { if (k && phoneKey(a.phone) === k) i = n; });
+      }
+      if (i === -1 && all.length >= MAX_ACCOUNTS) return null;
+      var rec = {
+        id: i === -1 ? (u.id || newId()) : all[i].id,
+        name: u.name || "", phone: u.phone || "",
+        melli: u.melli || "", verified: !!u.verified
+      };
+      if (i === -1) all.push(rec); else all[i] = rec;
+      writeAccounts(all); setActiveId(rec.id);
+      return rec;
+    },
+    removeAccount: function (id) {
+      var all = accounts().filter(function (a) { return a.id !== id; });
+      writeAccounts(all);
+      try { localStorage.removeItem("sog:avatar:" + id); } catch (e) {}
+      if (activeId() === id) setActiveId(all.length ? all[0].id : "");
+      return all;
+    },
+    /* خروج از حسابِ فعال (مثل تلگرام، بقیه‌ی حساب‌ها می‌مانند) */
+    clearUser: function () { return Store.removeAccount(activeId()); },
 
     /* ----- شهر کاربر ----- */
     getExtraCities: function () { return read(EXTRA_CITY_KEY); },

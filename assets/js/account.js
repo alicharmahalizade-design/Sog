@@ -163,9 +163,13 @@
 
     var out = el("button", "acc-row is-danger"); out.type = "button";
     out.innerHTML = '<span class="ar-ic">' + svg(IC.logout) + '</span>' +
-      '<span class="ar-label">خروج از حساب</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+      '<span class="ar-label">' + (SogStore.getAccounts().length > 1 ? "خروج از این حساب" : "خروج از حساب") +
+      '</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
     out.addEventListener("click", function () {
-      confirmDialog("خروج از حساب", "می‌خواهید از حساب کاربری خارج شوید؟", function () {
+      var rest = SogStore.getAccounts().length - 1;
+      confirmDialog("خروج از حساب", rest > 0
+        ? "از این حساب خارج می‌شوید؛ " + faNum(rest) + " حساب دیگر روی این دستگاه باقی می‌ماند."
+        : "می‌خواهید از حساب کاربری خارج شوید؟", function () {
         SogStore.clearUser(); render(); toast("از حساب خارج شدید.");
       });
     });
@@ -177,7 +181,7 @@
   /* پروفایل */
   /* عکس پروفایل: انتخاب از گالری و ذخیره روی همین دستگاه */
   function avatarPicker(user) {
-    var AV_KEY = "sog:avatar";
+    var AV_KEY = "sog:avatar:" + (SogStore.getActiveId() || "guest");
     function read() { try { return localStorage.getItem(AV_KEY) || ""; } catch (e) { return ""; } }
     function write(v) { try { if (v) localStorage.setItem(AV_KEY, v); else localStorage.removeItem(AV_KEY); } catch (e) {} }
 
@@ -232,10 +236,11 @@
     var avatar = avatarPicker(user);
     var info = el("div", "profile-info");
     if (user) {
-      var nm = el("button", "profile-name is-editable", esc(user.name || "کاربر سوگ"));
+      var nm = el("button", "profile-name is-switch",
+        esc(user.name || "کاربر سوگ") + '<span class="pn-chev">' + svg(IC.chev, 16) + "</span>");
       nm.type = "button";
-      nm.setAttribute("aria-label", "ویرایش نام و نام خانوادگی");
-      nm.addEventListener("click", function () { openLogin(true); });
+      nm.setAttribute("aria-label", "تغییر حساب کاربری");
+      nm.addEventListener("click", openAccounts);
       info.appendChild(nm);
       info.appendChild(el("div", "profile-phone", esc(faNum(user.phone || ""))));
       /* نشان تأیید هویت و دکمه‌ی ویرایش در یک خط و هم‌تراز */
@@ -585,16 +590,68 @@
     return parts.length >= 2 ? parts.join(" ") : "";
   }
 
+  /* ---------- سوییچر حساب‌ها (مثل تلگرام) ---------- */
+  function accountAvatar(id, name) {
+    var box = el("span", "ai-av");
+    var src = "";
+    try { src = localStorage.getItem("sog:avatar:" + id) || ""; } catch (e) {}
+    if (src) {
+      var img = el("img"); img.src = src; img.alt = ""; box.appendChild(img);
+    } else {
+      box.textContent = String(name || "؟").trim().charAt(0) || "؟";
+      box.classList.add("is-letter");
+    }
+    return box;
+  }
+
+  function openAccounts() {
+    var body = el("div", "acc-sheet");
+    body.appendChild(el("div", "login-title", "حساب‌های کاربری"));
+    var all = SogStore.getAccounts(), active = SogStore.getActiveId();
+
+    var list = el("div", "acc-switch");
+    all.forEach(function (a) {
+      var row = el("button", "acc-switch-row" + (a.id === active ? " is-active" : ""));
+      row.type = "button";
+      row.appendChild(accountAvatar(a.id, a.name));
+      var txt = el("span", "ai-txt");
+      txt.appendChild(el("span", "ai-name", esc(a.name || "کاربر سوگ")));
+      txt.appendChild(el("span", "ai-phone", esc(faNum(a.phone || ""))));
+      row.appendChild(txt);
+      if (a.id === active) row.insertAdjacentHTML("beforeend", '<span class="ai-tick">' + svg(IC.check, 17) + "</span>");
+      row.addEventListener("click", function () {
+        if (a.id !== active) { SogStore.switchAccount(a.id); toast("به حساب " + (a.name || "") + " تغییر کرد."); }
+        closeSheet(); render();
+      });
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    if (SogStore.canAddAccount()) {
+      var add = el("button", "acc-add");
+      add.type = "button";
+      add.innerHTML = '<span class="aa-plus">+</span><span>افزودن حساب</span>';
+      add.addEventListener("click", function () { closeSheet(); openLogin(false, true); });
+      body.appendChild(add);
+    } else {
+      body.appendChild(el("p", "login-hint",
+        "تا " + faNum(SogStore.MAX_ACCOUNTS) + " حساب هم‌زمان می‌توانید داشته باشید. برای افزودن حساب تازه، از یکی خارج شوید."));
+    }
+    openSheet(body);
+  }
+
   /* ورود (OTP نمونه) */
-  function openLogin(editing) {
+  function openLogin(editing, adding) {
     var body = document.getElementById("loginBody");
     var step = 1, phoneVal = "";
-    var u = SogStore.getUser() || {};
+    var u = (editing && SogStore.getUser()) || {};
+    if (adding) u = {};
     function paintPhone() {
       body.innerHTML = "";
-      body.appendChild(el("div", "login-title", editing ? "ویرایش پروفایل" : "ورود / ثبت‌نام"));
-      body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود."));
-      var name = el("input", "login-input"); name.placeholder = "مثال: علی چرم‌حلی‌زاده"; name.value = u.name || ""; name.id = "lgName";
+      body.appendChild(el("div", "login-title", editing ? "ویرایش پروفایل" : (adding ? "افزودن حساب" : "ورود / ثبت‌نام")));
+      body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید."
+        : (adding ? "شماره‌ی موبایل حساب تازه را وارد کنید؛ باید با حساب‌های فعلی متفاوت باشد." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود.")));
+      var name = el("input", "login-input"); name.placeholder = "مثال: علی رضایی"; name.value = u.name || ""; name.id = "lgName";
       var phone = el("input", "login-input"); phone.placeholder = "۰۹…"; phone.type = "tel"; phone.value = u.phone || ""; phone.id = "lgPhone";
       var melli = el("input", "login-input"); melli.placeholder = "کد ملی ۱۰ رقمی (برای تأیید هویت)";
       melli.type = "tel"; melli.inputMode = "numeric"; melli.maxLength = 10; melli.value = u.melli || ""; melli.id = "lgMelli";
@@ -607,8 +664,12 @@
       var btn = el("button", "login-btn", editing ? "ذخیره" : "دریافت کد تأیید");
       btn.addEventListener("click", function () {
         var fullName = fullNameOf(name.value);
-        if (!fullName) { toast("نام و نام خانوادگی را کامل وارد کنید (مثلاً: علی چرم‌حلی‌زاده)."); name.focus(); return; }
-        phoneVal = phone.value; u.name = fullName; u.phone = phone.value;
+        if (!fullName) { toast("نام و نام خانوادگی را کامل وارد کنید (مثلاً: علی رضایی)."); name.focus(); return; }
+        var pk = SogStore.phoneKey(phone.value);
+        if (!/^09\d{9}$/.test(pk)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); phone.focus(); return; }
+        var dup = SogStore.findByPhone(pk);
+        if (dup && dup.id !== (u.id || SogStore.getActiveId())) { toast("این شماره قبلاً روی این دستگاه اضافه شده است."); phone.focus(); return; }
+        phoneVal = phone.value; u.name = fullName; u.phone = pk;
         var mv = SogUtil ? SogUtil.toEn(melli.value).replace(/[^0-9]/g, "") : melli.value;
         if (mv) {
           if (!validMelli(mv)) { toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید."); return; }
@@ -627,7 +688,9 @@
       body.appendChild(code);
       var btn = el("button", "login-btn", "ورود");
       btn.addEventListener("click", function () {
-        SogStore.setUser({ name: u.name, phone: u.phone || phoneVal, melli: u.melli || "", verified: !!u.verified });
+        var saved = SogStore.setUser({ id: u.id, name: u.name, phone: u.phone || phoneVal,
+                                       melli: u.melli || "", verified: !!u.verified });
+        if (!saved) { toast("حداکثر " + faNum(SogStore.MAX_ACCOUNTS) + " حساب می‌توانید داشته باشید."); return; }
         closeSheet(); render(); toast("خوش آمدید 🌿");
       });
       body.appendChild(btn);
