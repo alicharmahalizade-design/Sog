@@ -18,7 +18,7 @@
     sound: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9c1.5 1.8 1.5 4.2 0 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     soundOff: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9l4 6M21 9l-4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
-    report: '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    report: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 21V4M5 4h11l-2 3.5L16 11H5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     pencil: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
     candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
@@ -298,6 +298,20 @@
     return ALL_LISTINGS.filter(function (it) { return String(it[key] || "").trim() === v; }).length;
   }
 
+  /* متن تک‌خطی که اگر جا نشد آرام می‌چرخد (مثل کارت‌های صفحه‌ی اصلی) */
+  function marquee(node) {
+    node.classList.add("mq");
+    requestAnimationFrame(function () {
+      var inner = node.querySelector(".mq-inner");
+      if (!inner) return;
+      var over = inner.scrollWidth - node.clientWidth;
+      if (over <= 4) return;
+      node.classList.add("is-marquee");
+      node.style.setProperty("--mq-shift", over + "px");
+      node.style.setProperty("--mq-dur", Math.max(5, over / 16).toFixed(1) + "s");
+    });
+  }
+
   function familyCard(rows) {
     var card = el("div", "family-card");
     rows.forEach(function (r) {
@@ -309,15 +323,20 @@
         empty.setAttribute("aria-label", "ثبت‌نشده");
         row.appendChild(empty);
       } else if (key) {
-        var a = el("a", "val clan-link", esc(r[1]));
+        /* متن در یک ستون کشسان که در صورت طولانی‌بودن می‌چرخد؛
+           شمارنده ستون جداگانه‌ی خودش را دارد و هیچ‌وقت جابه‌جا نمی‌شود. */
+        var a = el("a", "val clan-link",
+          '<span class="mq-inner">' + esc(r[1]) + "</span>");
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
         row.appendChild(a);
-        /* شمارنده در ستون خودش، هم‌تراز با بقیه‌ی ردیف‌ها */
+        marquee(a);
         var n = clanCount(key, r[1]);
         row.appendChild(n > 0 ? el("span", "clan-count", faNum(n)) : el("span", "clan-count is-none"));
       } else {
-        row.appendChild(el("span", "val", esc(r[1])));
+        var v = el("span", "val", '<span class="mq-inner">' + esc(r[1]) + "</span>");
+        row.appendChild(v);
+        marquee(v);
       }
       card.appendChild(row);
     });
@@ -328,7 +347,7 @@
   function actionRow(d) {
     var row = el("div", "action-row");
     row.appendChild(actionItem(ICON.bell, "یادآوری", function () { openRemindSheet(d); }));
-    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { openStory(d); }));
+    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری اشتراک", function () { openStory(d); }));
     if (d.has_audio !== false) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
       var b = soundBtn.querySelector("button");

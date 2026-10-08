@@ -79,9 +79,18 @@
   align-self: stretch;
 }
 .family-row .val {
-  color: var(--text); justify-self: start; text-align: start;
-  min-width: 0; overflow-wrap: anywhere;
+  color: var(--text); justify-self: stretch; text-align: start;
+  min-width: 0;
   padding-inline-start: 16px;          /* فاصله از خط جداکننده */
+}
+/* متن تک‌خطی است و اگر جا نشد می‌چرخد، به‌جای اینکه چند سطر شود */
+.family-row .val.mq { overflow: hidden; white-space: nowrap; }
+.family-row .val .mq-inner { display: inline-block; will-change: transform; }
+.family-row .val.is-marquee .mq-inner {
+  animation: mq-slide var(--mq-dur, 8s) ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .family-row .val.is-marquee .mq-inner { animation: none; }
 }
 .family-row .val.is-empty { color: var(--text-mute); }
 .family-grid.is-single { grid-template-columns: 1fr; }
@@ -682,12 +691,14 @@
 }
 
 
-/* شمارنده‌ی آگهی‌های طایفه و ایل: خاکستری و هم‌تراز در ستون چپ */
+/* شمارنده‌ی آگهی‌های طایفه و ایل: کادر ثابت در ستون چپ که هرگز
+   با چرخش متن جابه‌جا یا کوچک نمی‌شود */
 .family-row .clan-count {
+  flex: 0 0 auto;
   display: inline-grid; place-items: center;
-  min-width: 22px; height: 22px; padding: 0 6px; margin-inline-start: 8px;
-  border-radius: 999px; background: #33373b; color: var(--text-dim);
-  font-size: 11px; font-weight: 700;
+  min-width: 34px; height: 22px; padding: 0 7px; margin-inline-start: 10px;
+  border-radius: 7px; background: #33373b; color: var(--text-dim);
+  font-size: 11px; font-weight: 700; white-space: nowrap;
 }
 .family-row .clan-count.is-none { background: transparent; }
 
