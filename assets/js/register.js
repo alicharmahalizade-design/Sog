@@ -486,7 +486,7 @@
 
     /* مسیر سریع: همه‌چیز در یک مرحله */
     if (data.mode === "quick") {
-      steps.push({ title: "ثبت سوگ سریع", build: buildQuickPanel });
+      steps.push({ title: "ثبت سریع اطلاعیه سوگ", build: buildQuickPanel });
       return steps;
     }
 
@@ -752,20 +752,18 @@
   /* ---------- انتخاب نوع ثبت ---------- */
   function buildModePicker() {
     var p = el("section", "reg-panel");
-    p.appendChild(el("p", "panel-sub",
-      "آگهی را چطور ثبت می‌کنید؟ اگر هنوز زمان مراسم مشخص نیست، «سوگ سریع» را بزنید؛ بعداً می‌توانید اطلاعات مراسم‌ها را به همین آگهی اضافه کنید."));
 
-    function card(mode, title, desc, bullets, icon) {
+    function card(mode, title, time, desc, icon) {
       var b = el("button", "mode-card"); b.type = "button";
       b.innerHTML =
-        '<span class="mc-ico">' + icon + "</span>" +
-        '<span class="mc-body">' +
-          '<span class="mc-title">' + esc(title) + "</span>" +
-          '<span class="mc-desc">' + esc(desc) + "</span>" +
-          '<span class="mc-list">' + bullets.map(function (x) {
-            return '<span class="mc-li">' + esc(x) + "</span>";
-          }).join("") + "</span>" +
-        "</span>";
+        '<span class="mc-top">' +
+          '<span class="mc-head">' +
+            '<span class="mc-title">' + esc(title) + "</span>" +
+            '<span class="mc-time">' + esc(time) + "</span>" +
+          "</span>" +
+          '<span class="mc-ico">' + icon + "</span>" +
+        "</span>" +
+        '<span class="mc-desc">' + esc(desc) + "</span>";
       b.addEventListener("click", function () {
         data.mode = mode;
         steps = buildSteps();
@@ -774,14 +772,12 @@
       return b;
     }
 
-    p.appendChild(card("quick", "ثبت سوگ سریع",
-      "همین حالا خبر را منتشر کنید؛ زمان مراسم بعداً اضافه می‌شود.",
-      ["تصویر و نام درگذشته", "نام پدر و طایفه", "متن آماده‌ی «متعاقباً اعلام می‌گردد»"],
+    p.appendChild(card("quick", "ثبت سریع اطلاعیه سوگ", "زمان ثبت ۳۰ ثانیه",
+      "اگر هنوز زمان و مکان و جزییات مراسم مشخص نشده، همین حالا خبر فوت را ثبت و استوری کنید.",
       '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'));
 
-    p.appendChild(card("full", "ثبت سوگ عادی",
-      "آگهی کامل با همه‌ی مراسم‌ها، زندگی‌نامه و راه‌های ارتباطی.",
-      ["مراسم‌ها با تاریخ، ساعت و نشانی", "زندگی‌نامه و تصاویر", "سپاسگزاری و ارتباط با خانواده"],
+    p.appendChild(card("full", "ثبت کامل سوگ", "زمان ثبت ۶ دقیقه",
+      "ثبت کامل اعم از زمان، مکان، نشانی و مراسم‌ها (خاکسپاری، ختم، چهلم، سالگرد و…).",
       '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 3h14v18l-7-4-7 4V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'));
 
     return p;

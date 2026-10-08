@@ -409,28 +409,33 @@
 .reg-progress.is-plain .rp-bar { display: none; }
 /* نوار دکمه‌ها display:flex دارد؛ بدون این، صفت hidden بی‌اثر می‌ماند */
 .reg-actions[hidden] { display: none; }
+/* روی این صفحه، عنوان یک سرتیتر است نه برچسب مرحله */
+.reg-progress.is-plain .rp-head { font-size: 17px; margin-bottom: 18px; }
+.reg-progress.is-plain #stepTitle { color: var(--text, #f0f0f0); font-weight: 700; }
 
 .mode-card {
-  display: flex; align-items: flex-start; gap: 14px; width: 100%;
+  display: flex; flex-direction: column; gap: 16px; width: 100%;
   text-align: start; cursor: pointer;
-  background: var(--surface-2, #171717); border: 1px solid #332c24;
-  border-radius: 16px; padding: 16px; margin-bottom: 14px;
+  background: #1a1a1a; border: 1px solid transparent;
+  border-radius: 20px; padding: 20px; margin-bottom: 18px;
   font-family: inherit; color: inherit;
 }
 .mode-card:active { border-color: var(--accent); }
+
+.mode-card .mc-top { display: flex; align-items: flex-start; gap: 14px; }
+.mode-card .mc-head { flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.mode-card .mc-title { font-size: 19px; font-weight: 700; color: var(--accent); line-height: 1.4; }
+.mode-card .mc-time {
+  align-self: flex-start;
+  background: #2a2a2a; color: #cfcfcf;
+  font-size: 12.5px; border-radius: 9px; padding: 5px 11px;
+}
 .mode-card .mc-ico {
-  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px;
+  flex: 0 0 auto; width: 54px; height: 54px; border-radius: 15px;
   display: grid; place-items: center;
-  background: rgba(217,154,91,.14); color: var(--accent);
+  background: rgba(217,154,91,.16); color: var(--accent);
 }
-.mode-card .mc-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.mode-card .mc-title { font-size: 16px; font-weight: 700; color: var(--accent); }
-.mode-card .mc-desc { font-size: 13px; line-height: 1.9; color: var(--text-dim); }
-.mode-card .mc-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
-.mode-card .mc-li {
-  font-size: 12.5px; color: var(--text-mute, #9a9188);
-  padding-inline-start: 14px; position: relative;
-}
-.mode-card .mc-li::before {
-  content: "•"; position: absolute; inset-inline-start: 2px; color: var(--accent);
+.mode-card .mc-desc {
+  font-size: 14px; line-height: 2.1; color: var(--text-dim);
+  text-align: start;
 }
