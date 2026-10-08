@@ -380,11 +380,26 @@ option { direction: rtl; text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) { .bottom-nav { transition: none; } }
 .bn-item {
+  position: relative;
   flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: var(--text-mute); text-decoration: none; font-size: 11px; padding: 4px 0;
 }
 .bn-item .bn-ico { display: grid; place-items: center; height: 26px; }
 .bn-item.is-active { color: var(--accent); }
+/* خط نشانگر بالای تب فعال، چسبیده به لبه‌ی بالایی نوار */
+.bn-item::before {
+  content: ""; position: absolute; top: -8px; left: 50%;
+  width: 26px; height: 3px; border-radius: 0 0 3px 3px;
+  background: var(--accent);
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
+}
+.bn-item.is-active::before { transform: translateX(-50%) scaleX(1); opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .bn-item::before { transition: none; } }
+/* دکمه‌ی میانی خودش برجسته است و به نشانگر نیازی ندارد */
+.bn-center::before { content: none; }
 .bn-center {
   position: relative;
 }
