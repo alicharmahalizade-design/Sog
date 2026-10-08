@@ -108,7 +108,8 @@
 .action-item { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .action-item button {
   width: 54px; height: 54px; border-radius: 50%;
-  background: var(--surface-2); border: 1px solid #2f2f2f; color: var(--text);
+  /* آیکون‌ها به رنگ اصلی سایت */
+  background: var(--surface-2); border: 1px solid #2f2f2f; color: var(--accent);
   display: grid; place-items: center;
 }
 .action-item button.is-active { color: var(--accent); border-color: var(--accent); }
