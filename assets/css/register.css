@@ -439,3 +439,8 @@
   font-size: 14px; line-height: 2.1; color: var(--text-dim);
   text-align: start;
 }
+
+/* آیکون دوربین بزرگ‌تر در آپلود تصویرِ ثبت سریع */
+.photo-slots.is-lead .photo-slot { min-height: 190px; }
+.photo-slots.is-lead .slot-txt { gap: 14px; }
+.photo-slots.is-lead .slot-txt svg { width: 46px; height: 46px; }

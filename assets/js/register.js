@@ -786,10 +786,8 @@
   /* ---------- سوگ سریع: یک مرحله ---------- */
   function buildQuickPanel() {
     var p = el("section", "reg-panel");
-    p.appendChild(el("p", "panel-sub",
-      "فقط همین چند مورد لازم است. پس از ثبت، هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه‌اش کنید."));
 
-    var slots = el("div", "photo-slots");
+    var slots = el("div", "photo-slots is-lead");
     slots.appendChild(photoSlot(0, "انتخاب تصویر درگذشته"));
     p.appendChild(field("تصویر درگذشته", true, slots));
 
@@ -799,10 +797,13 @@
       field("نام پدر", false, textInput("father", "نام پدر")),
       field("طایفه", false, textInput("father_tayefe", "نام طایفه"))
     ));
+    p.appendChild(field("شهر", true, textInput("city", "نام شهر را وارد کنید")));
 
     /* متن اطلاعیه با متن‌های آماده.
        textInput برای textareaِ دارای شمارنده، یک پوشش برمی‌گرداند نه خود فیلد. */
-    var noteBox = textInput("quick_note", "متن اطلاعیه…", { tag: "textarea", rows: 4, max: 400 });
+    var noteBox = textInput("quick_note",
+      "متن اطلاعیه سوگ را وارد کنید یا از متن‌های آماده استفاده کنید",
+      { tag: "textarea", rows: 4, max: 400 });
     var ta = noteBox.querySelector ? (noteBox.querySelector("textarea") || noteBox) : noteBox;
     p.appendChild(field("متن اطلاعیه", true, noteBox,
       "اگر زمان مراسم هنوز معلوم نیست، یکی از متن‌های آماده‌ی زیر را بزنید."));
@@ -848,16 +849,23 @@
     paintProgress();
   }
 
+  var MODE_TITLE = { quick: "ثبت سریع اطلاعیه سوگ", full: "ثبت کامل سوگ" };
+
   function paintProgress() {
     var bar = document.querySelector(".reg-progress");
+    var h1 = document.querySelector(".reg-title h1");
+    if (h1) h1.textContent = MODE_TITLE[data.mode] || "ثبت آگهی سوگ";
+
     /* روی صفحه‌ی انتخاب نوع ثبت، شمارنده‌ی مرحله معنی ندارد */
     if (!data.mode) {
+      if (bar) { bar.hidden = false; bar.classList.add("is-plain"); }
       document.getElementById("stepTitle").textContent = "نوع ثبت را انتخاب کنید";
       document.getElementById("stepCount").textContent = "";
       document.getElementById("stepBar").style.width = "0%";
-      if (bar) bar.classList.add("is-plain");
       return;
     }
+    /* ثبت سریع تک‌مرحله‌ای است و عنوانش در هدر آمده؛ نوار مرحله لازم نیست */
+    if (bar) bar.hidden = steps.length < 2;
     if (bar) bar.classList.remove("is-plain");
     document.getElementById("stepTitle").textContent = steps[current].title;
     document.getElementById("stepCount").textContent = steps.length > 1
@@ -928,6 +936,7 @@
       if (nm.split(" ").filter(Boolean).length < 2) {
         toast("نام و نام خانوادگی درگذشته را کامل وارد کنید."); return;
       }
+      if (!String(data.city || "").trim()) { toast("نام شهر را وارد کنید."); return; }
       if (!String(data.quick_note || "").trim()) {
         toast("متن اطلاعیه را بنویسید یا یکی از متن‌های آماده را انتخاب کنید."); return;
       }
