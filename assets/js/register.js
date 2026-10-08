@@ -947,6 +947,58 @@
     return sent;
   }
 
+  /* داده‌ی فرم را به قالب یک آگهی تبدیل می‌کند تا مثل بقیه‌ی آگهی‌ها
+     در فهرست‌ها و صفحه‌ی تکی قابل نمایش باشد. */
+  function buildAd(id) {
+    var labels = [], firstKey = "";
+    CEREMONIES.forEach(function (c) {
+      if (!data.picked[c.key]) return;
+      if (!firstKey) firstKey = c.key;
+      labels.push(c.name);
+    });
+    if (data.mode === "quick") { labels = []; firstKey = ""; }
+
+    var ev = firstEventDate() || jToday();
+    return {
+      id: id,
+      deceased_name: data.name || "",
+      photo: data.photos[0] || "",
+      photos: data.photos.filter(Boolean),
+      subtitle: data.brief || "",
+      ceremony_type: firstKey || "",
+      ceremony_labels: labels,
+      is_notice: data.mode === "quick",
+      notice_text: data.quick_note || "",
+      death_year: parseInt(toEnNum(ev).split("/")[0], 10) || null,
+      event_date_jalali: ev,
+      event_weekday: "",
+      city: data.city || "",
+      city_slug: "",
+      location: data.city || "",
+      tayefe: data.father_tayefe || "",
+      il: data.father_il || "",
+      father: data.father || "",
+      mother: data.mother || "",
+      is_mine: true,
+      pending: true,
+      created_at: new Date().toISOString().slice(0, 10)
+    };
+  }
+
+  function toEnNum(v) {
+    return String(v == null ? "" : v).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
+  }
+  function jToday() { return faNum(TODAY.y) + "/" + pad2(TODAY.m) + "/" + pad2(TODAY.d); }
+  /* نخستین تاریخی که برای مراسم‌ها ثبت شده است */
+  function firstEventDate() {
+    var keys = Object.keys(data.events || {});
+    for (var i = 0; i < keys.length; i++) {
+      var e = data.events[keys[i]];
+      if (e && e.date && e.date.y) return faNum(e.date.y) + "/" + pad2(e.date.m) + "/" + pad2(e.date.d);
+    }
+    return "";
+  }
+
   var lastNotified = 0;
   function submit() {
     if (data.mode === "quick") {
@@ -983,6 +1035,10 @@
       var newId = "draft-" + Date.now();
       mine.push(newId);
       localStorage.setItem("sog:myListings", JSON.stringify(mine));
+
+      /* آگهی تا وصل شدن سرور روی همین دستگاه نگه داشته می‌شود تا در
+         صفحه‌ی اصلی و «آگهی‌های من» دیده شود. */
+      if (store && store.addMyAd) store.addMyAd(buildAd(newId));
 
       if (data.mode === "quick") {
         /* اطلاعیه‌ی منتظرِ تکمیل، تا بعداً بدانیم به چه کسانی خبر بدهیم */

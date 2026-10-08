@@ -139,6 +139,8 @@
   function myListingItems() {
     return myListings().map(function (rawId) {
       var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
+      /* آگهی‌هایی که روی همین دستگاه ثبت شده‌اند هنوز در فهرست سرور نیستند */
+      if (!item && SogStore.getMyAd) item = SogStore.getMyAd(rawId);
       return item || { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
     });
   }

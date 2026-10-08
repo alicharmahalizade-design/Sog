@@ -85,7 +85,8 @@
       fetch("data/listings.json").then(function (r) { return r.json(); }),
       fetch("data/cities.json").then(function (r) { return r.json(); })
     ]).then(function (res) {
-      DATA.listings = res[0].listings || [];
+      /* آگهی‌های ثبت‌شده روی همین دستگاه، بالاتر از بقیه */
+      DATA.listings = (SogStore.getMyAds ? SogStore.getMyAds() : []).concat(res[0].listings || []);
       DATA.cities = res[1].cities || [];
       /* شهرهایی که کاربر از فهرست استان‌ها انتخاب کرده است */
       (SogStore.getExtraCities() || []).forEach(function (c) {
@@ -822,6 +823,7 @@
 
     var top = el("div", "listing-top");
     var tags = el("div", "tags");
+    if (item.pending) tags.appendChild(el("span", "tag is-review", "در انتظار تأیید"));
     if (notice) {
       /* اطلاعیه‌ی سوگ سریع: هنوز مراسمی ثبت نشده */
       tags.appendChild(el("span", "tag is-pending", "جزئیات مراسم متعاقباً اعلام خواهد شد"));

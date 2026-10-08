@@ -27,6 +27,7 @@
   var CONDREPLY_KEY = "sog:condReplies"; // نگاشت «شناسه‌ی آگهی|کلید همدردی» → آرایه‌ی پاسخ‌ها
   var NOTIFY_KEY = "sog:notifyMe";       // نگاشت شناسه‌ی اطلاعیه → شماره‌های منتظر خبر
   var SMSOUT_KEY = "sog:smsOutbox";      // صف پیامک‌هایی که باید سمت سرور ارسال شوند
+  var MYADS_KEY = "sog:myAds";           // آگهی‌های ثبت‌شده روی همین دستگاه (تا سرور وصل شود)
 
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -207,6 +208,26 @@
       if (m[id]) return false;          /* قبلاً روشن کرده است */
       m[id] = 1; writeMap(SALAVAT_KEY, m);
       return true;
+    },
+
+    /* ----- آگهی‌های ثبت‌شده روی همین دستگاه -----
+       بدون بک‌اند، آگهی تازه جایی برای انتشار ندارد؛ تا آن زمان روی همین
+       دستگاه نگه داشته و در فهرست‌ها نشان داده می‌شود. */
+    getMyAds: function () { try { return JSON.parse(localStorage.getItem(MYADS_KEY)) || []; } catch (e) { return []; } },
+    addMyAd: function (ad) {
+      var all = Store.getMyAds();
+      all.unshift(ad);
+      try { localStorage.setItem(MYADS_KEY, JSON.stringify(all)); } catch (e) {}
+      return all;
+    },
+    getMyAd: function (id) {
+      var hit = Store.getMyAds().filter(function (a) { return String(a.id) === String(id); });
+      return hit.length ? hit[0] : null;
+    },
+    removeMyAd: function (id) {
+      var all = Store.getMyAds().filter(function (a) { return String(a.id) !== String(id); });
+      try { localStorage.setItem(MYADS_KEY, JSON.stringify(all)); } catch (e) {}
+      return all;
     },
 
     /* ----- «اطلاع دهید» روی اطلاعیه‌ی سوگ سریع -----

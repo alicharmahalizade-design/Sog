@@ -62,6 +62,8 @@
   ]).then(function (res) {
     var details = res[0] || {};
     var listings = (res[1] && res[1].listings) || [];
+    /* آگهی‌های ثبت‌شده روی همین دستگاه هم باید باز شوند */
+    if (window.SogStore && SogStore.getMyAds) listings = SogStore.getMyAds().concat(listings);
     ALL_LISTINGS = listings;
     var lst = listings.filter(function (x) { return String(x.id) === String(id); })[0];
     if (lst) { deceasedCity = lst.city; }
