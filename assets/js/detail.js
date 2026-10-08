@@ -2000,59 +2000,150 @@
     return list.filter(Boolean)[0] || null;
   }
 
-  /* استوری سپاسگزاری: متن تشکر خانواده در قالب استوری */
+  /* استوری سپاسگزاری: کارت تیره با تصویر و نام در بالا، متن تشکر، امضا و
+     نوار «اطلاعات بیشتر در سایت سوگ» در پایین.
+     ارتفاع کارت به اندازه‌ی متن است و کل گروه در قاب استوری وسط می‌نشیند. */
   function makeAckStory(d, ack, portrait, logo) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
+    x.direction = "rtl";
 
-    var g = x.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    var glow = x.createRadialGradient(W / 2, 420, 60, W / 2, 420, 620);
-    glow.addColorStop(0, "rgba(217,154,91,.13)"); glow.addColorStop(1, "rgba(217,154,91,0)");
+    x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
+    var glow = x.createRadialGradient(W / 2, 420, 80, W / 2, 420, 950);
+    glow.addColorStop(0, "rgba(217,154,91,.07)"); glow.addColorStop(1, "rgba(217,154,91,0)");
     x.fillStyle = glow; x.fillRect(0, 0, W, H);
-    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(48, 48, W - 96, H - 96);
 
-    x.direction = "rtl"; x.textAlign = "center";
-    if (logo) x.drawImage(logo, W / 2 - 55, 110, 110, 110);
+    var CX = 56, CW = W - CX * 2, PAD = 52, innerW = CW - PAD * 2;
+    var PH = 190, HEAD_GAP = 72, SIGN_GAP = 120;
+    var FOOT_H = 132, FOOT_GAP = 30, MARGIN = 110;
 
-    drawPortrait(x, portrait, W / 2, 450, 150);
-    drawCeremonyBadge(x, "سپاسگزاری", W / 2, 650);
+    /* ۱) اندازه‌ی متن را طوری انتخاب می‌کنیم که گروه در ارتفاع قاب جا شود */
+    var paras = String(ack && ack.text ? ack.text : "").split(/\n+/)
+      .map(function (t) { return t.trim(); }).filter(Boolean);
+    var roomForCard = H - MARGIN * 2 - FOOT_H - FOOT_GAP;
+    var fixed = PAD + PH + HEAD_GAP + SIGN_GAP + 24 + PAD;   /* همه‌چیز جز خود متن */
 
-    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 60);
-    x.fillText(d.deceased_name, W / 2, 760);
-
-    x.strokeStyle = "#333"; x.lineWidth = 2;
-    x.beginPath(); x.moveTo(W / 2 - 180, 810); x.lineTo(W / 2 + 180, 810); x.stroke();
-
-    /* متن سپاسگزاری با اندازه‌ی خودتنظیم تا در کادر جا شود */
-    var text = String(ack && ack.text ? ack.text : "");
-    var size = 42, lineH, used, maxW = W - 220, boxTop = 880, boxBottom = H - 330;
-    do {
+    var size = 42, lineH, gap, textH;
+    while (true) {
       x.font = "400 " + size + "px Vazirmatn, Tahoma";
-      lineH = Math.round(size * 1.9);
-      used = measureWrapped(x, text, maxW, lineH);
+      lineH = Math.round(size * 2.05);
+      gap = Math.round(size * 0.9);
+      textH = paras.reduce(function (sum, t) {
+        return sum + measureWrapped(x, t, innerW, lineH) + gap;
+      }, 0) - gap;
+      if (textH < 0) textH = 0;
+      if (fixed + textH <= roomForCard || size <= 22) break;
       size -= 2;
-    } while (used > (boxBottom - boxTop) && size > 22);
+    }
 
-    x.fillStyle = "#e2e2e2";
-    wrapText(x, text, W / 2, boxTop + lineH, maxW, lineH);
+    var CH = fixed + textH;
+    var groupH = CH + FOOT_GAP + FOOT_H;
+    var CY = Math.round((H - groupH) / 2);
 
-    /* امضا و تاریخ */
-    var signY = boxTop + used + 90;
-    if (signY > H - 240) signY = H - 240;
+    /* ۲) کارت */
+    roundPath(x, CX, CY, CW, CH, 40);
+    x.fillStyle = "#121212"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.07)"; x.lineWidth = 2; x.stroke();
+
+    var right = CX + CW - PAD, left = CX + PAD;
+
+    /* سربرگ: تصویر سمت چپ، برچسب و نام سمت راست */
+    var phTop = CY + PAD;
+    drawFramedPhoto(x, portrait, left, phTop, PH, PH, 22);
+
+    x.textAlign = "right";
+    x.fillStyle = "#d99a5b"; x.font = "700 34px Vazirmatn, Tahoma";
+    x.fillText("سپاسگزاری", right, phTop + 52);
+
+    x.fillStyle = "#f4f4f4";
+    var nameSize = 58;
+    do { x.font = "700 " + nameSize + "px Vazirmatn, Tahoma"; nameSize -= 2; }
+    while (x.measureText(d.deceased_name).width > innerW - PH - 40 && nameSize > 32);
+    x.fillText(d.deceased_name, right, phTop + 132);
+
+    /* ۳) متن */
+    x.fillStyle = "#dcdcdc";
+    x.font = "400 " + size + "px Vazirmatn, Tahoma";
+    var y = phTop + PH + HEAD_GAP + lineH;
+    paras.forEach(function (t) {
+      var h = measureWrapped(x, t, innerW, lineH);
+      drawJustified(x, t, right, y, innerW, lineH);
+      y += h + gap;
+    });
+
+    /* ۴) امضا سمت راست و تاریخ سمت چپ، روی یک خط */
+    var signY = phTop + PH + HEAD_GAP + textH + SIGN_GAP;
     if (ack && ack.signature) {
-      x.fillStyle = "#d99a5b"; x.font = "700 40px Vazirmatn, Tahoma";
-      x.fillText(ack.signature, W / 2, signY);
+      x.textAlign = "right";
+      x.fillStyle = "#cfcfcf"; x.font = "700 36px Vazirmatn, Tahoma";
+      x.fillText(ack.signature, right, signY);
     }
     if (ack && ack.date) {
+      x.textAlign = "left";
       x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma";
-      x.fillText(ack.date, W / 2, signY + 54);
+      x.fillText(ack.date, left, signY);
     }
 
-    x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
-    x.fillText("اطلاعات بیشتر در سوگ", W / 2, H - 130);
+    /* ۵) نوار پایین: لوگو، متن و فلش */
+    var fy = CY + CH + FOOT_GAP;
+    roundPath(x, CX, fy, CW, FOOT_H, 34);
+    x.fillStyle = "#151515"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.08)"; x.lineWidth = 2; x.stroke();
+
+    if (logo) {
+      var LS = 84, lx = CX + 30, ly = fy + (FOOT_H - LS) / 2;
+      roundPath(x, lx, ly, LS, LS, 18);
+      x.save(); x.clip();
+      x.fillStyle = "#fff"; x.fillRect(lx, ly, LS, LS);
+      x.drawImage(logo, lx + 4, ly + 4, LS - 8, LS - 8);
+      x.restore();
+    }
+
+    /* متن وسط نوار و فلش دقیقاً کنارش، تا روی هم نیفتند */
+    var label = "اطلاعات بیشتر در سایت سوگ";
+    x.font = "700 38px Vazirmatn, Tahoma";
+    var tw = x.measureText(label).width;
+    var cxLabel = CX + CW / 2 + 40;
+    x.textAlign = "center";
+    x.fillStyle = "#e8e8e8";
+    x.fillText(label, cxLabel, fy + FOOT_H / 2 + 14);
+
+    var ax = cxLabel - tw / 2 - 46, ay = fy + FOOT_H / 2;
+    x.strokeStyle = "#9a9a9a"; x.lineWidth = 4;
+    x.lineCap = "round"; x.lineJoin = "round";
+    x.beginPath(); x.moveTo(ax - 16, ay - 8); x.lineTo(ax, ay + 10); x.lineTo(ax + 16, ay - 8); x.stroke();
+
+    x.textAlign = "center";
     return x.canvas;
+  }
+
+  /* متن راست‌چینِ دوطرفه‌چین: فاصله‌ی بین کلمات کشیده می‌شود تا هر سطر
+     (جز سطر آخر) هر دو لبه را پر کند. */
+  function drawJustified(ctx, text, right, y, maxW, lineH) {
+    var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = [];
+    words.forEach(function (w) {
+      var test = line.concat(w).join(" ");
+      if (ctx.measureText(test).width > maxW && line.length) { lines.push(line); line = [w]; }
+      else line.push(w);
+    });
+    if (line.length) lines.push(line);
+
+    var space = ctx.measureText(" ").width;
+    lines.forEach(function (ws, i) {
+      var ly = y + i * lineH;
+      var last = i === lines.length - 1;
+      if (last || ws.length < 2) { ctx.textAlign = "right"; ctx.fillText(ws.join(" "), right, ly); return; }
+      var wordsW = ws.reduce(function (sum, w) { return sum + ctx.measureText(w).width; }, 0);
+      var extra = (maxW - wordsW) / (ws.length - 1);
+      if (extra < space) extra = space;          /* هرگز از فاصله‌ی عادی کمتر نشود */
+      ctx.textAlign = "right";
+      var cursor = right;
+      ws.forEach(function (w) {
+        ctx.fillText(w, cursor, ly);
+        cursor -= ctx.measureText(w).width + extra;
+      });
+    });
+    ctx.textAlign = "right";
   }
 
   /* ارتفاع مورد نیاز متن چندخطی را حساب می‌کند (بدون کشیدن) */
