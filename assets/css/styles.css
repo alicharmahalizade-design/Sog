@@ -252,7 +252,7 @@ option { direction: rtl; text-align: right; }
   margin: -4px -6px 0 0;
 }
 .bookmark-btn.is-saved { color: var(--accent); }
-.tags { display: flex; gap: 6px; flex-wrap: wrap; order: 1; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; order: 1; min-width: 0; }
 .tag {
   padding: 3px 12px; border-radius: 8px;
   font-size: 12px; font-weight: 500;
@@ -775,9 +775,13 @@ option { direction: rtl; text-align: right; }
 }
 
 /* ---------- اطلاعیه‌ی سوگ سریع ---------- */
+/* چیپ اطلاعیه ردیف خودش را دارد و همیشه یک‌خطی است؛
+   روی صفحه‌های باریک کمی کوچک‌تر می‌شود تا نشکند */
+.notice-line { display: flex; margin: 8px 0 2px; min-width: 0; }
 .tag.is-pending {
   background: rgba(217,154,91,.14); color: #d9a96b;
-  white-space: normal; line-height: 1.8;
+  white-space: nowrap; padding-inline: 9px;
+  font-size: clamp(9px, 2.9vw, 12px);
 }
 .bell-btn.is-saved { color: var(--accent); }
 

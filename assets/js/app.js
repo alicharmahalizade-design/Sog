@@ -824,10 +824,11 @@
     var top = el("div", "listing-top");
     var tags = el("div", "tags");
     if (item.pending) tags.appendChild(el("span", "tag is-review", "در انتظار تأیید"));
-    if (notice) {
-      /* اطلاعیه‌ی سوگ سریع: هنوز مراسمی ثبت نشده */
-      tags.appendChild(el("span", "tag is-pending", "جزئیات مراسم متعاقباً اعلام خواهد شد"));
-    } else {
+    /* اطلاعیه‌ی سوگ سریع: چیپ ردیف خودش را می‌گیرد تا یک‌خطی جا شود */
+    var noticeTag = notice
+      ? el("div", "notice-line", '<span class="tag is-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</span>')
+      : null;
+    if (!notice) {
       (item.ceremony_labels || []).forEach(function (lbl) {
         var t = el("span", "tag", lbl);
         t.dataset.type = item.ceremony_type;
@@ -877,6 +878,7 @@
     marquee(name); marquee(meta);
 
     body.appendChild(top);
+    if (noticeTag) body.appendChild(noticeTag);
     body.appendChild(name);
     body.appendChild(meta);
 
