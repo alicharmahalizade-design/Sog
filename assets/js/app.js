@@ -885,6 +885,8 @@
 
     card.addEventListener("click", function () {
       SogStore.markSeen(item.id);
+      /* اطلاعیه هنوز صفحه‌ی کاملی ندارد؛ همان چیزی که ثبت شده را نشان می‌دهیم */
+      if (notice) { openNoticeSheet(item); return; }
       location.href = "listing.html?id=" + encodeURIComponent(item.id);
     });
 
@@ -914,6 +916,96 @@
       (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
       ' stroke-width="1.7" stroke-linejoin="round"/>' +
       '<path d="M10 18a2 2 0 004 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+  }
+
+  /* ---------- کادر اطلاعیه‌ی سوگ ----------
+     کلیک روی کارتِ ثبت سریع، به‌جای صفحه‌ی تکی، همین کادر را باز می‌کند و
+     دقیقاً همان چیزی را نشان می‌دهد که هنگام ثبت پر شده است. */
+  function openNoticeSheet(item) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "notify-sheet notice-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    function done() {
+      sheet.classList.remove("is-in"); back.classList.remove("is-in");
+      setTimeout(function () { sheet.remove(); back.remove(); document.body.style.overflow = ""; }, 200);
+    }
+
+    function paintInfo() {
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<div class="nt-hero">' +
+          '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+          '<span class="nt-badge">اطلاعیه سوگ</span>' +
+          '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
+          '<p class="nt-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</p>' +
+        "</div>" +
+        '<div class="nt-facts"></div>' +
+        (item.notice_text ? '<blockquote class="nt-text">' + esc(item.notice_text) + "</blockquote>" : "") +
+        '<div class="nt-cta"></div>';
+
+      /* کارت‌های اطلاعات؛ فقط چیزهایی که پر شده‌اند */
+      var facts = sheet.querySelector(".nt-facts");
+      [["شهر", item.city], ["تاریخ", item.event_date_jalali],
+       ["نام پدر", item.father], ["طایفه", item.tayefe]].forEach(function (f) {
+        if (!f[1]) return;
+        var c = el("div", "nt-fact");
+        c.innerHTML = '<span class="nf-lbl">' + f[0] + "</span>" +
+                      '<span class="nf-val">' + esc(f[1]) + "</span>";
+        facts.appendChild(c);
+      });
+
+      var cta = sheet.querySelector(".nt-cta");
+      var n = SogStore.getNotifyCount(item.id);
+      if (n) cta.appendChild(el("p", "nt-count", faNum(n) + " نفر منتظر خبر مراسم‌اند"));
+
+      var bell = el("button", "nt-bell");
+      bell.type = "button";
+      bell.innerHTML = bellSvg(false) + "<span>خبرم کنید وقتی مراسم مشخص شد</span>";
+      bell.addEventListener("click", paintPhone);
+      cta.appendChild(bell);
+
+      var close = el("button", "nt-close", "بستن");
+      close.type = "button";
+      close.addEventListener("click", done);
+      cta.appendChild(close);
+    }
+
+    function paintPhone() {
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<h3 class="ns-title">خبرم کنید</h3>' +
+        '<p class="ns-sub">به‌محض اینکه زمان و مکان مراسم‌های ' + esc(item.deceased_name) +
+          ' مشخص شد، با پیامک به شما اطلاع می‌دهیم.</p>' +
+        '<label class="ns-label">شماره موبایل</label>' +
+        '<input class="ns-input" type="tel" inputmode="numeric" placeholder="۰۹…" maxlength="13">' +
+        '<div class="ns-actions">' +
+          '<button type="button" class="ns-cancel">بازگشت</button>' +
+          '<button type="button" class="ns-ok">ثبت شماره</button>' +
+        "</div>";
+      var input = sheet.querySelector(".ns-input");
+      var user = (SogStore.getUser && SogStore.getUser()) || {};
+      if (user.phone) input.value = user.phone;
+      sheet.querySelector(".ns-cancel").addEventListener("click", paintInfo);
+      sheet.querySelector(".ns-ok").addEventListener("click", function () {
+        var k = SogStore.phoneKey(input.value);
+        if (!/^09\d{9}$/.test(k)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); input.focus(); return; }
+        if (SogStore.hasNotified(item.id, k)) { toast("این شماره قبلاً ثبت شده است."); paintInfo(); return; }
+        SogStore.addNotify(item.id, k);
+        markNoticeMine(item.id);
+        done();
+        renderFeed();
+        toast("ثبت شد؛ به‌محض مشخص شدن مراسم خبرتان می‌کنیم.");
+      });
+      input.focus();
+    }
+
+    paintInfo();
+    back.addEventListener("click", done);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
   }
 
   /* کادر پایین‌آمدنی برای گرفتن شماره‌ی موبایل */
