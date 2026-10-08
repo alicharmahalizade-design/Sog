@@ -9,20 +9,20 @@
 
   /* آیکون‌های دسته */
   var CAT_ICON = {
-    quran: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 6C10 4.7 6.5 4.7 4 5.5v13c2.5-.8 6-.8 8 .5 2-1.3 5.5-1.3 8-.5v-13C17.5 4.7 14 4.7 12 6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 6v13" stroke="currentColor" stroke-width="1.4"/></svg>',
-    stone: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M6 21V9a6 6 0 0112 0v12" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4 21h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9 12h6M9 15h6" stroke="currentColor" stroke-width="1.4"/></svg>',
-    print: '<svg viewBox="0 0 24 24" width="26" height="26"><rect x="6" y="3" width="12" height="6" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="9" width="16" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="7" y="15" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
-    flower: '<svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="11" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="11" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 12v9" stroke="currentColor" stroke-width="1.6"/></svg>',
-    chair: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M7 10V5h10v5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="6" y="10" width="12" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 14v6M17 14v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    dates: '<svg viewBox="0 0 24 24" width="26" height="26"><ellipse cx="12" cy="15" rx="8" ry="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6 15c2-5 10-5 12 0" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    food: '<svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-    car: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 15h14l-1.5-5H6.5L5 15z" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="15" width="16" height="3" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="18.5" r="1.4" fill="currentColor"/><circle cx="16" cy="18.5" r="1.4" fill="currentColor"/></svg>',
-    candle: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
-    mic: '<svg viewBox="0 0 24 24" width="26" height="26"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6 12a6 6 0 0012 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
+    quran: SogIcon("quran", 26),
+    stone: SogIcon("stone", 26),
+    print: SogIcon("print", 26),
+    flower: SogIcon("flower", 26),
+    chair: SogIcon("chair", 26),
+    dates: SogIcon("dates", 26),
+    food: SogIcon("food", 26),
+    car: SogIcon("car", 26),
+    candle: SogIcon("candle", 26),
+    mic: SogIcon("reciter", 26)
   };
-  var STAR = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.9 6.6 19.4l1.2-6L3.4 9.3l6-.7L12 3z" fill="currentColor"/></svg>';
-  var CHECK = '<svg viewBox="0 0 24 24" width="11" height="11"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var CALL = '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>';
+  var STAR = SogIcon("star", 14);
+  var CHECK = SogIcon("check", 11);
+  var CALL = SogIcon("call", 20);
 
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
   /* یکسان‌سازی حروف عربی/فارسی و نیم‌فاصله تا جستجو به شکل نوشتن حساس نباشد */
@@ -219,7 +219,7 @@
     }
 
     var actions = el("div", "biz-actions");
-    var order = el("button", "btn-order", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/></svg> سفارش سریع');
+    var order = el("button", "btn-order", '' + SogIcon("cart", 18) + ' سفارش سریع');
     order.type = "button";
     order.addEventListener("click", function () { openOrder(b); });
     var call = el("button", "btn-call", CALL); call.type = "button";
@@ -265,14 +265,14 @@
   }
 
   /* ---------- نمایش آکاردئونی ---------- */
-  var CHEV = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var STAR_O = '<svg viewBox="0 0 24 24" width="13" height="13"><path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6L12 4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+  var CHEV = SogIcon("chevron", 22);
+  var STAR_O = SogIcon("star", 13);
   var ICO = {
-    call: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
-    sms: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    whatsapp: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.5-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 8.5c0 4 3 7 7 7 .8 0 1.2-.4 1.2-1.2l-2-1-1 1c-1.3-.6-2.4-1.7-3-3l1-1-1-2c-.8 0-2.2.4-2.2 1.2z" fill="currentColor"/></svg>',
-    eitaa: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M21 4L3 11l5 2 2 5 3-4 4 3 4-13z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg>'
+    call: SogIcon("call", 22),
+    sms: SogIcon("sms", 22),
+    whatsapp: SogIcon("whatsapp", 22),
+    eitaa: SogIcon("telegram", 22),
+    instagram: SogIcon("instagram", 22)
   };
 
   /* کسب‌وکارهای یک دسته با در نظر گرفتن شهر، جستجو و زیرشاخه‌ی انتخاب‌شده */
@@ -333,7 +333,7 @@
     wrap.appendChild(more);
 
     var rep = el("button", "acc-report",
-      '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> گزارش خطا');
+      '' + SogIcon("report", 14) + ' گزارش خطا');
     rep.type = "button";
     rep.addEventListener("click", function () { openBizReport(b); });
     wrap.appendChild(rep);
@@ -370,7 +370,7 @@
     sheet.setAttribute("aria-modal", "true");
     sheet.setAttribute("aria-label", "گزارش خطا");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
 
     var form = el("form", "report-form");
@@ -574,7 +574,7 @@
       localStorage.setItem("sog:orders", JSON.stringify(orders));
     } catch (e) {}
     e.target.replaceWith(el("div", "order-success",
-      '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
       '<p>در حال انتقال به واتساپ برای ارسال سفارش به «' + esc(currentBiz.name) + '»…</p>'));
     window.open(link, "_blank");
     setTimeout(closeOrder, 2200);

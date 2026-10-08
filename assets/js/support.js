@@ -109,7 +109,7 @@
     var m = Math.floor(sec / 60), s = sec % 60;
     return m + ":" + (s < 10 ? "0" + s : s);
   }
-  function iconSpeaker() { return '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8 8 0 010 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'; }
+  function iconSpeaker() { return SogIcon("sound", 15); }
   var speaking = null;
   function speak(text, btn) {
     if (!("speechSynthesis" in window)) { toast("خواندن متن در این مرورگر پشتیبانی نمی‌شود."); return; }
@@ -132,8 +132,8 @@
     window.speechSynthesis.speak(u);
   }
 
-  function iconPlay() { return '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>'; }
-  function iconPause() { return '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor"/></svg>'; }
+  function iconPlay() { return SogIcon("play", 18); }
+  function iconPause() { return '' + SogIcon("pause", 18) + ''; }
 
   function paint() {
     log.innerHTML = "";

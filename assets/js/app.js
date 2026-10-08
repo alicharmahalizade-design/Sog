@@ -280,12 +280,12 @@
 
     var head = el("div", "sheet-head");
     head.appendChild(el("span", null, "انتخاب شهر"));
-    var close = el("button", "icon-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "icon-btn", SogIcon("close", 22, 2));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
     head.appendChild(close);
 
     var search = el("div", "city-search");
-    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    search.innerHTML = SogIcon("search", 20).replace("<svg ", '<svg class="search-icon" ');
     var input = document.createElement("input");
     input.type = "search"; input.placeholder = "جستجوی شهر…"; input.setAttribute("aria-label", "جستجوی شهر");
     search.appendChild(input);
@@ -362,7 +362,7 @@
       '<p>می‌توانید چند شهر یا کل یک استان را انتخاب کنید.</p>';
 
     var search = el("div", "cob-search");
-    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    search.innerHTML = SogIcon("search", 20).replace("<svg ", '<svg class="search-icon" ');
     var input = document.createElement("input");
     input.type = "search"; input.placeholder = "جستجوی شهر یا استان…";
     input.setAttribute("aria-label", "جستجوی شهر یا استان");
@@ -415,7 +415,7 @@
     var foot = el("div", "cob-foot");
     foot.appendChild(skip); foot.appendChild(confirm);
 
-    var closeBtn = el("button", "cob-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var closeBtn = el("button", "cob-close", SogIcon("close", 22, 2));
     closeBtn.type = "button";
     closeBtn.setAttribute("aria-label", "بستن");
     closeBtn.addEventListener("click", function () { if (opts.multi) close(); else useAllIran(); });
@@ -484,7 +484,7 @@
         var b = el("button", "cob-city" + (picked[selKey(sel)] ? " is-on" : ""));
         b.type = "button";
         b.dataset.key = selKey(sel);
-        b.innerHTML = '<span class="cob-tick"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+        b.innerHTML = '<span class="cob-tick">' + SogIcon("check", 13, 2.4) + '</span>' +
           "<span class=\"cob-cname\">" + esc(name) + "</span>" +
           (prov && opts.showProv ? '<span class="cob-prov">' + esc(prov) + "</span>" : "");
         b.addEventListener("click", function () { toggle(sel, b); });
@@ -519,7 +519,7 @@
           h.setAttribute("aria-expanded", "false");
           h.innerHTML = '<span class="cob-name">' + esc(p) + '</span>' +
             '<span class="cob-count">' + toFa((provinces[p] || []).length) + '</span>' +
-            '<span class="cob-chev"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+            '<span class="cob-chev">' + SogIcon("chevron", 20) + '</span>';
 
           var provSel = { slug: "p-" + citySlugFor(p), name: p, isProvince: true, cities: provinces[p] || [] };
           var all = el("span", "cob-all" + (picked[selKey(provSel)] ? " is-on" : ""), "کل استان");
@@ -617,7 +617,7 @@
 
     /* «نزدیک من» بعد از شهرهای کاربر */
     var gps = el("button", "city-chip is-gps",
-      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+      '<span class="chip-label">نزدیک من</span>' + SogIcon("pin", 15));
     gps.type = "button";
     gps.addEventListener("click", useNearMe);
     bar.appendChild(gps);
@@ -693,7 +693,7 @@
 
     // نزدیک من (GPS)
     var gps = el("button", "tool-chip tool-gps",
-      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg> نزدیک من');
+      SogIcon("pin", 15) + ' نزدیک من');
     gps.type = "button";
     gps.addEventListener("click", useNearMe);
     bar.appendChild(gps);
@@ -716,7 +716,7 @@
     // مرتب‌سازی
     var sortLabel = state.sort === "soonest" ? "نزدیک‌ترین مراسم" : "جدیدترین";
     var sort = el("button", "tool-chip",
-      '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 4v16M7 20l-3-3M7 4l3 3M17 20V4M17 4l-3 3M17 20l3-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + sortLabel);
+      SogIcon("sort", 14) + ' ' + sortLabel);
     sort.type = "button";
     sort.addEventListener("click", function () { state.sort = state.sort === "newest" ? "soonest" : "newest"; renderToolbar(); renderFeed(); });
     bar.appendChild(sort);
@@ -913,11 +913,8 @@
   }
 
   function bellSvg(filled) {
-    return '<svg viewBox="0 0 24 24" width="20" height="20">' +
-      '<path d="M12 3a5 5 0 00-5 5v3.5L5.5 15h13L17 11.5V8a5 5 0 00-5-5z" ' +
-      (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
-      ' stroke-width="1.7" stroke-linejoin="round"/>' +
-      '<path d="M10 18a2 2 0 004 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+    var svg = SogIcon("bell", 20);
+    return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
   }
 
   /* ---------- کادر اطلاعیه‌ی سوگ ----------
@@ -937,11 +934,14 @@
     function paintInfo() {
       sheet.innerHTML =
         '<div class="sheet-handle"></div>' +
+        /* چیدمان افقی: تصویر سمت راست، نام و توضیح سمت چپ */
         '<div class="nt-hero">' +
           '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
-          '<span class="nt-badge">اطلاعیه سوگ</span>' +
-          '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
-          '<p class="nt-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</p>' +
+          '<span class="nt-head">' +
+            '<span class="nt-badge">اطلاعیه سوگ</span>' +
+            '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
+            '<span class="nt-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</span>' +
+          "</span>" +
         "</div>" +
         '<div class="nt-facts"></div>' +
         (item.notice_text ? '<blockquote class="nt-text">' + esc(item.notice_text) + "</blockquote>" : "") +
@@ -1065,10 +1065,8 @@
   }
 
   function bookmarkSvg(filled) {
-    return '<svg viewBox="0 0 24 24" width="20" height="20">' +
-      '<path d="M6 3h12v18l-6-4-6 4V3z" ' +
-      (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
-      ' stroke-width="1.8" stroke-linejoin="round"/></svg>';
+    var svg = SogIcon("bookmark", 20);
+    return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
   }
 
   /* ---------- ماندگاری آگهی در صفحه‌ی اول ----------
@@ -1223,7 +1221,7 @@
 
       list.forEach(function (q) {
         var row = el("div", "sh-item");
-        var go = el("button", "sh-go", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span>' + esc(q) + '</span>');
+        var go = el("button", "sh-go", SogIcon("clock", 15) + '<span>' + esc(q) + '</span>');
         go.type = "button";
         go.addEventListener("mousedown", function (e) { e.preventDefault(); });
         go.addEventListener("click", function () {

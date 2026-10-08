@@ -4,16 +4,16 @@
   var root = document.getElementById("bp");
   var id = new URLSearchParams(location.search).get("id");
 
-  var STAR = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.9 6.6 19.4l1.2-6L3.4 9.3l6-.7L12 3z" fill="currentColor"/></svg>';
+  var STAR = SogIcon("star", 14);
   var IC = {
-    back: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    wa: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 8c0 4 3 7 7 7 .7 0 1-1 .6-1.6l-1.7-.9-1 .9c-1.3-.5-2.3-1.5-2.8-2.8l.9-1-.9-1.7C11 7.1 9.7 7.3 9 8z" fill="currentColor"/></svg>',
-    call: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
-    map: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
-    clock: '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    pin: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
-    cart: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/></svg>'
+    back: SogIcon("back", 22),
+    wa: SogIcon("whatsapp", 20),
+    call: SogIcon("call", 20),
+    map: SogIcon("map", 20),
+    bookmark: SogIcon("bookmark", 20),
+    clock: SogIcon("clock", 16),
+    pin: SogIcon("pin", 16),
+    cart: SogIcon("cart", 20)
   };
   /* اعتبارسنجی کد ملی ایران */
   function validMelli(code) {
@@ -156,7 +156,7 @@
   function reportRow(b) {
     var wrap = el("div", "bp-section bp-report");
     var btn = el("button", "report-error",
-      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> گزارش خطا');
+      '' + SogIcon("report", 15) + ' گزارش خطا');
     btn.type = "button";
     btn.addEventListener("click", function () { openBizReport(b); });
     wrap.appendChild(btn);
@@ -169,7 +169,7 @@
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
     close.setAttribute("aria-label", "بستن");
 
@@ -393,7 +393,7 @@
     var link = SogUtil.waLink(currentBiz.whatsapp || currentBiz.phone, msg);
     // پیام موفقیت + باز کردن واتساپ
     e.target.replaceWith(el("div", "order-success",
-      '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
       '<p>در حال انتقال به واتساپ برای ارسال سفارش به «' + esc(currentBiz.name) + '»…</p>'));
     window.open(link, "_blank");
     setTimeout(closeOrder, 2200);

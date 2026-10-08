@@ -833,34 +833,39 @@ option { direction: rtl; text-align: right; }
 /* ---------- کادر اطلاعیه‌ی سوگ ---------- */
 .notice-sheet { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 
+/* چیدمان افقی: تصویر سمت راست، نام و توضیح سمت چپ */
 .notice-sheet .nt-hero {
-  position: relative; display: flex; flex-direction: column; align-items: center;
+  position: relative; display: flex; align-items: center; gap: 14px;
   padding: 6px 0 18px;
 }
 /* هاله‌ی ملایم پشت تصویر */
 .notice-sheet .nt-hero::before {
-  content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-  width: 230px; height: 230px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(217,154,91,.18), rgba(217,154,91,0) 70%);
+  content: ""; position: absolute; top: -40px; inset-inline-start: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(217,154,91,.16), rgba(217,154,91,0) 70%);
   pointer-events: none;
 }
 .notice-sheet .nt-photo {
-  position: relative; width: 108px; height: 108px; border-radius: 26px;
+  position: relative; flex: 0 0 auto;
+  width: 92px; height: 92px; border-radius: 22px;
   background: #222 center/cover no-repeat;
   border: 1px solid rgba(217,154,91,.45);
   box-shadow: 0 10px 26px rgba(0,0,0,.45);
 }
+.notice-sheet .nt-head {
+  position: relative; flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+}
 .notice-sheet .nt-badge {
-  position: relative; margin-top: 14px;
   font-size: 11.5px; font-weight: 700; color: var(--accent);
   background: rgba(217,154,91,.14); border-radius: 8px; padding: 4px 10px;
 }
 .notice-sheet .nt-name {
-  position: relative; margin: 10px 0 0; font-size: 20px; font-weight: 700;
-  color: var(--text); text-align: center; line-height: 1.5;
+  margin: 0; font-size: 19px; font-weight: 700;
+  color: var(--text); text-align: start; line-height: 1.5;
 }
 .notice-sheet .nt-pending {
-  position: relative; margin: 8px 0 0; font-size: 12.5px; color: var(--text-dim);
+  margin: 0; font-size: 12.5px; line-height: 1.8; color: var(--text-dim); text-align: start;
 }
 
 /* کارت‌های اطلاعات ثبت‌شده */

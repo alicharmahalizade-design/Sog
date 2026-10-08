@@ -9,27 +9,32 @@
 
   /* ---------- آیکون‌ها ---------- */
   var ICON = {
-    back: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    chevron: '<svg class="chev" viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    pin: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
-    share: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="18" cy="5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="19" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3" stroke="currentColor" stroke-width="1.8"/></svg>',
-    story: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="3" width="16" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 19c1.2-2.2 3-3.3 5-3.3s3.8 1.1 5 3.3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    sound: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9c1.5 1.8 1.5 4.2 0 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    soundOff: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9l4 6M21 9l-4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
-    report: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 21V4M5 4h11l-2 3.5L16 11H5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    pencil: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-    candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
-    route: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
-    bell: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    calAdd: '<svg viewBox="0 0 24 24" width="17" height="17"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    call: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
-    sms: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 5h16v11H8l-4 3V5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    whatsapp: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 8c0 4 3 7 7 7 .7 0 1-1 .6-1.6l-1.7-.9-1 .9c-1.3-.5-2.3-1.5-2.8-2.8l.9-1-.9-1.7C11 7.1 9.7 7.3 9 8z" fill="currentColor"/></svg>',
-    telegram: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M21 5L3 12l5 2 2 5 3-3 4 3 4-14z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 14l9-6-6 7" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg>',
+    back: SogIcon("back", 22),
+    /* کلاس chev برای چرخش فلش آکاردئون لازم است */
+    chevron: SogIcon("chevron", 20).replace("<svg ", '<svg class="chev" '),
+    clock: SogIcon("clock", 18),
+    pin: SogIcon("pin", 18),
+    share: SogIcon("share", 22),
+    story: SogIcon("story", 22),
+    sound: SogIcon("sound", 22),
+    soundOff: SogIcon("soundOff", 22),
+    bookmark: function (f) {
+      var svg = SogIcon("bookmark", 22);
+      return f ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
+    },
+    report: SogIcon("report", 16),
+    pencil: SogIcon("pencil", 17),
+    plus: SogIcon("plus", 26, 2.4),
+    candle: SogIcon("candle", 24),
+    route: SogIcon("route", 17),
+    bell: SogIcon("bell", 22),
+    calAdd: SogIcon("calAdd", 17),
+    call: SogIcon("call", 22),
+    sms: SogIcon("sms", 22),
+    whatsapp: SogIcon("whatsapp", 22),
+    telegram: SogIcon("telegram", 22),
+    instagram: SogIcon("instagram", 22),
+    /* ایتا در مجموعه‌های متن‌باز نشان رسمی ندارد */
     eitaa: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 14c2 2 6 2 8-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/></svg>'
   };
 
@@ -488,7 +493,7 @@
     sheet.setAttribute("aria-modal", "true");
     sheet.setAttribute("aria-label", "یادآوری مراسم");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
 
     sheet.appendChild(close);
@@ -530,7 +535,7 @@
         info.appendChild(el("span", "rr-meta",
           esc([c.nextYear ? "سالگرد بعدی: " + c.date : c.date, c.time_from ? "ساعت " + c.time_from : ""].filter(Boolean).join(" • "))));
         row.appendChild(info);
-        row.appendChild(el("span", "rr-check", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'));
+        row.appendChild(el("span", "rr-check", SogIcon("check", 15)));
         row.addEventListener("click", function () {
           chosen[key] = !chosen[key];
           row.classList.toggle("is-on", chosen[key]);
@@ -582,7 +587,7 @@
     sheet.setAttribute("aria-modal", "true");
     sheet.setAttribute("aria-label", "گزارش خطا");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
     close.setAttribute("aria-label", "بستن");
 
@@ -597,7 +602,7 @@
       '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
       '<div class="report-field"><span>بارگذاری تصویر (اختیاری)</span>' +
       '<label class="report-upload"><input type="file" name="photo" accept="image/png,image/jpeg" hidden>' +
-      '<span class="up-ico"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 7l1.4-2.4h3.2L15 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>' +
+      '<span class="up-ico">' + SogIcon("camera", 26) + '</span>' +
       '<span class="up-hint">فرمت قابل پذیرش: png، jpg، jpeg</span></label></div>' +
       '<div class="report-actions">' +
       '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
@@ -641,7 +646,7 @@
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
       form.replaceWith(el("div", "report-done",
-        '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+        '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
         '<p>گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد. با تشکر از همراهی‌تان.</p>'));
       setTimeout(closeReportSheet, 1800);
     });
@@ -773,7 +778,7 @@
       var ig = el("a", "bio-instagram");
       ig.href = "https://instagram.com/" + handle;
       ig.target = "_blank"; ig.rel = "noopener";
-      ig.innerHTML = '<span class="bi-ico"><svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg></span>' +
+      ig.innerHTML = '<span class="bi-ico">' + SogIcon("instagram", 20) + '</span>' +
         '<span class="bi-text">صفحه‌ی اینستاگرام</span>' +
         '<span class="bi-handle">@' + esc(handle) + '</span>';
       wrap.appendChild(ig);
@@ -982,16 +987,16 @@
     lb.setAttribute("aria-modal", "true");
 
     var bar = el("div", "lb-bar");
-    var close = el("button", "lb-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "lb-btn", SogIcon("close", 22));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
-    var share = el("button", "lb-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 16V4M8 8l4-4 4 4M5 14v5h14v-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var share = el("button", "lb-btn", SogIcon("upload", 22));
     share.type = "button"; share.setAttribute("aria-label", "هم‌رسانی");
     bar.appendChild(close); bar.appendChild(share);
 
     var stage = el("div", "lb-stage");
     var img = el("img", "lb-img"); img.alt = "";
-    var prev = el("button", "lb-nav lb-prev", '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-    var next = el("button", "lb-nav lb-next", '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var prev = el("button", "lb-nav lb-prev", SogIcon("chevLeft", 24));
+    var next = el("button", "lb-nav lb-next", SogIcon("chevRight", 24));
     prev.type = next.type = "button";
     prev.setAttribute("aria-label", "تصویر قبلی"); next.setAttribute("aria-label", "تصویر بعدی");
     var count = el("span", "lb-count");
@@ -1092,7 +1097,7 @@
       if (!owner) return;
 
       var add = el("label", "event-add-photo");
-      add.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+      add.innerHTML = SogIcon("plus", 18) +
         "<span>افزودن تصویر مراسم " + esc(c.title || "") + "</span>";
       var inp = document.createElement("input");
       inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
@@ -1423,7 +1428,7 @@
     var item = el("div", "condolence-item is-mine is-open");
     var head = el("div", "cond-head");
     head.innerHTML = '<span class="cond-logo mine-avatar">' +
-      '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
+      '' + SogIcon("user", 22) + '</span>' +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
       '<span class="mine-badge">شما</span>';
     var body = el("div", "cond-body");
@@ -1458,7 +1463,7 @@
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
 
     var form = el("form", "report-form");
@@ -1696,7 +1701,7 @@
     var logo = '<img class="cond-logo" src="' + esc(cd.logo) + '" alt="">';
     /* همدردی اداریِ تأییدشده نشان می‌گیرد */
     var verified = cd.kind === "org" && cd.verified
-      ? '<span class="cond-verified" title="تأییدشده"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+      ? '<span class="cond-verified" title="تأییدشده">' + SogIcon("check", 11) + '</span>'
       : "";
     head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + ICON.chevron;
     var body = el("div", "cond-body");
@@ -2171,7 +2176,7 @@
           box.setAttribute("aria-modal", "true");
           box.setAttribute("aria-label", "استوری آگهی");
 
-          var close = el("button", "story-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+          var close = el("button", "story-close", SogIcon("close", 22));
           close.type = "button"; close.setAttribute("aria-label", "بستن");
 
           var img = el("img", "story-img"); img.src = url; img.alt = "استوری " + d.deceased_name;

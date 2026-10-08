@@ -6,11 +6,11 @@
   var active = document.body.getAttribute("data-nav") || "";
 
   var ICON = {
-    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 11l8-7 8 7M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    business: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 9l1-4h14l1 4M5 9v10h14V9M4 9h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    saved: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 3h12v18l-6-4-6 4V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-    account: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    register: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+    home: SogIcon("home", 24),
+    business: SogIcon("business", 24),
+    saved: SogIcon("saved", 24),
+    account: SogIcon("account", 24),
+    register: SogIcon("register", 18)
   };
 
   /* اگر کاربر عکس پروفایل دارد، به‌جای آیکون آدمک همان عکس در نوار پایین می‌نشیند */

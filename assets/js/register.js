@@ -306,7 +306,7 @@
         box.appendChild(rm);
       } else {
         box.appendChild(el("span", "slot-txt",
-          '<svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7l1.3-2.2h3.4L15 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' + esc(label)));
+          '' + SogIcon("camera", 18) + ' ' + esc(label)));
       }
       var inp = document.createElement("input");
       inp.type = "file"; inp.accept = "image/*"; inp.hidden = true;
@@ -333,7 +333,7 @@
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
         x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { ev.photos.splice(i, 1); paint(); });
-        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        var ed = el("button", "bio-thumb-edit", SogIcon("pencil", 14));
         ed.type = "button";
         ed.setAttribute("aria-label", "ویرایش تصویر");
         ed.addEventListener("click", function () {
@@ -403,7 +403,7 @@
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
         x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { data.bio_photos.splice(i, 1); paint(); });
-        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        var ed = el("button", "bio-thumb-edit", SogIcon("pencil", 14));
         ed.type = "button";
         ed.setAttribute("aria-label", "ویرایش تصویر");
         ed.addEventListener("click", function () {
@@ -704,10 +704,10 @@
       var pair = el("div", "final-pair");
       var thanksBtn = el("button", "pair-btn" + (data.thanks ? " is-on" : ""));
       thanksBtn.type = "button";
-      thanksBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span><span>متن سپاسگزاری</span>';
+      thanksBtn.innerHTML = '<span class="pair-ico">' + SogIcon("thanks", 24) + '</span><span>متن سپاسگزاری</span>';
       var condBtn = el("button", "pair-btn is-off");
       condBtn.type = "button";
-      condBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span>ثبت همدردی</span>';
+      condBtn.innerHTML = '<span class="pair-ico">' + SogIcon("condole", 24) + '</span><span>ثبت همدردی</span>';
       condBtn.disabled = true;
       condBtn.title = "پس از انتشار آگهی، بازدیدکنندگان می‌توانند همدردی ثبت کنند";
       pair.appendChild(thanksBtn); pair.appendChild(condBtn);
@@ -774,11 +774,11 @@
 
     p.appendChild(card("quick", "ثبت سریع اطلاعیه سوگ", "زمان ثبت ۳۰ ثانیه",
       "اگر هنوز زمان و مکان و جزییات مراسم مشخص نشده، همین حالا خبر فوت را ثبت و استوری کنید.",
-      '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'));
+      SogIcon("zap", 26)));
 
     p.appendChild(card("full", "ثبت کامل سوگ", "زمان ثبت ۶ دقیقه",
       "ثبت کامل اعم از زمان، مکان، نشانی و مراسم‌ها (خاکسپاری، ختم، چهلم، سالگرد و…).",
-      '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 3h14v18l-7-4-7 4V3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'));
+      SogIcon("bookmark", 26)));
 
     return p;
   }
