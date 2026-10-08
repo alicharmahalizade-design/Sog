@@ -810,21 +810,3 @@
 }
 .lb-thumb.is-on { border-color: var(--accent); }
 
-/* مراسم‌های برگزارشده: یک کارت یکپارچه با تفکیک داخلی */
-.event-merged {
-  margin: 0 14px 14px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-.event-merged .accordion {
-  margin: 0;
-  border-radius: 0;
-  background: transparent;
-}
-/* خط جداکننده بین مراسم‌ها، با کمی تورفتگی از دو لبه */
-.event-merged .accordion + .accordion > .acc-head { position: relative; }
-.event-merged .accordion + .accordion > .acc-head::before {
-  content: ""; position: absolute; top: 0; inset-inline: 14px;
-  height: 1px; background: #2e2a25;
-}

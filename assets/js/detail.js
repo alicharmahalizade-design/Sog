@@ -188,7 +188,7 @@
     root.appendChild(reportError(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
-    root.appendChild(ceremoniesBlock(d.ceremonies || []));
+    (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
     if (d.acknowledgment) root.appendChild(ackAccordion(d.acknowledgment));
     if (d.chehelom) root.appendChild(eventAccordion(d.chehelom));
     var anniv = anniversariesSection(d.anniversaries);
@@ -898,25 +898,6 @@
     return acc;
   }
   function eventAccordion(c) { return markPast(accordion(c.title, eventBody(c)), c); }
-
-  /* مراسم‌ها: تا وقتی دست‌کم یکی برگزار نشده، هر کدام کارت جداگانه‌ی خودش را
-     دارد. وقتی هر سه «برگزار شد» شدند، در یک کارت یکپارچه جمع می‌شوند و فقط
-     با خط جداکننده از هم تفکیک می‌مانند. */
-  function ceremoniesBlock(list) {
-    var frag = document.createDocumentFragment();
-    if (!list.length) return frag;
-
-    var allPast = list.every(isPastEvent);
-    if (!allPast) {
-      list.forEach(function (c) { frag.appendChild(eventAccordion(c)); });
-      return frag;
-    }
-
-    var merged = el("section", "event-merged");
-    list.forEach(function (c) { merged.appendChild(eventAccordion(c)); });
-    frag.appendChild(merged);
-    return frag;
-  }
 
   /* ---------- کاروسل افقی ----------
      اسکرول افقی با snap، بخشی از تصویر بعدی پیداست و خودکار می‌چرخد.
