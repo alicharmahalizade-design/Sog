@@ -49,6 +49,14 @@
   }
 
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[+d]; }); }
+  var toastEl;
+  function toast(msg) {
+    if (!toastEl) { toastEl = el("div", "toast"); document.body.appendChild(toastEl); }
+    toastEl.textContent = msg; toastEl.classList.add("show");
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function () { toastEl.classList.remove("show"); }, 2400);
+  }
 
   /* ---------- اسکلتون لودینگ ---------- */
   function renderSkeletons() {
@@ -809,32 +817,54 @@
     var body = el("div", "listing-body");
 
     // بالای کارت: برچسب‌ها + بوکمارک
+    var notice = isNotice(item);
+    if (notice) card.classList.add("is-notice");
+
     var top = el("div", "listing-top");
     var tags = el("div", "tags");
-    (item.ceremony_labels || []).forEach(function (lbl) {
-      var t = el("span", "tag", lbl);
-      t.dataset.type = item.ceremony_type;
-      tags.appendChild(t);
-    });
+    if (notice) {
+      /* اطلاعیه‌ی سوگ سریع: هنوز مراسمی ثبت نشده */
+      tags.appendChild(el("span", "tag is-pending", "جزئیات مراسم متعاقباً اعلام خواهد شد"));
+    } else {
+      (item.ceremony_labels || []).forEach(function (lbl) {
+        var t = el("span", "tag", lbl);
+        t.dataset.type = item.ceremony_type;
+        tags.appendChild(t);
+      });
+    }
+
     var actions = el("div", "card-actions");
     actions.style.cssText = "display:flex;align-items:flex-start;order:2";
-    var saved = SogStore.isSaved(item.id);
-    var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
-    bm.type = "button";
-    bm.setAttribute("aria-label", "ذخیره");
-    bm.innerHTML = bookmarkSvg(saved);
-    bm.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var now = SogStore.toggleSaved(item.id);
-      bm.classList.toggle("is-saved", now);
-      bm.innerHTML = bookmarkSvg(now);
-    });
-    actions.appendChild(bm);
+    if (notice) {
+      /* به‌جای ذخیره، زنگوله‌ی «اطلاع دهید» */
+      var on = SogStore.getNotifyCount(item.id) > 0 && noticeMine(item.id);
+      var bell = el("button", "bookmark-btn bell-btn" + (on ? " is-saved" : ""));
+      bell.type = "button";
+      bell.setAttribute("aria-label", "اطلاع دهید وقتی مراسم مشخص شد");
+      bell.innerHTML = bellSvg(on);
+      bell.addEventListener("click", function (e) {
+        e.stopPropagation();
+        openNotifySheet(item, bell);
+      });
+      actions.appendChild(bell);
+    } else {
+      var saved = SogStore.isSaved(item.id);
+      var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
+      bm.type = "button";
+      bm.setAttribute("aria-label", "ذخیره");
+      bm.innerHTML = bookmarkSvg(saved);
+      bm.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var now = SogStore.toggleSaved(item.id);
+        bm.classList.toggle("is-saved", now);
+        bm.innerHTML = bookmarkSvg(now);
+      });
+      actions.appendChild(bm);
+    }
     top.appendChild(tags);
     top.appendChild(actions);
 
     var name = el("h3", "listing-name", '<span class="mq-inner">' + item.deceased_name + '</span>');
-    var divider = el("div", "listing-divider");
 
     var meta = el("div", "listing-meta");
     meta.innerHTML = '<span class="mq-inner">' +
@@ -846,7 +876,6 @@
 
     body.appendChild(top);
     body.appendChild(name);
-    body.appendChild(divider);
     body.appendChild(meta);
 
     card.appendChild(photo);
@@ -858,6 +887,85 @@
     });
 
     return card;
+  }
+
+  /* اطلاعیه‌ی سوگ سریع: مراسمی ثبت نشده است */
+  function isNotice(item) {
+    return !!item.is_notice || !(item.ceremony_labels && item.ceremony_labels.length);
+  }
+  /* آیا روی همین دستگاه شماره ثبت کرده‌ایم؟ */
+  function noticeMine(id) {
+    try { return (JSON.parse(localStorage.getItem("sog:notifyMine")) || []).indexOf(String(id)) !== -1; }
+    catch (e) { return false; }
+  }
+  function markNoticeMine(id) {
+    try {
+      var a = JSON.parse(localStorage.getItem("sog:notifyMine")) || [];
+      if (a.indexOf(String(id)) === -1) a.push(String(id));
+      localStorage.setItem("sog:notifyMine", JSON.stringify(a));
+    } catch (e) {}
+  }
+
+  function bellSvg(filled) {
+    return '<svg viewBox="0 0 24 24" width="20" height="20">' +
+      '<path d="M12 3a5 5 0 00-5 5v3.5L5.5 15h13L17 11.5V8a5 5 0 00-5-5z" ' +
+      (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
+      ' stroke-width="1.7" stroke-linejoin="round"/>' +
+      '<path d="M10 18a2 2 0 004 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+  }
+
+  /* کادر پایین‌آمدنی برای گرفتن شماره‌ی موبایل */
+  function openNotifySheet(item, bell) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "notify-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    sheet.innerHTML =
+      '<div class="sheet-handle"></div>' +
+      '<h3 class="ns-title">خبرم کنید</h3>' +
+      '<p class="ns-sub">به‌محض اینکه زمان و مکان مراسم‌های ' + esc(item.deceased_name) +
+        ' مشخص شد، با پیامک به شما اطلاع می‌دهیم.</p>' +
+      '<label class="ns-label">شماره موبایل</label>' +
+      '<input class="ns-input" type="tel" inputmode="numeric" placeholder="۰۹…" maxlength="13">' +
+      '<p class="ns-count"></p>' +
+      '<div class="ns-actions">' +
+        '<button type="button" class="ns-cancel">بی‌خیال</button>' +
+        '<button type="button" class="ns-ok">ثبت شماره</button>' +
+      '</div>';
+
+    var input = sheet.querySelector(".ns-input");
+    var countEl = sheet.querySelector(".ns-count");
+    function paintCount() {
+      var n = SogStore.getNotifyCount(item.id);
+      countEl.textContent = n ? faNum(n) + " نفر منتظر خبر این آگهی هستند." : "";
+    }
+    paintCount();
+
+    var user = (window.SogStore && SogStore.getUser && SogStore.getUser()) || {};
+    if (user.phone) input.value = user.phone;
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    back.addEventListener("click", done);
+    sheet.querySelector(".ns-cancel").addEventListener("click", done);
+    sheet.querySelector(".ns-ok").addEventListener("click", function () {
+      var k = SogStore.phoneKey(input.value);
+      if (!/^09\d{9}$/.test(k)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); input.focus(); return; }
+      if (SogStore.hasNotified(item.id, k)) { toast("این شماره قبلاً ثبت شده است."); done(); return; }
+      SogStore.addNotify(item.id, k);
+      markNoticeMine(item.id);
+      bell.classList.add("is-saved");
+      bell.innerHTML = bellSvg(true);
+      done();
+      toast("ثبت شد؛ به‌محض مشخص شدن مراسم خبرتان می‌کنیم.");
+    });
+
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
   }
 
   function bookmarkSvg(filled) {

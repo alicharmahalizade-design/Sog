@@ -25,6 +25,8 @@
   var CITY_PICKED_KEY = "sog:cityPicked";  // آیا شهر در اولین ورود انتخاب شده است
   var PREFS_KEY = "sog:prefs";      // تنظیمات (اعلان/حریم خصوصی)
   var CONDREPLY_KEY = "sog:condReplies"; // نگاشت «شناسه‌ی آگهی|کلید همدردی» → آرایه‌ی پاسخ‌ها
+  var NOTIFY_KEY = "sog:notifyMe";       // نگاشت شناسه‌ی اطلاعیه → شماره‌های منتظر خبر
+  var SMSOUT_KEY = "sog:smsOutbox";      // صف پیامک‌هایی که باید سمت سرور ارسال شوند
 
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -206,6 +208,41 @@
       m[id] = 1; writeMap(SALAVAT_KEY, m);
       return true;
     },
+
+    /* ----- «اطلاع دهید» روی اطلاعیه‌ی سوگ سریع -----
+       شماره‌ها تا زمان تکمیل آگهی نگه داشته می‌شوند. ارسال واقعی پیامک
+       کار سرور است؛ اینجا فقط در صف خروجی گذاشته می‌شود. */
+    getNotifyList: function (id) { return readMap(NOTIFY_KEY)[id] || []; },
+    getNotifyCount: function (id) { return (readMap(NOTIFY_KEY)[id] || []).length; },
+    hasNotified: function (id, phone) {
+      var k = phoneKey(phone);
+      return (readMap(NOTIFY_KEY)[id] || []).some(function (x) { return phoneKey(x) === k; });
+    },
+    addNotify: function (id, phone) {
+      var m = readMap(NOTIFY_KEY), k = phoneKey(phone);
+      if (!k) return null;
+      if (!m[id]) m[id] = [];
+      if (m[id].some(function (x) { return phoneKey(x) === k; })) return m[id];
+      m[id].push(k);
+      writeMap(NOTIFY_KEY, m);
+      return m[id];
+    },
+    /* آگهی تکمیل شد: شماره‌ها به صف پیامک می‌روند و فهرست خالی می‌شود */
+    completeNotice: function (id, name) {
+      var m = readMap(NOTIFY_KEY), list = m[id] || [];
+      if (!list.length) return 0;
+      var out = readMap(SMSOUT_KEY);
+      if (!out.queue) out.queue = [];
+      out.queue.push({
+        id: id, name: name || "",
+        text: "آگهی سوگ " + (name || "") + " تکمیل شد؛ زمان و مکان مراسم‌ها اکنون در سایت سوگ در دسترس است.",
+        to: list.slice(), at: Date.now(), sent: false
+      });
+      writeMap(SMSOUT_KEY, out);
+      delete m[id]; writeMap(NOTIFY_KEY, m);
+      return list.length;
+    },
+    getSmsOutbox: function () { return readMap(SMSOUT_KEY).queue || []; },
 
     /* ----- پاسخ به همدردی ----- */
     getCondReplies: function (id, key) { return readMap(CONDREPLY_KEY)[id + "|" + key] || []; },

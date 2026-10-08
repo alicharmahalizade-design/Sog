@@ -280,7 +280,8 @@ option { direction: rtl; text-align: right; }
   to   { transform: translateX(var(--mq-shift, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { .mq.is-marquee .mq-inner { animation: none; } }
-.listing-divider { height: 1px; background: var(--divider); margin: 12px 0 10px; }
+/* خط وسط کارت حذف شد؛ فاصله با margin تنظیم می‌شود */
+.listing-card .listing-meta { margin-top: 10px; }
 .listing-meta {
   display: flex; align-items: center; gap: 12px;
   font-size: 13px; color: var(--text-dim);
@@ -757,3 +758,52 @@ option { direction: rtl; text-align: right; }
   -webkit-user-select: none; user-select: none;
   touch-action: manipulation;
 }
+
+/* ---------- اطلاعیه‌ی سوگ سریع ---------- */
+.tag.is-pending {
+  background: rgba(217,154,91,.14); color: #d9a96b;
+  white-space: normal; line-height: 1.8;
+}
+.bell-btn.is-saved { color: var(--accent); }
+
+/* کادر پایین‌آمدنی «خبرم کنید» */
+.notify-sheet {
+  /* باید بالاتر از .sheet-backdrop (۹۰) باشد وگرنه کلیک‌ها به بک‌دراپ می‌خورد */
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 100;
+  background: var(--surface-2, #171717);
+  border-top-left-radius: 22px; border-top-right-radius: 22px;
+  padding: 10px 18px calc(22px + env(safe-area-inset-bottom));
+  transform: translateY(100%); transition: transform .22s ease;
+  max-width: 560px; margin: 0 auto;
+}
+.notify-sheet.is-in { transform: translateY(0); }
+.notify-sheet .sheet-handle {
+  width: 44px; height: 4px; border-radius: 3px; background: #3a3a3a;
+  margin: 2px auto 14px;
+}
+.ns-title { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--accent); text-align: center; }
+.ns-sub { margin: 0 0 16px; font-size: 13px; line-height: 1.95; color: var(--text-dim); text-align: center; }
+.ns-label { display: block; margin: 0 2px 6px; font-size: 12.5px; color: var(--text-dim); }
+.ns-input {
+  width: 100%; box-sizing: border-box; background: #101010; color: var(--text);
+  border: 1px solid #2f2f2f; border-radius: 12px; padding: 13px 14px;
+  font-family: inherit; font-size: 15px; direction: ltr; text-align: right;
+}
+.ns-count { margin: 10px 2px 0; font-size: 12px; color: var(--text-mute, #9a9188); }
+.ns-actions { display: flex; gap: 10px; margin-top: 16px; }
+.ns-actions button {
+  flex: 1 1 0; border-radius: 12px; padding: 13px; cursor: pointer;
+  font-family: inherit; font-size: 15px; font-weight: 700; border: none;
+}
+.ns-cancel { background: #262626; color: #ddd; }
+.ns-ok { background: var(--accent); color: #1a1206; }
+
+/* توست مشترک صفحه‌ی اصلی */
+.toast {
+  position: fixed; left: 50%; bottom: 96px; z-index: 110;
+  transform: translateX(-50%) translateY(10px);
+  background: #2b2b2b; color: #f0f0f0; font-size: 13px;
+  padding: 11px 16px; border-radius: 12px; max-width: 86vw;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

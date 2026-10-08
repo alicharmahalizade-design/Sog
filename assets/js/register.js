@@ -929,6 +929,25 @@
     }, 2600);
   }
 
+  /* اطلاعیه‌ی هم‌نامِ منتظر را تکمیل‌شده اعلام می‌کند.
+     ارسال واقعی پیامک کار سرور است؛ اینجا در صف خروجی گذاشته می‌شود. */
+  function notifyCompleted(name) {
+    var store = window.SogStore;
+    if (!store || !store.completeNotice) return 0;
+    var pend = [];
+    try { pend = JSON.parse(localStorage.getItem("sog:pendingNotices")) || []; } catch (e) {}
+    var key = String(name || "").replace(/\s+/g, " ").trim();
+    var rest = [], sent = 0;
+    pend.forEach(function (n) {
+      var same = String(n.name || "").replace(/\s+/g, " ").trim() === key;
+      if (same && key) sent += store.completeNotice(n.id, n.name) || 0;
+      else rest.push(n);
+    });
+    try { localStorage.setItem("sog:pendingNotices", JSON.stringify(rest)); } catch (e) {}
+    return sent;
+  }
+
+  var lastNotified = 0;
   function submit() {
     if (data.mode === "quick") {
       if (!data.photos[0]) { toast("تصویر درگذشته را انتخاب کنید."); return; }
@@ -964,10 +983,24 @@
       var newId = "draft-" + Date.now();
       mine.push(newId);
       localStorage.setItem("sog:myListings", JSON.stringify(mine));
+
+      if (data.mode === "quick") {
+        /* اطلاعیه‌ی منتظرِ تکمیل، تا بعداً بدانیم به چه کسانی خبر بدهیم */
+        var pend = JSON.parse(localStorage.getItem("sog:pendingNotices")) || [];
+        pend.push({ id: newId, name: data.name || "" });
+        localStorage.setItem("sog:pendingNotices", JSON.stringify(pend));
+      } else {
+        /* ثبت کامل: اگر اطلاعیه‌ای از همین دستگاه منتظر بود، تکمیل‌شده حساب
+           می‌شود و شماره‌های ثبت‌شده به صف پیامک می‌روند. */
+        lastNotified = notifyCompleted(data.name);
+      }
     } catch (e) {}
-    if (data.mode === "quick") {
-      var sp = document.querySelector("#regSuccess p");
-      if (sp) sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
+    var sp = document.querySelector("#regSuccess p");
+    if (data.mode === "quick" && sp) {
+      sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
+    } else if (sp && lastNotified > 0) {
+      sp.textContent = "آگهی تکمیل شد و به " + faNum(lastNotified) +
+        " نفر که منتظر خبر مراسم بودند پیامک اطلاع‌رسانی ارسال می‌شود.";
     }
     document.getElementById("regSuccess").classList.add("is-in");
   }

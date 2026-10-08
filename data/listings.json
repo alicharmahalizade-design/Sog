@@ -25,7 +25,8 @@
       "photo": "assets/img/farshchian-1.jpg",
       "ceremony_type": "salgard",
       "ceremony_labels": [
-        "سالگرد"
+        "تشییع",
+        "خاکسپاری"
       ],
       "death_year": 1404,
       "event_date_jalali": "۱۴۰۴/۱۲/۱۵",
@@ -170,9 +171,7 @@
       "deceased_name": "کربلایی حسن دهقان",
       "photo": "assets/img/portrait-5.svg",
       "ceremony_type": "khaksepari",
-      "ceremony_labels": [
-        "تشییع"
-      ],
+      "ceremony_labels": [],
       "death_year": 1405,
       "event_date_jalali": "۱۴۰۵/۱۱/۱۵",
       "event_weekday": "پنجشنبه",
@@ -181,7 +180,8 @@
       "tayefe": "دهقان",
       "il": "بهبهانی",
       "location": "بهبهان",
-      "created_at": "2026-02-04"
+      "created_at": "2026-02-04",
+      "is_notice": true
     },
     {
       "id": 111,
