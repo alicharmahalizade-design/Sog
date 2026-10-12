@@ -1908,23 +1908,24 @@
     x.fillStyle = glow; x.fillRect(0, 0, W, H);
 
     var CX = 56, CW = W - CX * 2, PAD = 52, innerW = CW - PAD * 2;
-    var PH = 190, HEAD_GAP = 72, SIGN_GAP = 120;
+    var PH = 230, HEAD_GAP = 110, SIGN_GAP = 130;
     var FOOT_H = 132, FOOT_GAP = 30, MARGIN = 110;
 
     /* ۱) اندازه‌ی متن را طوری انتخاب می‌کنیم که گروه در ارتفاع قاب جا شود */
-    var paras = String(ack && ack.text ? ack.text : "").split(/\n+/)
-      .map(function (t) { return t.trim(); }).filter(Boolean);
+    /* هر خطِ نوشته‌شده جدا می‌ماند؛ خط خالی یعنی فاصله‌ی بین پاراگراف‌ها */
+    var paras = String(ack && ack.text ? ack.text : "").replace(/^\s+|\s+$/g, "").split("\n")
+      .map(function (t) { return t.trim(); });
     var roomForCard = H - MARGIN * 2 - FOOT_H - FOOT_GAP;
     var fixed = PAD + PH + HEAD_GAP + SIGN_GAP + 24 + PAD;   /* همه‌چیز جز خود متن */
 
     var size = 42, lineH, gap, textH;
     while (true) {
       x.font = "400 " + size + "px Vazirmatn, Tahoma";
-      lineH = Math.round(size * 2.05);
-      gap = Math.round(size * 0.9);
+      lineH = Math.round(size * 1.75);
+      gap = lineH;   /* خط خالی = یک سطر فاصله */
       textH = paras.reduce(function (sum, t) {
-        return sum + measureWrapped(x, t, innerW, lineH) + gap;
-      }, 0) - gap;
+        return sum + (t ? measureWrapped(x, t, innerW, lineH) : gap);
+      }, 0);
       if (textH < 0) textH = 0;
       if (fixed + textH <= roomForCard || size <= 22) break;
       size -= 2;
@@ -1937,7 +1938,7 @@
     /* ۲) کارت */
     roundPath(x, CX, CY, CW, CH, 40);
     x.fillStyle = "#121212"; x.fill();
-    x.strokeStyle = "rgba(255,255,255,.07)"; x.lineWidth = 2; x.stroke();
+    x.strokeStyle = "rgba(255,255,255,.16)"; x.lineWidth = 3; x.stroke();
 
     var right = CX + CW - PAD, left = CX + PAD;
 
@@ -1945,37 +1946,41 @@
     var phTop = CY + PAD;
     drawFramedPhoto(x, portrait, left, phTop, PH, PH, 22);
 
+    /* برچسب «سپاسگزاری» داخل کادر گرد نارنجیِ تیره */
     x.textAlign = "right";
-    x.fillStyle = "#d99a5b"; x.font = "700 34px Vazirmatn, Tahoma";
-    x.fillText("سپاسگزاری", right, phTop + 52);
+    x.font = "700 36px Vazirmatn, Tahoma";
+    var bw = x.measureText("سپاسگزاری").width + 56, bh = 64, bTop = phTop + 30;
+    roundPath(x, right - bw, bTop, bw, bh, 14);
+    x.fillStyle = "#33241a"; x.fill();
+    x.fillStyle = "#f07d1f";
+    x.fillText("سپاسگزاری", right - 28, bTop + 44);
 
+    /* «شادروان» در خط اول و نام در خط دوم */
     x.fillStyle = "#f4f4f4";
-    var nameSize = 58;
+    var nameSize = 50;
     do { x.font = "700 " + nameSize + "px Vazirmatn, Tahoma"; nameSize -= 2; }
-    while (x.measureText(d.deceased_name).width > innerW - PH - 40 && nameSize > 32);
-    x.fillText(d.deceased_name, right, phTop + 132);
+    while (x.measureText(d.deceased_name).width > innerW - PH - 40 && nameSize > 30);
+    x.fillText("شادروان", right - 12, bTop + bh + 76);
+    x.fillText(d.deceased_name, right - 12, bTop + bh + 76 + Math.round(nameSize * 1.5));
 
     /* ۳) متن */
     x.fillStyle = "#dcdcdc";
     x.font = "400 " + size + "px Vazirmatn, Tahoma";
     var y = phTop + PH + HEAD_GAP + lineH;
+    /* متن وسط‌چین، با همان شکستن خط‌هایی که خانواده نوشته است */
+    x.textAlign = "center";
     paras.forEach(function (t) {
-      var h = measureWrapped(x, t, innerW, lineH);
-      drawJustified(x, t, right, y, innerW, lineH);
-      y += h + gap;
+      if (!t) { y += gap; return; }
+      wrapLines(x, t, innerW).forEach(function (ln) { x.fillText(ln, CX + CW / 2, y); y += lineH; });
     });
 
-    /* ۴) امضا سمت راست و تاریخ سمت چپ، روی یک خط */
+    /* ۴) امضا و تاریخ کنار هم، وسط کارت */
     var signY = phTop + PH + HEAD_GAP + textH + SIGN_GAP;
-    if (ack && ack.signature) {
-      x.textAlign = "right";
-      x.fillStyle = "#cfcfcf"; x.font = "700 36px Vazirmatn, Tahoma";
-      x.fillText(ack.signature, right, signY);
-    }
-    if (ack && ack.date) {
-      x.textAlign = "left";
-      x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma";
-      x.fillText(ack.date, left, signY);
+    var sign = [ack && ack.signature, ack && ack.date].filter(Boolean).join("     ");
+    if (sign) {
+      x.textAlign = "center";
+      x.fillStyle = "#e6e6e6"; x.font = "400 36px Vazirmatn, Tahoma";
+      x.fillText(sign, CX + CW / 2, signY);
     }
 
     /* ۵) نوار پایین: لوگو، متن و فلش */
@@ -2038,6 +2043,18 @@
       });
     });
     ctx.textAlign = "right";
+  }
+
+  /* متن را به سطرهایی که در عرض جا می‌شوند می‌شکند */
+  function wrapLines(ctx, text, maxW) {
+    var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+    words.forEach(function (w) {
+      var test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    });
+    if (line) lines.push(line);
+    return lines;
   }
 
   /* ارتفاع مورد نیاز متن چندخطی را حساب می‌کند (بدون کشیدن) */
