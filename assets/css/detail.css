@@ -62,17 +62,17 @@
 .family-card {
   position: relative;
   background: var(--surface-2); border: none;
-  border-radius: 14px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 12px;
+  border-radius: 14px; padding: 14px 12px;
+  display: flex; flex-direction: column; gap: 14px;
 }
 /* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
 .family-card::before {
   content: ""; position: absolute; top: 12px; bottom: 12px;
-  inset-inline-start: 62px;            /* کمی به سمت چپِ برچسب‌ها */
+  inset-inline-start: 56px;            /* کمی به سمت چپِ برچسب‌ها */
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
-.family-row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; font-size: 14.5px; }
+.family-row { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; font-size: 14px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
@@ -81,7 +81,7 @@
 .family-row .val {
   color: var(--text); justify-self: stretch; text-align: start;
   min-width: 0;
-  padding-inline-start: 16px;          /* فاصله از خط جداکننده */
+  padding-inline-start: 10px;          /* فاصله از خط جداکننده */
 }
 /* متن تک‌خطی است و اگر جا نشد می‌چرخد، به‌جای اینکه چند سطر شود */
 .family-row .val.mq { overflow: hidden; white-space: nowrap; }
@@ -698,7 +698,7 @@
 .family-row .clan-count {
   flex: 0 0 auto;
   display: inline-grid; place-items: center;
-  min-width: 32px; height: 18px; padding: 0 6px; margin-inline-start: 10px;
+  min-width: 28px; height: 18px; padding: 0 6px; margin-inline-start: 6px;
   border-radius: 7px; background: #33373b; color: var(--text-dim);
   font-size: 11px; font-weight: 700; white-space: nowrap;
 }
