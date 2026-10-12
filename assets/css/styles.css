@@ -228,18 +228,18 @@ option { direction: rtl; text-align: right; }
   border: none;                      /* بدون استروک */
   border-radius: var(--radius);
   overflow: hidden;
-  min-height: 132px;
+  min-height: 147px;
 }
 .listing-photo {
-  flex: 0 0 118px;
+  flex: 0 0 132px;
   align-self: stretch;
   background: #0a0a0a center/cover no-repeat;
 }
 .listing-body {
   flex: 1 1 auto;
   /* فاصله‌ی بالا و پایین برابر و محتوا وسطِ کادر، مثل طرح */
-  padding: 18px 14px;
-  display: flex; flex-direction: column; justify-content: center;
+  padding: 24px 16px;
+  display: flex; flex-direction: column; justify-content: space-between;
   min-width: 0;
 }
 .listing-top {
@@ -255,17 +255,14 @@ option { direction: rtl; text-align: right; }
 .bookmark-btn.is-saved { color: var(--accent); }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; order: 1; min-width: 0; }
 .tag {
-  padding: 3px 12px; border-radius: 8px;
-  font-size: 12px; font-weight: 500;
+  padding: 4px 12px; border-radius: 8px;
+  font-size: 12px; font-weight: 500; line-height: 19px;
   background: var(--accent-soft); color: var(--accent);
 }
-.tag[data-type="salgard"]     { background: rgba(122,162,214,.16); color: #8fb4e0; }
-.tag[data-type="bozorgdasht"] { background: rgba(160,140,214,.16); color: #b6a6e0; }
-.tag[data-type="chehelom"]    { background: rgba(120,190,150,.15); color: #93cdaa; }
 
 .listing-name {
   font-size: 19px; font-weight: 700;
-  margin: 12px 0 0; color: var(--text);
+  margin: 0; color: var(--text);
   line-height: 1.5;
 }
 
@@ -282,7 +279,7 @@ option { direction: rtl; text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) { .mq.is-marquee .mq-inner { animation: none; } }
 /* خط وسط کارت حذف شد؛ فاصله با margin تنظیم می‌شود */
-.listing-card .listing-meta { margin-top: 12px; }
+.listing-card .listing-meta { margin-top: 0; }
 .listing-meta {
   display: flex; align-items: center; gap: 12px;
   font-size: 13px; color: var(--text-dim);
@@ -778,7 +775,7 @@ option { direction: rtl; text-align: right; }
 /* ---------- اطلاعیه‌ی سوگ سریع ---------- */
 /* چیپ اطلاعیه ردیف خودش را دارد و همیشه یک‌خطی است؛
    روی صفحه‌های باریک کمی کوچک‌تر می‌شود تا نشکند */
-.notice-line { display: flex; margin: 8px 0 2px; min-width: 0; }
+.notice-line { display: flex; margin: 0; min-width: 0; }
 .tag.is-pending {
   background: rgba(217,154,91,.14); color: #d9a96b;
   white-space: nowrap; padding-inline: 9px;
@@ -881,3 +878,6 @@ option { direction: rtl; text-align: right; }
   width: 100%; padding: 15px; border: none; border-radius: 20px; cursor: pointer;
   background: #161616; color: var(--text); font-family: inherit; font-size: 15px;
 }
+
+/* بوکمارک کارت‌ها به رنگ اصلی، مثل طرح */
+.listing-card .bookmark-btn { color: var(--accent); }
