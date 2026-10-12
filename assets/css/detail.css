@@ -68,11 +68,11 @@
 /* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
 .family-card::before {
   content: ""; position: absolute; top: 12px; bottom: 12px;
-  inset-inline-start: 56px;            /* کمی به سمت چپِ برچسب‌ها */
+  inset-inline-start: 54px;            /* نزدیکِ برچسب‌ها تا برای مقدار جای بیشتری بماند */
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
-.family-row { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; font-size: 14px; }
+.family-row { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; font-size: 14px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
