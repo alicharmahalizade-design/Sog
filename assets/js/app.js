@@ -866,7 +866,7 @@
       '<span class="meta-city">' + item.city + '</span></span>';
     marquee(name); marquee(meta);
 
-    body.appendChild(top);
+    if (!notice || item.pending) body.appendChild(top);   /* سوگ فوری ردیف بالای خالی ندارد */
     if (noticeTag) body.appendChild(noticeTag);
     body.appendChild(name);
     body.appendChild(meta);

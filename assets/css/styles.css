@@ -237,8 +237,9 @@ option { direction: rtl; text-align: right; }
 }
 .listing-body {
   flex: 1 1 auto;
-  padding: 12px 14px;
-  display: flex; flex-direction: column;
+  /* فاصله‌ی بالا و پایین برابر و محتوا وسطِ کادر، مثل طرح */
+  padding: 18px 14px;
+  display: flex; flex-direction: column; justify-content: center;
   min-width: 0;
 }
 .listing-top {
@@ -264,7 +265,7 @@ option { direction: rtl; text-align: right; }
 
 .listing-name {
   font-size: 19px; font-weight: 700;
-  margin: 10px 0 0; color: var(--text);
+  margin: 12px 0 0; color: var(--text);
   line-height: 1.5;
 }
 
@@ -281,7 +282,7 @@ option { direction: rtl; text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) { .mq.is-marquee .mq-inner { animation: none; } }
 /* خط وسط کارت حذف شد؛ فاصله با margin تنظیم می‌شود */
-.listing-card .listing-meta { margin-top: 10px; }
+.listing-card .listing-meta { margin-top: 12px; }
 .listing-meta {
   display: flex; align-items: center; gap: 12px;
   font-size: 13px; color: var(--text-dim);
