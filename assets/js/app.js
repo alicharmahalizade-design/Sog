@@ -838,19 +838,8 @@
 
     var actions = el("div", "card-actions");
     actions.style.cssText = "display:flex;align-items:flex-start;order:2";
-    if (notice) {
-      /* به‌جای ذخیره، زنگوله‌ی «اطلاع دهید» */
-      var on = SogStore.getNotifyCount(item.id) > 0 && noticeMine(item.id);
-      var bell = el("button", "bookmark-btn bell-btn" + (on ? " is-saved" : ""));
-      bell.type = "button";
-      bell.setAttribute("aria-label", "اطلاع دهید وقتی مراسم مشخص شد");
-      bell.innerHTML = bellSvg(on);
-      bell.addEventListener("click", function (e) {
-        e.stopPropagation();
-        openNotifySheet(item, bell);
-      });
-      actions.appendChild(bell);
-    } else {
+    /* سوگ فوری زنگوله ندارد؛ «اطلاع دهید» در نمای بازشده‌ی آن است */
+    if (!notice) {
       var saved = SogStore.isSaved(item.id);
       var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
       bm.type = "button";

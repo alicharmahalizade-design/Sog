@@ -1713,7 +1713,7 @@
     head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + ICON.chevron;
     var body = el("div", "cond-body");
     var inner = el("div");
-    var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p><time>" + esc(cd.date) + "</time>");
+    var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p>");
 
     var tools = el("div", "mine-tools");
 
@@ -1730,10 +1730,13 @@
       tools.appendChild(hide);
     }
     /* هر همدردی قابل گزارش است؛ گزارش به ثبت‌کننده‌ی همان همدردی می‌رود */
-    var rep = el("button", "mine-btn", ICON.report + " گزارش همدردی");
+    var rep = el("button", "mine-btn cond-report", ICON.report + " گزارش");
     rep.type = "button";
+    rep.setAttribute("aria-label", "گزارش همدردی");
     rep.addEventListener("click", function (e) { e.stopPropagation(); openReportSheet(d, cd); });
     tools.appendChild(rep);
+    /* تاریخ هم‌ردیفِ دکمه‌ی گزارش، سمت چپ */
+    tools.appendChild(el("time", "cond-date", esc(cd.date)));
     msg.appendChild(tools);
 
     inner.appendChild(msg);

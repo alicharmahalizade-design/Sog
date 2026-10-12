@@ -63,7 +63,7 @@
   position: relative;
   background: var(--surface-2); border: none;
   border-radius: 14px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 7px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 /* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
 .family-card::before {
@@ -72,7 +72,7 @@
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
-.family-row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; font-size: 13px; }
+.family-row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; font-size: 14.5px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
@@ -113,7 +113,7 @@
   display: grid; place-items: center;
 }
 .action-item button.is-active { color: var(--accent); border-color: var(--accent); }
-.action-item span { font-size: 12px; color: var(--text-dim); }
+.action-item span { font-size: 12px; color: var(--accent); }   /* هم‌رنگ آیکون */
 
 .report-error {
   display: flex; align-items: center; gap: 6px;
@@ -384,7 +384,7 @@
 .cond-message { padding: 0 4px 14px; }
 .cond-message p {
   font-size: 13.5px; line-height: 1.75; color: var(--text-dim); margin: 0 0 8px;
-  text-align: justify;
+  text-align: start;
   white-space: pre-line;   /* خط جدید و پاراگرافِ نوشته‌شده توسط کاربر حفظ می‌شود */
   overflow-wrap: anywhere; word-break: break-word;   /* متن‌های طولانیِ بدون فاصله هم می‌شکنند */
 }
@@ -698,7 +698,7 @@
 .family-row .clan-count {
   flex: 0 0 auto;
   display: inline-grid; place-items: center;
-  min-width: 34px; height: 22px; padding: 0 7px; margin-inline-start: 10px;
+  min-width: 32px; height: 18px; padding: 0 6px; margin-inline-start: 10px;
   border-radius: 7px; background: #33373b; color: var(--text-dim);
   font-size: 11px; font-weight: 700; white-space: nowrap;
 }
@@ -787,3 +787,5 @@
 
 .report-sub { margin: -4px 0 12px; font-size: 12.5px; color: var(--text-mute); line-height: 1.7; }
 .mine-btn svg { width: 14px; height: 14px; vertical-align: -2px; }
+.cond-report { display: inline-flex; align-items: center; gap: 6px; color: #b65a5a; border-color: rgba(182,90,90,.55); background: transparent; padding: 6px 14px; }
+.cond-date { margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute); }
