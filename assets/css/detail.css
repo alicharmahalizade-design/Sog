@@ -739,6 +739,8 @@
 }
 .lb.is-in { opacity: 1; }
 .lb-bar {
+  /* دکمه‌ی بستن و هم‌رسانی سمت چپ؛ بستن در گوشه */
+  direction: ltr; justify-content: flex-start;
   flex: 0 0 auto; display: flex; gap: 10px; padding: 10px 12px;
   padding-top: calc(10px + env(safe-area-inset-top));
 }
