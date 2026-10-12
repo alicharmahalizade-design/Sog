@@ -10,7 +10,8 @@
     wa: SogIcon("whatsapp", 20),
     call: SogIcon("call", 20),
     map: SogIcon("map", 20),
-    bookmark: SogIcon("bookmark", 20),
+    /* پرشده وقتی ذخیره شده است */
+    bookmark: function (on) { var v = SogIcon("bookmark", 20); return on ? v.replace('fill="none"', 'fill="currentColor"') : v; },
     clock: SogIcon("clock", 16),
     pin: SogIcon("pin", 16),
     cart: SogIcon("cart", 20)
