@@ -921,43 +921,48 @@
     }
 
     function paintInfo() {
+      /* یک کارت: تصویر سمت چپ، عنوان و فهرست اطلاعات سمت راست، متن اطلاعیه زیرش */
+      var facts = [["پدر", item.father], ["طایفه", item.tayefe],
+                   ["تاریخ درگذشت", item.event_date_jalali], [null, item.city]]
+        .filter(function (f) { return f[1]; })
+        .map(function (f) {
+          return "<li>" + (f[0] ? esc(f[0]) + " : " : "") + esc(f[1]) + "</li>";
+        }).join("");
       sheet.innerHTML =
         '<div class="sheet-handle"></div>' +
-        /* چیدمان افقی: تصویر سمت راست، نام و توضیح سمت چپ */
-        '<div class="nt-hero">' +
-          '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
-          '<span class="nt-head">' +
-            '<span class="nt-badge">اطلاعیه سوگ</span>' +
-            '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
-            '<span class="nt-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</span>' +
-          "</span>" +
+        '<div class="nt-card">' +
+          '<div class="nt-top">' +
+            '<span class="nt-head">' +
+              '<span class="nt-badge">اطلاعیه درگذشت</span>' +
+              '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
+              (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
+            "</span>" +
+            '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+          "</div>" +
+          '<p class="nt-text">' + esc(item.notice_text || "جزئیات مراسم متعاقباً اعلام خواهد شد") + "</p>" +
         "</div>" +
-        '<div class="nt-facts"></div>' +
-        (item.notice_text ? '<blockquote class="nt-text">' + esc(item.notice_text) + "</blockquote>" : "") +
+        '<div class="nt-tiles"></div>' +
         '<div class="nt-cta"></div>';
 
-      /* کارت‌های اطلاعات؛ فقط چیزهایی که پر شده‌اند */
-      var facts = sheet.querySelector(".nt-facts");
-      [["شهر", item.city], ["تاریخ", item.event_date_jalali],
-       ["نام پدر", item.father], ["طایفه", item.tayefe]].forEach(function (f) {
-        if (!f[1]) return;
-        var c = el("div", "nt-fact");
-        c.innerHTML = '<span class="nf-lbl">' + f[0] + "</span>" +
-                      '<span class="nf-val">' + esc(f[1]) + "</span>";
-        facts.appendChild(c);
+      var tiles = sheet.querySelector(".nt-tiles");
+      var bell = el("button", "nt-tile");
+      bell.type = "button";
+      bell.innerHTML = '<span class="nt-ic">' + bellSvg(false) + "</span><span>به من اطلاع داده شود</span>";
+      bell.addEventListener("click", paintPhone);
+      tiles.appendChild(bell);
+
+      var story = el("button", "nt-tile");
+      story.type = "button";
+      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری / اشتراک</span>";
+      story.addEventListener("click", function () {
+        var url = location.origin + location.pathname.replace(/[^/]*$/, "") + "listing.html?id=" + item.id;
+        if (navigator.share) navigator.share({ title: item.deceased_name, url: url }).catch(function () {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("لینک کپی شد."); });
       });
+      tiles.appendChild(story);
 
       var cta = sheet.querySelector(".nt-cta");
-      var n = SogStore.getNotifyCount(item.id);
-      if (n) cta.appendChild(el("p", "nt-count", faNum(n) + " نفر منتظر خبر مراسم‌اند"));
-
-      var bell = el("button", "nt-bell");
-      bell.type = "button";
-      bell.innerHTML = bellSvg(false) + "<span>خبرم کنید وقتی مراسم مشخص شد</span>";
-      bell.addEventListener("click", paintPhone);
-      cta.appendChild(bell);
-
-      var close = el("button", "nt-close", "بستن");
+      var close = el("button", "nt-close", SogIcon("logout", 20) + "<span>بستن</span>");
       close.type = "button";
       close.addEventListener("click", done);
       cta.appendChild(close);

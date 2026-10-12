@@ -833,75 +833,50 @@ option { direction: rtl; text-align: right; }
 /* ---------- کادر اطلاعیه‌ی سوگ ---------- */
 .notice-sheet { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 
-/* چیدمان افقی: تصویر سمت راست، نام و توضیح سمت چپ */
-.notice-sheet .nt-hero {
-  position: relative; display: flex; align-items: center; gap: 14px;
-  padding: 6px 0 18px;
+/* کارت اصلی: عنوان و اطلاعات سمت راست، تصویر سمت چپ، متن زیرش */
+.notice-sheet .nt-card {
+  background: #161616; border-radius: 20px; padding: 14px 16px 16px; margin-bottom: 12px;
 }
-/* هاله‌ی ملایم پشت تصویر */
-.notice-sheet .nt-hero::before {
-  content: ""; position: absolute; top: -40px; inset-inline-start: -40px;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(217,154,91,.16), rgba(217,154,91,0) 70%);
-  pointer-events: none;
-}
-.notice-sheet .nt-photo {
-  position: relative; flex: 0 0 auto;
-  width: 92px; height: 92px; border-radius: 22px;
-  background: #222 center/cover no-repeat;
-  border: 1px solid rgba(217,154,91,.45);
-  box-shadow: 0 10px 26px rgba(0,0,0,.45);
-}
+.notice-sheet .nt-top { display: flex; align-items: flex-start; gap: 12px; }
 .notice-sheet .nt-head {
-  position: relative; flex: 1 1 auto; min-width: 0;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  flex: 1 1 auto; min-width: 0; padding-top: 12px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
 }
 .notice-sheet .nt-badge {
-  font-size: 11.5px; font-weight: 700; color: var(--accent);
-  background: rgba(217,154,91,.14); border-radius: 8px; padding: 4px 10px;
+  font-size: 13px; font-weight: 500; color: var(--accent);
+  background: rgba(217,154,91,.18); border-radius: 8px; padding: 5px 13px;
 }
 .notice-sheet .nt-name {
-  margin: 0; font-size: 19px; font-weight: 700;
-  color: var(--text); text-align: start; line-height: 1.5;
+  margin: 0; font-size: 20px; font-weight: 700; color: var(--text); text-align: start; line-height: 1.5;
 }
-.notice-sheet .nt-pending {
-  margin: 0; font-size: 12.5px; line-height: 1.8; color: var(--text-dim); text-align: start;
-}
-
-/* کارت‌های اطلاعات ثبت‌شده */
 .notice-sheet .nt-facts {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 13px; color: var(--text-mute, #8a8a8a);
 }
-.notice-sheet .nt-fact {
-  background: #101010; border: 1px solid #262626; border-radius: 13px;
-  padding: 11px 13px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+.notice-sheet .nt-facts li::before { content: ". "; }
+.notice-sheet .nt-photo {
+  flex: 0 0 auto; width: 40%; max-width: 160px; aspect-ratio: 4 / 5; border-radius: 18px;
+  background: #2a2a2a center/cover no-repeat;
 }
-.notice-sheet .nf-lbl { font-size: 11.5px; color: var(--text-mute, #9a9188); }
-.notice-sheet .nf-val {
-  font-size: 14px; font-weight: 700; color: var(--text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-/* متن اطلاعیه */
 .notice-sheet .nt-text {
-  position: relative; margin: 0 0 16px;
-  background: #101010; border: 1px solid #262626; border-radius: 14px;
-  border-inline-start: 3px solid var(--accent);
-  padding: 13px 15px;
-  font-size: 13.5px; line-height: 2.1; color: var(--text-dim); text-align: justify;
+  margin: 16px 0 0; font-size: 13.5px; line-height: 2; color: var(--text);
+  text-align: start; white-space: pre-line;
 }
 
-.notice-sheet .nt-count {
-  margin: 0 2px 10px; font-size: 12px; color: var(--text-mute, #9a9188); text-align: center;
+/* دو کاشیِ هم‌اندازه: اطلاع‌رسانی و استوری */
+.notice-sheet .nt-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.notice-sheet .nt-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  background: #161616; border: none; border-radius: 20px; padding: 10px 8px 14px; cursor: pointer;
+  font-family: inherit; font-size: 13.5px; color: var(--accent);
 }
-.notice-sheet .nt-bell {
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  width: 100%; border: none; border-radius: 13px; padding: 14px; cursor: pointer;
-  background: var(--accent); color: #1a1206;
-  font-family: inherit; font-size: 14.5px; font-weight: 700;
+.notice-sheet .nt-ic {
+  width: 56px; height: 56px; border-radius: 50%; background: #222;
+  display: grid; place-items: center; color: var(--accent);
 }
 .notice-sheet .nt-close {
-  display: block; width: 100%; margin-top: 9px; padding: 13px;
-  background: none; border: none; cursor: pointer;
-  font-family: inherit; font-size: 14px; color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 15px; border: none; border-radius: 20px; cursor: pointer;
+  background: #161616; color: var(--text); font-family: inherit; font-size: 15px;
 }
