@@ -385,6 +385,7 @@
 .cond-message p {
   font-size: 13.5px; line-height: 1.75; color: var(--text-dim); margin: 0 0 8px;
   text-align: justify;
+  white-space: pre-line;   /* خط جدید و پاراگرافِ نوشته‌شده توسط کاربر حفظ می‌شود */
   overflow-wrap: anywhere; word-break: break-word;   /* متن‌های طولانیِ بدون فاصله هم می‌شکنند */
 }
 /* تاریخ در سمت چپ کادر */
@@ -783,3 +784,6 @@
 }
 .lb-thumb.is-on { border-color: var(--accent); }
 
+
+.report-sub { margin: -4px 0 12px; font-size: 12.5px; color: var(--text-mute); line-height: 1.7; }
+.mine-btn svg { width: 14px; height: 14px; vertical-align: -2px; }

@@ -579,13 +579,18 @@
     requestAnimationFrame(function () { back.classList.add("is-in"); sheet.classList.add("is-in"); });
   }
 
-  function openReportSheet(d) {
+  /* گزارش همدردی: دلیل‌ها مخصوص همان پیام است */
+  var COND_REPORT_TYPES = ["محتوای توهین‌آمیز یا نامناسب", "اطلاعات نادرست", "تبلیغات یا هرزنامه", "سایر"];
+
+  function openReportSheet(d, cd) {
     closeReportSheet();
+    var title = cd ? "گزارش همدردی" : "گزارش خطا";
+    var types = cd ? COND_REPORT_TYPES : REPORT_TYPES;
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "report-sheet");
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
-    sheet.setAttribute("aria-label", "گزارش خطا");
+    sheet.setAttribute("aria-label", title);
 
     var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
@@ -593,9 +598,10 @@
 
     var form = el("form", "report-form");
     form.innerHTML =
-      '<h3 class="report-title">گزارش خطا</h3>' +
-      '<label class="report-field"><span>نوع خطا</span>' +
-      '<select name="type" required>' + REPORT_TYPES.map(function (t) {
+      '<h3 class="report-title">' + title + '</h3>' +
+      (cd ? '<p class="report-sub">گزارش شما برای ' + esc(cd.name) + ' (ثبت‌کننده‌ی این همدردی) ارسال می‌شود.</p>' : '') +
+      '<label class="report-field"><span>' + (cd ? "دلیل گزارش" : "نوع خطا") + '</span>' +
+      '<select name="type" required>' + types.map(function (t) {
         return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
       }).join("") + '</select></label>' +
       '<label class="report-field"><span>توضیحات</span>' +
@@ -638,8 +644,9 @@
           type: fd.get("type"),
           note: fd.get("note") || "",
           at: Date.now(),
-          /* گیرنده‌ها: هم پشتیبانی سوگ، هم ثبت‌کننده‌ی آگهی */
-          to: ["sog-support", "listing-owner"],
+          /* گیرنده: گزارش همدردی به ثبت‌کننده‌ی همان همدردی؛ گزارش خطا به پشتیبانی و ثبت‌کننده‌ی آگهی */
+          condolence: cd ? condKey(cd) : null,
+          to: cd ? ["condolence-author"] : ["sog-support", "listing-owner"],
           owner: (d && d.owner_id) || null,
           status: "queued"
         });
@@ -647,7 +654,7 @@
       } catch (err) {}
       form.replaceWith(el("div", "report-done",
         '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
-        '<p>گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد. با تشکر از همراهی‌تان.</p>'));
+        '<p>' + (cd ? "گزارش شما ثبت و برای ثبت‌کننده‌ی این همدردی ارسال شد." : "گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد.") + ' با تشکر از همراهی‌تان.</p>'));
       setTimeout(closeReportSheet, 1800);
     });
   }
@@ -1722,6 +1729,11 @@
       });
       tools.appendChild(hide);
     }
+    /* هر همدردی قابل گزارش است؛ گزارش به ثبت‌کننده‌ی همان همدردی می‌رود */
+    var rep = el("button", "mine-btn", ICON.report + " گزارش همدردی");
+    rep.type = "button";
+    rep.addEventListener("click", function (e) { e.stopPropagation(); openReportSheet(d, cd); });
+    tools.appendChild(rep);
     msg.appendChild(tools);
 
     inner.appendChild(msg);
