@@ -256,9 +256,9 @@
     fetch("data/businesses.json").then(function (r) { return r.json(); }),
     new Promise(function (r) { setTimeout(r, 350); })
   ]).then(function (res) {
-    var biz = (res[0].businesses || []).filter(function (b) { return String(b.id) === String(id); })[0];
+    var biz = SogBizStore.merge(res[0].businesses || []).filter(function (b) { return String(b.id) === String(id); })[0];
     if (!biz) { root.innerHTML = '<p style="text-align:center;padding:50px;color:#c66">کسب‌وکار یافت نشد.</p>'; return; }
-    render(biz);
+    return SogBizStore.resolve(biz).then(render);
   }).catch(function (e) { root.innerHTML = '<p style="text-align:center;padding:50px;color:#c66">خطا در بارگذاری.</p>'; console.error(e); });
 
   var currentBiz = null;
@@ -275,7 +275,9 @@
     top.appendChild(el("a", "logo", '<img src="assets/img/logo.png" alt="سوگ">'));
     top.appendChild(back);
     cover.appendChild(top);
+    if (b.cover) cover.style.backgroundImage = 'linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,0) 40%), url("' + b.cover + '")';
     root.appendChild(cover);
+
 
     var head = el("div", "bp-head");
     var logo = el("div", "bp-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
@@ -287,6 +289,16 @@
     hi.appendChild(sub);
     head.appendChild(logo); head.appendChild(hi);
     root.appendChild(head);
+
+    /* کسب‌وکاری که خود کاربر ثبت کرده: وضعیت و دکمه‌ی ویرایش */
+    if (b.mine) {
+      var own = el("div", "bp-own");
+      own.innerHTML = '<span class="bp-own-state">در انتظار تأیید سوگ — فقط شما این صفحه را می‌بینید</span>';
+      var ed = el("a", "bp-own-edit", "ویرایش");
+      ed.href = "biz-register.html?edit=" + encodeURIComponent(b.id);
+      own.appendChild(ed);
+      root.appendChild(own);
+    }
 
     // دکمه‌های عمل
     var actions = el("div", "bp-actions");
@@ -318,7 +330,7 @@
       var wrap = el("div", "bp-services");
       b.services.forEach(function (sv) { wrap.appendChild(el("span", "svc", esc(sv))); });
       s3.appendChild(wrap);
-      s3.appendChild(el("p", "bp-desc", "شروع قیمت: " + esc(b.price_from)));
+      if (b.price_from) s3.appendChild(el("p", "bp-desc", "شروع قیمت: " + esc(b.price_from)));
       root.appendChild(s3);
     }
 
@@ -328,6 +340,20 @@
       var g = el("div", "bp-gallery");
       b.gallery.forEach(function (src) { var it = el("div", "g"); it.style.backgroundImage = 'url("' + src + '")'; g.appendChild(it); });
       s4.appendChild(g); root.appendChild(s4);
+    }
+
+    // نمونه‌ی صدا (قاری، مداح و خواننده)
+    if (b.audio && b.audio.length) {
+      var sa = el("div", "bp-section"); sa.appendChild(el("h2", null, "نمونه صدا"));
+      b.audio.forEach(function (a) {
+        var row = el("div", "bp-audio");
+        if (a.title) row.appendChild(el("div", "bp-audio-title", esc(a.title)));
+        var au = document.createElement("audio");
+        au.controls = true; au.preload = "metadata"; au.src = a.src;
+        row.appendChild(au);
+        sa.appendChild(row);
+      });
+      root.appendChild(sa);
     }
 
     // نقشه و آدرس

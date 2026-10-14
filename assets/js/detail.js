@@ -1010,7 +1010,7 @@
     var count = el("span", "lb-count");
     /* واترمارک سوگ، روی خود تصویر */
     var mark = el("span", "lb-mark",
-      '<img src="assets/img/logo.png" alt=""><span>سوگ — مرجع آگهی‌های سوگ ایران</span>');
+      '<img src="assets/img/logo.png" alt="سوگ">');   /* فقط لوگو */
     /* شمارنده و واترمارک داخل قابِ خودِ تصویر می‌نشینند، نه گوشه‌ی صفحه */
     var frame = el("div", "lb-frame");
     frame.appendChild(img); frame.appendChild(count); frame.appendChild(mark);

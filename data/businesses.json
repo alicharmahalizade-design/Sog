@@ -49,6 +49,11 @@
       "slug": "maddah",
       "name": "مداح و سخنران",
       "icon": "mic"
+    },
+    {
+      "slug": "khanande",
+      "name": "خواننده و نوازنده",
+      "icon": "mic"
     }
   ],
   "businesses": [

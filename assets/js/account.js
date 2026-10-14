@@ -349,7 +349,7 @@
     var reg = el("a", "qa-btn qa-primary", '<span class="qa-ic">' + SogIcon("plus", 22) + '</span><span>ثبت سوگ جدید</span>');
     reg.href = "register.html";
     var biz = el("a", "qa-btn", '<span class="qa-ic">' + SogIcon("biz", 22) + '</span><span>ثبت کسب‌وکار</span>');
-    biz.href = "business.html";
+    biz.href = "biz-register.html";
     wrap.appendChild(reg); wrap.appendChild(biz);
     return wrap;
   }

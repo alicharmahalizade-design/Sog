@@ -43,9 +43,13 @@
       fetch("data/cities.json").then(function (r) { return r.json(); }),
       new Promise(function (r) { setTimeout(r, 400); })
     ]).then(function (res) {
-      DATA.businesses = res[0].businesses || [];
+      DATA.siteBusinesses = res[0].businesses || [];
       DATA.categories = res[0].categories || [];
       DATA.cities = (res[1].cities || []).filter(function (c) { return c.slug !== "all" ? true : true; });
+      /* کسب‌وکارهای ثبت‌شده توسط خود کاربر هم در فهرست می‌آیند */
+      return SogBizStore.resolveAll(SogBizStore.all()).then(function (mine) {
+        DATA.businesses = mine.concat(DATA.siteBusinesses);
+      });
     });
   }
 

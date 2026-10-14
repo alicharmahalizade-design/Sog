@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>ثبت کسب‌وکار | سوگ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/img/icon-192-v2.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/styles.css?v=137">
+  <link rel="stylesheet" href="assets/css/register.css?v=137">
+  <link rel="stylesheet" href="assets/css/biz-register.css?v=137">
+</head>
+<body>
+  <div class="app-frame">
+    <main class="reg br">
+      <header class="reg-header">
+        <div class="reg-title">
+          <h1 id="brTitle">ثبت کسب‌وکار</h1>
+          <p>خدمات خود را به خانواده‌های سوگوار معرفی کنید</p>
+        </div>
+        <button class="reg-back" id="backBtn" aria-label="بازگشت" type="button"></button>
+      </header>
+
+      <!-- کسب‌وکارهای قبلاً ثبت‌شده‌ی همین کاربر -->
+      <section class="br-mine" id="brMine" hidden></section>
+
+      <form id="brForm" class="br-form" novalidate>
+        <noscript><p>برای ثبت کسب‌وکار، جاوااسکریپت مرورگر باید فعال باشد.</p></noscript>
+      </form>
+    </main>
+  </div>
+
+  <div class="reg-success" id="brSuccess">
+    <div class="ok"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2>کسب‌وکار شما ثبت شد</h2>
+    <p>صفحه‌ی کسب‌وکار ساخته شد و پس از تأیید سوگ برای همه نمایش داده می‌شود. تا آن زمان فقط شما آن را می‌بینید.</p>
+    <a id="brView" href="business.html">مشاهده‌ی صفحه</a>
+  </div>
+
+  <script src="assets/js/icons.js?v=137"></script>
+  <script src="assets/js/splash.js?v=137"></script>
+
+  <script src="assets/js/util.js?v=137"></script>
+  <script src="assets/js/biz-store.js?v=137"></script>
+  <script src="assets/js/storage.js?v=137"></script>
+  <script src="assets/js/biz-register.js?v=137"></script>
+</body>
+</html>
