@@ -247,8 +247,8 @@
         var row = el("div", "br-audio");
         var t = input("", "عنوان (مثال: سوره‌ی الرحمن)"); t.value = it.title || "";
         t.addEventListener("input", function () { it.title = t.value; });
-        var au = document.createElement("audio"); au.controls = true; au.preload = "metadata";
-        previewURL(it).then(function (u) { au.src = u; });
+        var au = SogPlayer("", it.title);
+        previewURL(it).then(function (u) { au.setSrc(u); });
         var rm = el("button", "br-rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "حذف");
         rm.addEventListener("click", function () { if (it.ref) removed.push(it.ref); media.audio.splice(k, 1); paint(); });
         row.appendChild(t); row.appendChild(au); row.appendChild(rm);

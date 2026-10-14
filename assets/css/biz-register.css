@@ -77,3 +77,4 @@
 .br-mine-btn.danger { color: #e06060; border-color: rgba(224,96,96,.4); }
 .br-new { margin: 10px 0 8px; }
 .br .up-inner[hidden] { display: none; }
+.br-audio .sp { margin-bottom: 0; }

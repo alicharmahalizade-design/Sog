@@ -346,12 +346,7 @@
     if (b.audio && b.audio.length) {
       var sa = el("div", "bp-section"); sa.appendChild(el("h2", null, "نمونه صدا"));
       b.audio.forEach(function (a) {
-        var row = el("div", "bp-audio");
-        if (a.title) row.appendChild(el("div", "bp-audio-title", esc(a.title)));
-        var au = document.createElement("audio");
-        au.controls = true; au.preload = "metadata"; au.src = a.src;
-        row.appendChild(au);
-        sa.appendChild(row);
+        sa.appendChild(SogPlayer(a.src, a.title));
       });
       root.appendChild(sa);
     }

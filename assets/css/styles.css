@@ -889,3 +889,29 @@ option { direction: rtl; text-align: right; }
   -webkit-mask: url("../img/report-error.svg") center / contain no-repeat;
           mask: url("../img/report-error.svg") center / contain no-repeat;
 }
+
+/* ---------- پلیر صوتی سوگ ---------- */
+.sp {
+  display: flex; align-items: center; gap: 14px; padding: 12px 14px; margin-bottom: 10px;
+  border-radius: 18px; background: linear-gradient(135deg, #1d1813, #141414 70%);
+  border: 1px solid rgba(217,154,91,.18);
+}
+.sp-btn {
+  flex: 0 0 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--accent); color: #1a1206; display: grid; place-items: center;
+  box-shadow: 0 6px 18px rgba(217,154,91,.28); transition: transform .15s;
+}
+.sp-btn:active { transform: scale(.94); }
+.sp.is-playing .sp-btn { box-shadow: 0 0 0 6px rgba(217,154,91,.14), 0 6px 18px rgba(217,154,91,.35); }
+.sp-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.sp-head { display: flex; align-items: baseline; gap: 10px; }
+.sp-title { flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-time { flex: 0 0 auto; font-size: 11.5px; color: var(--text-mute); }
+.sp-eq { height: 34px; display: flex; align-items: center; gap: 3px; cursor: pointer; outline: none; }
+.sp-bar {
+  flex: 1 1 0; height: 100%; border-radius: 3px; background: #3b342c;
+  transform-origin: center; transition: background .2s;
+}
+.sp-bar.is-played { background: var(--accent); }
+.sp.is-playing .sp-bar { transition: background .2s, transform .06s linear; }
+.sp-eq:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 6px; }
