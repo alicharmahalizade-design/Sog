@@ -156,8 +156,8 @@
 
   function reportRow(b) {
     var wrap = el("div", "bp-section bp-report");
-    var btn = el("button", "report-error",
-      '' + SogIcon("report", 15) + ' گزارش خطا');
+    var btn = el("button", "report-error", '<span class="report-art"></span>');
+    btn.setAttribute("aria-label", "گزارش خطا");
     btn.type = "button";
     btn.addEventListener("click", function () { openBizReport(b); });
     wrap.appendChild(btn);

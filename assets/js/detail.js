@@ -457,7 +457,8 @@
     return item;
   }
   function reportError(d) {
-    var b = el("button", "report-error", ICON.report + " گزارش خطا");
+    var b = el("button", "report-error", '<span class="report-art"></span>');
+    b.setAttribute("aria-label", "گزارش خطا");
     b.addEventListener("click", function () { openReportSheet(d); });
     return b;
   }

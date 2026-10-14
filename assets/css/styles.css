@@ -881,3 +881,11 @@ option { direction: rtl; text-align: right; }
 
 /* بوکمارک کارت‌ها به رنگ اصلی، مثل طرح */
 .listing-card .bookmark-btn { color: var(--accent); }
+
+/* «گزارش خطا»: طرح اختصاصی (نوشته + پرچم + زیرخط)، به رنگ متن دکمه */
+.report-art {
+  display: inline-block; height: 16px; aspect-ratio: 2610 / 477;
+  background: currentColor;
+  -webkit-mask: url("../img/report-error.svg") center / contain no-repeat;
+          mask: url("../img/report-error.svg") center / contain no-repeat;
+}
