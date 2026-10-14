@@ -230,6 +230,8 @@ option { direction: rtl; text-align: right; }
   overflow: hidden;
   min-height: 147px;
 }
+.listing-card .listing-name { line-height: 1.35; }
+.listing-card .listing-meta { line-height: 1.4; }
 .listing-photo {
   flex: 0 0 132px;
   align-self: stretch;
@@ -238,8 +240,9 @@ option { direction: rtl; text-align: right; }
 .listing-body {
   flex: 1 1 auto;
   /* فاصله‌ی بالا و پایین برابر و محتوا وسطِ کادر، مثل طرح */
-  padding: 24px 16px;
-  display: flex; flex-direction: column; justify-content: space-between;
+  /* بلوک محتوا دقیقاً وسط ارتفاع کارت؛ فاصله‌ی بالا = پایین و فاصله‌ی بین سطرها برابر */
+  padding: 14px 16px;
+  display: flex; flex-direction: column; justify-content: center; gap: 12px;
   min-width: 0;
 }
 .listing-top {
