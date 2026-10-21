@@ -67,11 +67,11 @@
   /* همدردی‌های ثبت‌شده در Supabase برای این آگهی، هم‌شکل داده‌ی JSON */
   function dbCondolences() {
     if (!DB) return Promise.resolve([]);
-    return DB.select("condolences", "select=id,name,message,kind,avatar_url,verified,created_at&listing_id=eq." +
+    return DB.select("condolences", "select=id,name,message,kind,avatar_url,donated,verified,created_at&listing_id=eq." +
       encodeURIComponent(id) + "&status=eq.published&order=created_at.desc&limit=2000")
       .then(function (rows) {
         return (rows || []).map(function (r) {
-          return { db_id: r.id, name: r.name, message: r.message, kind: r.kind, verified: r.verified,
+          return { db_id: r.id, name: r.name, message: r.message, kind: r.kind, verified: r.verified, donated: r.donated,
                    date: isoToJalali(r.created_at),
                    logo: r.avatar_url || (r.kind === "org" ? "assets/img/org-1.svg" : "assets/img/portrait-1.svg") };
         });
@@ -422,6 +422,12 @@
       var rec = { listing: id, name: d.deceased_name, charity: pick.charity.id, charityName: pick.charity.name, amount: pick.amount, at: Date.now() };
       var all = myDonations(); all.push(rec);
       try { localStorage.setItem("sog:donations", JSON.stringify(all)); } catch (e) {}
+      /* اگر قبلاً همدردی نوشته، نشان «خیرات کرده» کنارش می‌آید */
+      var mineC = SogStore.getMyCondolence(id);
+      if (mineC) {
+        mineC.donated = true; SogStore.setMyCondolence(id, mineC);
+        if (DB && mineC.db_id && mineC.token) DB.rpc("mark_condolence_donated", { p_id: mineC.db_id, p_token: mineC.token }).catch(function () {});
+      }
       window.open(pick.charity.url, "_blank", "noopener");
       done();
       toast("در سایت " + pick.charity.org + " مبلغ " + toman(pick.amount) + " را پرداخت کنید. خدا قبول کند.");
@@ -1608,6 +1614,14 @@
   }
 
   /* همدردی خودِ کاربر: بالای فهرست و قابل ویرایش */
+  /* آیا این دستگاه به نیت همین درگذشته خیرات کرده است؟ */
+  function iDonated() {
+    return myDonations().some(function (x) { return String(x.listing) === String(id); });
+  }
+  var DONOR_BADGE = '<span class="donor-badge" title="به نیت درگذشته خیرات کرده است">' +
+    '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.3 5 6.6 5c2 0 3.3 1.1 4.1 2.3h2.6C14.1 6.1 15.4 5 17.4 5c3.3 0 5.5 3.3 4.1 6.7C19.5 16.4 12 21 12 21z" fill="currentColor"/></svg>' +
+    "خیرات کرده</span>";
+
   function myCondolenceItem(d, entry) {
     var item = el("div", "condolence-item is-mine is-open");
     var head = el("div", "cond-head");
@@ -1615,6 +1629,7 @@
     head.innerHTML = (av ? '<img class="cond-logo" src="' + esc(av) + '" alt="">'
       : '<span class="cond-logo mine-avatar">' + SogIcon("user", 22) + '</span>') +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
+      (entry.donated || iDonated() ? DONOR_BADGE : "") +
       '<span class="mine-badge">شما</span>';
     var body = el("div", "cond-body");
     var innerB = el("div");
@@ -1793,7 +1808,11 @@
             entry.db_id = r.id; entry.token = r.owner_token;
           });
       });
-      call.then(finish).catch(function (err) {
+      call.then(function () {
+        if (!iDonated()) return;
+        entry.donated = true;
+        return DB.rpc("mark_condolence_donated", { p_id: entry.db_id, p_token: entry.token }).catch(function () {});
+      }).then(finish).catch(function (err) {
         console.error(err);
         sendBtn.disabled = false;
         toast("ثبت نشد؛ اتصال اینترنت را بررسی کنید و دوباره بفرستید.");
@@ -1946,7 +1965,7 @@
     var verified = cd.kind === "org" && cd.verified
       ? '<span class="cond-verified" title="تأییدشده">' + SogIcon("check", 11) + '</span>'
       : "";
-    head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + ICON.chevron;
+    head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + (cd.donated ? DONOR_BADGE : "") + ICON.chevron;
     var body = el("div", "cond-body");
     var inner = el("div");
     var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p>");

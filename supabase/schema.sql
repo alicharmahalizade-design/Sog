@@ -101,10 +101,11 @@ create table if not exists public.condolences (
   created_at  timestamptz not null default now()
 );
 alter table public.condolences add column if not exists avatar_url text;
+alter table public.condolences add column if not exists donated boolean not null default false;
 create index if not exists condolences_listing_idx on public.condolences (listing_id, created_at);
 alter table public.condolences enable row level security;
 revoke all on public.condolences from anon, authenticated;
-grant select (id, listing_id, name, message, kind, avatar_url, verified, status, created_at) on public.condolences to anon;
+grant select (id, listing_id, name, message, kind, avatar_url, donated, verified, status, created_at) on public.condolences to anon;
 grant select, update, delete on public.condolences to authenticated;
 drop policy if exists "condolences: public reads published" on public.condolences;
 create policy "condolences: public reads published" on public.condolences
@@ -159,6 +160,18 @@ begin
    where condolences.id = p_id and owner_token = p_token;
   return found;
 end $$;
+-- نویسنده‌ی همدردی اعلام می‌کند که به نیت درگذشته خیرات کرده است (نشان «خیرات کرده»)
+create or replace function public.mark_condolence_donated(p_id bigint, p_token uuid)
+returns boolean
+language plpgsql security definer set search_path = public as $$
+begin
+  update public.condolences set donated = true
+   where condolences.id = p_id and owner_token = p_token and status <> 'deleted';
+  return found;
+end $$;
+revoke all on function public.mark_condolence_donated(bigint, uuid) from public;
+grant execute on function public.mark_condolence_donated(bigint, uuid) to anon, authenticated;
+
 revoke all on function public.add_condolence(text, text, text, text, text, text) from public;
 revoke all on function public.edit_condolence(bigint, uuid, text, text, text, text, text) from public;
 revoke all on function public.delete_condolence(bigint, uuid) from public;
