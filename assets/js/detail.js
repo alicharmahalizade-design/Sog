@@ -1896,7 +1896,7 @@
     var box = el("div", "cond-box");
     var shown = 0;
     var st = adminSet();
-    /* اول ۵ تا، سپس با هر «همدردی‌های بیشتر» ۷، بعد ۱۲، و از آن به بعد ۱۵ تا ۱۵ تا (از تنظیمات پنل) */
+    /* اول ۵ تا، سپس با هر «دیدن همدردی‌های بیشتر» ۷، بعد ۱۲، و از آن به بعد ۱۵ تا ۱۵ تا (از تنظیمات پنل) */
     var PAGES = String(st.condPages || "5,7,12,15").replace(/[۰-۹]/g, function (x) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(x); })
       .split(/[^0-9]+/).map(Number).filter(function (n) { return n > 0; });
     if (!PAGES.length) PAGES = [5, 7, 12, 15];
@@ -1906,7 +1906,7 @@
       shown = Math.min(list.length, shown + n);
       if (shown >= list.length && more.parentNode) more.remove();
     }
-    var more = el("button", "cond-more", "<span>همدردی‌های بیشتر</span>" + ICON.chevron);
+    var more = el("button", "cond-more", "<span>دیدن همدردی‌های بیشتر</span>" + ICON.chevron);
     more.type = "button";
     more.addEventListener("click", function () {
       clicks++;
