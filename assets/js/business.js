@@ -199,7 +199,7 @@
   }
 
   function render() {
-    renderHero();
+    syncCityLabel();
     renderStories();
     renderRail();
     var main = document.getElementById("bzMain");
@@ -208,29 +208,12 @@
     if (state.category || state.query) renderResults(main); else renderHome(main);
   }
 
-  /* ---------- معرفی بالای صفحه ---------- */
-  function renderHero() {
-    var hero = document.getElementById("bhHero");
-    if (!hero) return;
-    var list = DATA.businesses.filter(inCity);
-    var partners = list.filter(function (b) { return b.partner || b.verified; }).length;
-    var cats = {};
-    list.forEach(function (b) { cats[b.category_slug] = 1; });
-    var city = currentCityName();
-    hero.innerHTML =
-      '<div class="bh-hero-txt">' +
-        '<span class="bh-eyebrow">خدمات مراسم سوگ</span>' +
-        "<h1>هرچه برای برگزاری مراسم لازم است، یک‌جا</h1>" +
-      "</div>" +
-      '<button type="button" class="bh-city">' + SogIcon("pin", 16) + "<span>" + esc(city) + "</span>" + SogIcon("chev", 14) + "</button>" +
-      '<div class="bh-stats">' +
-        "<span><b>" + faNum(list.length) + "</b>کسب‌وکار</span>" +
-        "<span><b>" + faNum(Object.keys(cats).length) + "</b>دسته‌ی خدمات</span>" +
-        "<span><b>" + faNum(partners) + "</b>تأییدشده</span>" +
-      "</div>";
-    hero.querySelector(".bh-city").addEventListener("click", openCitySheet);
+  /* انتخاب شهر فقط در هدر است (چسبان و هم‌جا با صفحه‌ی آگهی‌ها) */
+  function syncCityLabel() {
     var lbl = document.getElementById("cityBtnLabel");
-    if (lbl) lbl.textContent = city;
+    if (lbl) lbl.textContent = currentCityName();
+    var btn = document.getElementById("cityBtn");
+    if (btn) btn.classList.toggle("is-set", state.city !== "all");
   }
 
   /* ---------- نوار دسته‌ها (چسبان) ---------- */

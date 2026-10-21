@@ -382,33 +382,6 @@
    ===================================================================== */
 .bz-main { padding: 0 0 112px; min-height: 60vh; }
 
-/* ---------- معرفی ---------- */
-.bh-hero {
-  position: relative; display: grid; grid-template-columns: 1fr auto; gap: 12px 8px;
-  padding: 20px 16px 16px;
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgba(217,154,91,.16), transparent 60%),
-    linear-gradient(180deg, #0b0b0b, #000);
-}
-.bh-hero-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.bh-eyebrow { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--accent); }
-.bh-hero h1 { margin: 0; font-size: 20px; line-height: 32px; font-weight: 800; color: var(--text); }
-.bh-city {
-  align-self: start; height: 32px; padding: 0 12px; border-radius: 16px;
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #1a1a1a; border: 1px solid #2c2c2c; color: var(--text);
-  font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
-}
-.bh-city svg:first-child { color: var(--accent); }
-.bh-city svg:last-child { color: var(--text-mute); transform: rotate(-90deg); }
-.bh-stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.bh-stats span {
-  display: flex; flex-direction: column; align-items: center; gap: 0;
-  padding: 8px 4px; border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid #1e1e1e;
-  font-size: 11px; line-height: 16px; color: var(--text-mute);
-}
-.bh-stats b { font-size: 16px; line-height: 24px; color: var(--text); font-weight: 800; }
-
 /* ---------- نوار دسته‌ها (چسبان زیر هدر) ---------- */
 .bh-cats {
   position: sticky; top: var(--header-h); z-index: 30;
@@ -610,8 +583,8 @@
 .bh-skel { height: 176px; margin: 24px 16px 0; border-radius: 20px; background: linear-gradient(90deg, #121212, #1b1b1b, #121212); background-size: 200% 100%; animation: bhSkel 1.2s linear infinite; }
 @keyframes bhSkel { to { background-position: -200% 0; } }
 
-/* استوری‌ها در طرح تازه: زیر معرفی، فاصله‌ی کمتر */
-.bh-hero + .story-bar { padding-top: 4px; }
+/* شهر انتخاب‌شده در هدر برجسته می‌شود */
+.icon-btn.city-btn.is-set { color: var(--accent); box-shadow: inset 0 0 0 1px rgba(217,154,91,.45); background: var(--accent-soft); }
 /* ردیف یک یا دو کسب‌وکاری: کارت‌ها کل عرض را می‌گیرند */
 .bh-row-track.is-fill .bh-tile { flex: 1 1 0; min-width: 0; }
 .bh-row-track.is-fill .bh-tile-cover { height: 112px; }
