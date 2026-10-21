@@ -671,20 +671,26 @@
           note: fd.get("note") || "",
           at: Date.now(),
           /* گیرنده: گزارش همدردی به ثبت‌کننده‌ی همان همدردی؛ گزارش خطا به پشتیبانی و ثبت‌کننده‌ی آگهی */
-          condolence: cd ? condKey(cd) : null,
+          condolence: cd ? (cd.db_id ? "db:" + cd.db_id : condKey(cd)) : null,
           to: cd ? ["condolence-author"] : ["sog-support", "listing-owner"],
           owner: (d && d.owner_id) || null,
           status: "queued"
         });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
+      var targetId = d && d.id != null ? String(d.id) : String(id);
+      if (window.SogAdmin && SogAdmin.reportFiled) {
+        SogAdmin.reportFiled(cd ? "condolence" : "listing", targetId, cd ? (cd.db_id ? "db:" + cd.db_id : condKey(cd)) : "");
+      }
       if (DB) {
         var photo = fd.get("photo");
         var up = photo && photo.size ? DB.upload(photo, "reports").catch(function () { return null; }) : Promise.resolve(null);
         up.then(function (url) {
           return DB.insert("reports", {
             kind: cd ? "condolence" : "listing",
-            target_id: d && d.id != null ? String(d.id) : String(id),
+            target_id: targetId,
+            target_ref: cd ? (cd.db_id ? "db:" + cd.db_id : "json:" + condKey(cd)) : null,
+            reporter: window.SogAdmin ? SogAdmin.deviceId() : null,
             target_name: (d && d.deceased_name || "") + (cd ? " — همدردی «" + (cd.name || "") + "»" : ""),
             type: String(fd.get("type") || ""), note: String(fd.get("note") || "").slice(0, 3000), photo_url: url
           });

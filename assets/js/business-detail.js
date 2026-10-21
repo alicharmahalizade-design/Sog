@@ -210,9 +210,11 @@
         });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
+      if (window.SogAdmin && SogAdmin.reportFiled) SogAdmin.reportFiled("business", String(b.id), "");
       if (window.SogDB && SogDB.enabled) {
         SogDB.insert("reports", {
           kind: "business", target_id: String(b.id), target_name: b.name || "",
+          reporter: window.SogAdmin ? SogAdmin.deviceId() : null,
           type: String(fd.get("type") || ""), note: String(fd.get("note") || "").slice(0, 3000)
         }).catch(function (er) { console.error(er); });
       }

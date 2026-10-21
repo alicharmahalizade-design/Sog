@@ -241,3 +241,7 @@ select.ad-input { appearance: none; -webkit-appearance: none; }
 .ad-reload.is-spin svg { animation: ad-spin .8s linear infinite; }
 @keyframes ad-spin { to { transform: rotate(360deg); } }
 .ad-intro a { color: var(--accent); }
+
+/* مورد پنهان‌شده با گزارش کاربران */
+.ad-row.is-flagged { box-shadow: inset -3px 0 0 #e07070; }   /* نوار قرمز سمت راست (شروع سطر) */
+.ad-msg a { color: var(--accent); }

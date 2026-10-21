@@ -170,10 +170,69 @@ create table if not exists public.reports (
   status      text not null default 'open' check (status in ('open', 'done')),
   created_at  timestamptz not null default now()
 );
+-- target_ref: کدام همدردی («db:شناسه» یا «json:نام|تاریخ»)؛ reporter: شناسه‌ی تصادفی دستگاه گزارش‌دهنده
+alter table public.reports add column if not exists target_ref text;
+alter table public.reports add column if not exists reporter text;
+alter table public.reports add column if not exists auto_hidden boolean not null default false;
+create index if not exists reports_target_idx on public.reports (kind, target_id, target_ref) where status = 'open';
 alter table public.reports enable row level security;
 drop policy if exists "reports: anyone can send" on public.reports;
 create policy "reports: anyone can send" on public.reports
-  for insert to anon, authenticated with check (status = 'open');
+  for insert to anon, authenticated with check (status = 'open' and auto_hidden = false);
+
+-- پنهان‌شدن خودکار: وقتی گزارش‌های باز یک مورد از دستگاه‌های مختلف به حد تعیین‌شده
+-- (پیش‌فرض ۳، از تنظیمات پنل؛ صفر = خاموش) برسد، آن مورد تا بررسی مدیر پنهان می‌شود.
+create or replace function public.reports_autohide() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  lim int;
+  n int;
+  st jsonb;
+  grp text;
+  k text;
+  cur jsonb;
+begin
+  select coalesce(nullif(state -> 'settings' ->> 'reportHideAt', '')::int, 3), coalesce(state, '{}'::jsonb)
+    into lim, st from public.site_state where id = 1;
+  if lim is null or lim < 1 then return new; end if;
+
+  select count(distinct coalesce(reporter, 'r' || id)) into n
+    from public.reports
+   where status = 'open' and kind = new.kind
+     and coalesce(target_id, '') = coalesce(new.target_id, '')
+     and coalesce(target_ref, '') = coalesce(new.target_ref, '');
+  if n < lim then return new; end if;
+
+  if new.kind = 'condolence' and new.target_ref like 'db:%' then
+    update public.condolences set status = 'hidden'
+     where id = substring(new.target_ref from 4)::bigint and status = 'published';
+  else
+    if new.kind = 'condolence' then
+      grp := 'condolences';
+      k := new.target_id || '|' || substring(coalesce(new.target_ref, '') from 6);   -- «json:» برداشته می‌شود
+    elsif new.kind = 'business' then
+      grp := 'businesses'; k := new.target_id;
+    else
+      grp := 'listings'; k := new.target_id;
+    end if;
+    cur := coalesce(st -> grp -> k, '{}'::jsonb);
+    if coalesce(cur ->> 'status', 'published') = 'published' then
+      st := jsonb_set(st, array[grp], coalesce(st -> grp, '{}'::jsonb), true);
+      st := jsonb_set(st, array[grp, k], cur || '{"status": "hidden", "autoHidden": true}'::jsonb, true);
+      update public.site_state set state = st, updated_at = now() where id = 1;
+    end if;
+  end if;
+
+  update public.reports set auto_hidden = true
+   where status = 'open' and kind = new.kind
+     and coalesce(target_id, '') = coalesce(new.target_id, '')
+     and coalesce(target_ref, '') = coalesce(new.target_ref, '');
+  return new;
+end $$;
+revoke all on function public.reports_autohide() from public, anon, authenticated;
+drop trigger if exists reports_autohide on public.reports;
+create trigger reports_autohide after insert on public.reports
+  for each row execute function public.reports_autohide();
 drop policy if exists "reports: admin manages" on public.reports;
 create policy "reports: admin manages" on public.reports
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
@@ -241,6 +300,9 @@ create policy "uploads: anyone can add" on storage.objects
 drop policy if exists "uploads: admin deletes" on storage.objects;
 create policy "uploads: admin deletes" on storage.objects
   for delete to authenticated using (bucket_id = 'uploads' and public.is_admin());
+
+-- به‌روز کردن فهرست جدول‌ها و ستون‌ها در API (Supabase معمولاً خودش انجام می‌دهد)
+notify pgrst, 'reload schema';
 
 -- =====================================================================
 --  آخرین قدم: ایمیل مدیر را اینجا بنویسید و فقط همین خط را اجرا کنید

@@ -16,6 +16,7 @@
     needsSub: "چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط",
     condFirst: 12,
     condStep: 40,
+    reportHideAt: 3,
     notice: ""
   };
 
@@ -202,7 +203,43 @@
     else showNotice();
   });
 
+  /* شناسه‌ی تصادفی این دستگاه؛ چند گزارش از یک دستگاه یک گزارش حساب می‌شود */
+  function deviceId() {
+    var d = "";
+    try { d = localStorage.getItem("sog:device") || ""; } catch (e) {}
+    if (d.length < 12) {
+      d = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+      try { localStorage.setItem("sog:device", d); } catch (e) {}
+    }
+    return d;
+  }
+
+  /* بدون Supabase: پنهان‌شدن خودکار روی همین مرورگر (با Supabase، پایگاه داده خودش انجام می‌دهد) */
+  function reportFiled(kind, targetId, ref) {
+    if (DB) return;
+    var s = read();
+    var lim = parseInt((s.settings || {}).reportHideAt, 10);
+    if (isNaN(lim)) lim = 3;
+    if (lim < 1) return;
+    var list;
+    try { list = JSON.parse(localStorage.getItem("sog:reports")) || []; } catch (e) { list = []; }
+    var n = list.filter(function (r, i) {
+      var st = s.reports[String(r.at || i)] || "open";
+      var rk = r.kind || (r.condolence ? "condolence" : "listing");
+      return st === "open" && rk === kind && String(r.id) === String(targetId) && String(r.condolence || "") === String(ref || "");
+    }).length;
+    if (n < lim) return;
+    var grp = kind === "condolence" ? "condolences" : kind === "business" ? "businesses" : "listings";
+    var key = kind === "condolence" ? targetId + "|" + ref : String(targetId);
+    var cur = s[grp][key] || {};
+    if ((cur.status || "published") !== "published") return;
+    s[grp][key] = Object.assign(cur, { status: "hidden", autoHidden: true });
+    write(s);
+  }
+
   global.SogAdmin = {
+    deviceId: deviceId,
+    reportFiled: reportFiled,
     KEY: KEY,
     read: read,
     write: write,

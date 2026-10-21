@@ -67,7 +67,29 @@
   var D = { listings: [], details: {}, businesses: [], categories: [], cities: [], users: [], provinces: {},
             db: { listings: [], businesses: [], subs: [], conds: [], reports: [], msgs: [] } };
   var S = A.read();
+  var BASE = clone(S);          /* نسخه‌ای که S از آن ساخته شده؛ برای ذخیره‌ی فقط تغییرات */
   var view = "dash";
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
+  /* فهرست تغییرات S نسبت به BASE (آرایه‌ها یکجا) */
+  function diff(a, b, path, out) {
+    if (isObj(a) && isObj(b)) {
+      Object.keys(Object.assign({}, a, b)).forEach(function (k) { diff(a[k], b[k], path.concat(k), out); });
+    } else if (JSON.stringify(a) !== JSON.stringify(b)) out.push({ path: path, value: b });
+    return out;
+  }
+  function applyOps(target, ops) {
+    ops.forEach(function (op) {
+      var o = target;
+      for (var i = 0; i < op.path.length - 1; i++) {
+        if (!isObj(o[op.path[i]])) o[op.path[i]] = {};
+        o = o[op.path[i]];
+      }
+      var last = op.path[op.path.length - 1];
+      if (op.value === undefined) delete o[last]; else o[last] = clone(op.value);
+    });
+    return target;
+  }
   var ui = { q: {}, f: {} };
 
   /* ذخیره‌ی تصمیم‌ها (با Supabase در جدول site_state، وگرنه در همین مرورگر) */
@@ -76,9 +98,15 @@
       S.log.unshift({ at: Date.now(), msg: msg });
       S.log = S.log.slice(0, 60);
     }
-    return A.write(S).then(function () { if (msg) toast(msg); return true; }, function (e) {
+    /* فقط تغییرات همین پنل روی تازه‌ترین نسخه اعمال می‌شود تا پنهان‌شدن خودکار
+       (یا تغییر از دستگاهی دیگر) در این فاصله پاک نشود */
+    var ops = diff(BASE, S, [], []);
+    return A.reload().then(function (fresh) {
+      var merged = applyOps(fresh, ops);
+      return A.write(merged).then(function () { S = merged; BASE = clone(merged); });
+    }).then(function () { if (msg) toast(msg); return true; }, function (e) {
       toast(DB ? "ذخیره نشد: " + (e && e.message || "خطای شبکه") : "ذخیره نشد؛ حافظه‌ی مرورگر پر است.");
-      S = A.read();            /* برگشت به آخرین نسخه‌ی ذخیره‌شده */
+      S = A.read(); BASE = clone(S);   /* برگشت به آخرین نسخه‌ی ذخیره‌شده */
       if (main) refresh();
       return false;
     });
@@ -103,7 +131,7 @@
       D.db = { listings: r[0], businesses: r[1], subs: r[2], conds: r[3], reports: r[4], msgs: r[5] };
     });
   }
-  function reloadAll() { return Promise.all([loadDB(), DB ? A.reload().then(function (st) { S = st; }) : null]); }
+  function reloadAll() { return Promise.all([loadDB(), DB ? A.reload().then(function (st) { S = st; BASE = clone(st); }) : null]); }
 
   /* ---------- ورود ---------- */
   var SESSION = "sog:adminSession";
@@ -209,6 +237,7 @@
       var o = S.listings[it.id];
       var x = o && o.edits ? Object.assign({}, it, o.edits) : Object.assign({}, it);
       x._status = lstStatus(it.id);
+      x._auto = !!(S.listings[it.id] && S.listings[it.id].autoHidden);
       x._new = it._db || S.newListings.some(function (n) { return n.id === it.id; });
       if (it._dbStatus === "hidden") x._status = "hidden";
       return x;
@@ -268,19 +297,65 @@
       var x = o.edits ? Object.assign({}, b, o.edits) : Object.assign({}, b);
       if (o.verified != null) x.verified = o.verified;
       x._status = o.status || "published";
+      x._auto = !!o.autoHidden;
       return x;
     });
   }
 
+  /* ref همدردی: «db:شناسه» یا «json:نام|تاریخ» (در حالت محلی بدون پیشوند ذخیره شده بود) */
   function reports() {
     if (DB) return D.db.reports.map(function (r) {
-      return { _key: "db:" + r.id, _id: r.id, _status: r.status, kind: r.kind, id: r.target_id, listing: r.target_name,
-               type: r.type, note: r.note, photo: r.photo_url, at: r.created_at };
+      return { _key: "db:" + r.id, _id: r.id, _status: r.status, kind: r.kind || "listing", id: r.target_id, ref: r.target_ref || "",
+               listing: r.target_name, type: r.type, note: r.note, photo: r.photo_url, at: r.created_at, reporter: r.reporter };
     });
     return lsGet("sog:reports", []).map(function (r, i) {
       var k = String(r.at || i);
-      return Object.assign({ _key: k, _status: S.reports[k] || "open" }, r);
+      var kind = r.kind || (r.condolence ? "condolence" : "listing");
+      var ref = r.condolence ? (/^db:/.test(r.condolence) ? r.condolence : "json:" + r.condolence) : "";
+      return Object.assign({ _key: k, _status: S.reports[k] || "open", kind: kind, ref: ref, listing: r.listing || r.name }, r);
     }).reverse();
+  }
+
+  /* ---------- گزارش‌ها به تفکیک مورد گزارش‌شده ---------- */
+  function targetKey(r) { return r.kind + "|" + r.id + "|" + (r.ref || ""); }
+  /* وضعیت فعلی مورد: published | hidden | deleted ، و اینکه با گزارش پنهان شده یا نه */
+  function targetState(kind, id, ref) {
+    if (kind === "condolence" && /^db:/.test(ref)) {
+      var c = D.db.conds.filter(function (x) { return String(x.id) === ref.slice(3); })[0];
+      return { status: c ? c.status : "deleted", auto: c ? c.status === "hidden" : false };
+    }
+    var grp = kind === "condolence" ? "condolences" : kind === "business" ? "businesses" : "listings";
+    var key = kind === "condolence" ? id + "|" + ref.replace(/^json:/, "") : String(id);
+    var o = S[grp][key] || {};
+    return { status: o.status || "published", auto: !!o.autoHidden };
+  }
+  function setTargetStatus(kind, id, ref, status) {
+    if (kind === "condolence" && /^db:/.test(ref)) {
+      return DB.update("condolences", "id=eq." + ref.slice(3), { status: status });
+    }
+    var grp = kind === "condolence" ? "condolences" : kind === "business" ? "businesses" : "listings";
+    var key = kind === "condolence" ? id + "|" + ref.replace(/^json:/, "") : String(id);
+    var o = S[grp][key] || {};
+    o.status = status; delete o.autoHidden;
+    S[grp][key] = o;
+    return Promise.resolve();
+  }
+  function reportGroups(status) {
+    var map = {};
+    reports().forEach(function (r) {
+      if (r._status !== status) return;
+      var k = targetKey(r);
+      var g = map[k] || (map[k] = { key: k, kind: r.kind, id: r.id, ref: r.ref || "", name: r.listing || r.name || "—", items: [], devices: {} });
+      g.items.push(r);
+      g.devices[r.reporter || r._key] = 1;
+    });
+    return Object.keys(map).map(function (k) {
+      var g = map[k]; g.count = Object.keys(g.devices).length; g.state = targetState(g.kind, g.id, g.ref);
+      g.last = g.items[0].at; return g;
+    }).sort(function (a, b) { return (b.state.auto - a.state.auto) || (b.count - a.count); });
+  }
+  function autoHiddenCount() {
+    return reportGroups("open").filter(function (g) { return g.state.status === "hidden" && g.state.auto; }).length;
   }
   function chat() { return lsGet("sog:chat", []); }
   function users() {
@@ -330,7 +405,7 @@
   ];
   function badgeFor(key) {
     if (key === "pending") return drafts().length;
-    if (key === "reports") return reports().filter(function (r) { return r._status === "open"; }).length;
+    if (key === "reports") return reportGroups("open").length;
     if (key === "support") return unreadChat();
     return 0;
   }
@@ -563,7 +638,7 @@
       ["در انتظار تأیید", drafts().length, "pending"],
       ["همدردی‌ها", C.filter(function (x) { return x.status === "published"; }).length, "condolences"],
       ["کسب‌وکارها", B.filter(function (x) { return x._status === "published"; }).length, "businesses"],
-      ["گزارش باز", R.filter(function (x) { return x._status === "open"; }).length, "reports"],
+      ["گزارش باز", reportGroups("open").length, "reports"],
       ["پیام خوانده‌نشده", unreadChat(), "support"],
       ["کاربران", U.length, "users"],
       ["شهرها", D.cities.length + S.cities.added.length - S.cities.hidden.length, "cities"]
@@ -596,8 +671,10 @@
     todo.appendChild(el("h2", "ad-card-title", "کارهای باقی‌مانده"));
     var items = [];
     if (drafts().length) items.push(["آگهی جدید منتظر بررسی است", "pending"]);
-    var open = R.filter(function (x) { return x._status === "open"; }).length;
-    if (open) items.push([fa(open) + " گزارش خطا رسیدگی نشده", "reports"]);
+    var autoN = autoHiddenCount();
+    if (autoN) items.unshift([fa(autoN) + " مورد با گزارش کاربران خودکار پنهان شد؛ بررسی کنید", "reports"]);
+    var open = reportGroups("open").length - autoN;
+    if (open > 0) items.push([fa(open) + " مورد گزارش‌شده بررسی نشده", "reports"]);
     if (unreadChat()) items.push([fa(unreadChat()) + " پیام پشتیبانی بی‌پاسخ", "support"]);
     var unv = C.filter(function (x) { return x.kind === "org" && !x.verified && x.status === "published"; }).length;
     if (unv) items.push([fa(unv) + " همدردی اداری تأییدنشده", "condolences"]);
@@ -621,6 +698,7 @@
   /* ---- آگهی‌ها ---- */
   function setListing(id, patch) {
     var o = S.listings[id] || {};
+    if (patch.status) delete o.autoHidden;   /* تصمیم مدیر جای پنهان‌شدن خودکار را می‌گیرد */
     S.listings[id] = Object.assign(o, patch);
   }
   function listingForm(item) {
@@ -686,7 +764,8 @@
       items.forEach(function (x) {
         var row = el("article", "ad-row");
         row.innerHTML = '<span class="ad-thumb" style="background-image:url(\'' + esc(x.photo) + '\')"></span>' +
-          '<div class="ad-row-main"><div class="ad-row-title">' + esc(x.deceased_name) + (x._new ? ' <span class="ad-pill is-info">جدید</span>' : "") + "</div>" +
+          '<div class="ad-row-main"><div class="ad-row-title">' + esc(x.deceased_name) + (x._new ? ' <span class="ad-pill is-info">جدید</span>' : "") +
+          (x._auto ? ' <span class="ad-pill is-bad">پنهان با گزارش</span>' : "") + "</div>" +
           '<div class="ad-row-sub">' + esc(CEREMONY[x.ceremony_type] || "") + " · " + esc(x.city) + " · " + esc(x.event_date_jalali || "") + "</div></div>";
         var acts = el("div", "ad-row-acts");
         var view = el("a", "ad-btn is-sm", svg(IC.eye, 16)); view.href = "listing.html?id=" + encodeURIComponent(x.id); view.target = "_blank";
@@ -833,7 +912,9 @@
             DB.update("condolences", "id=eq." + c.dbId, patch).then(function () { logAct(msg); return loadDB(); }).then(refresh).catch(dbFail);
             return;
           }
-          S.condolences[c.key] = Object.assign(S.condolences[c.key] || {}, patch); save(msg); refresh();
+          var oc = S.condolences[c.key] || {};
+          if (patch.status) delete oc.autoHidden;
+          S.condolences[c.key] = Object.assign(oc, patch); save(msg); refresh();
         };
         if (c.kind === "org" && c.status !== "deleted") acts.appendChild(actBtn(c.verified ? "لغو تأیید" : "تأیید اداره", c.verified ? "" : "is-ok", function () {
           setC({ verified: !c.verified }, (c.verified ? "تأیید همدردی «" : "همدردی «") + c.name + (c.verified ? "» لغو شد" : "» تأیید شد"));
@@ -894,10 +975,14 @@
         row.innerHTML = '<span class="ad-thumb is-logo" style="background-image:url(\'' + esc(b.logo) + '\')"></span>' +
           '<div class="ad-row-main"><div class="ad-row-title">' + esc(b.name) +
           (b.verified ? ' <span class="ad-pill is-ok">تأییدشده</span>' : "") + (b.featured ? ' <span class="ad-pill is-info">ویژه</span>' : "") +
-          (b._user ? ' <span class="ad-pill is-warn">ثبت کاربر</span>' : "") + "</div>" +
+          (b._user ? ' <span class="ad-pill is-warn">ثبت کاربر</span>' : "") + (b._auto ? ' <span class="ad-pill is-bad">پنهان با گزارش</span>' : "") + "</div>" +
           '<div class="ad-row-sub">' + esc(b.category_name) + " · " + esc(b.city) + " · " + esc(b.phone || "") + "</div></div>";
         var acts = el("div", "ad-row-acts");
-        var setB = function (patch, msg) { S.businesses[b.id] = Object.assign(S.businesses[b.id] || {}, patch); save(msg); refresh(); };
+        var setB = function (patch, msg) {
+          var o = S.businesses[b.id] || {};
+          if (patch.status) delete o.autoHidden;
+          S.businesses[b.id] = Object.assign(o, patch); save(msg); refresh();
+        };
         var v = el("a", "ad-btn is-sm", svg(IC.eye, 16)); v.href = "business-detail.html?id=" + encodeURIComponent(b.id); v.target = "_blank";
         v.setAttribute("aria-label", "مشاهده");
         acts.appendChild(v);
@@ -923,56 +1008,84 @@
 
   /* ---- گزارش‌ها ---- */
   VIEWS.reports = function () {
-    var R = reports();
+    var lim = parseInt(A.settings().reportHideAt, 10);
+    if (isNaN(lim)) lim = 3;
+    main.appendChild(el("p", "ad-intro", lim > 0
+      ? "وقتی گزارش‌های یک مورد از " + fa(lim) + " دستگاه مختلف برسد، آن مورد خودکار پنهان می‌شود تا شما بررسی کنید. (قابل تغییر در تنظیمات)"
+      : "پنهان‌شدن خودکار با گزارش خاموش است. (قابل تغییر در تنظیمات)"));
+    var openN = reportGroups("open").length, doneN = reportGroups("done").length;
     ui.render = function (list, q, f) {
-      var items = reports().filter(function (r) {
-        if (r._status !== f) return false;
-        return !q || norm([r.listing, r.name, r.type, r.note].join(" ")).indexOf(q) !== -1;
+      var groups = reportGroups(f).filter(function (g) {
+        return !q || norm([g.name].concat(g.items.map(function (r) { return (r.type || "") + " " + (r.note || ""); })).join(" ")).indexOf(q) !== -1;
       });
-      if (!items.length) return empty(list, f === "open" ? "گزارش بازی نیست." : "گزارشی پیدا نشد.");
-      items.forEach(function (r) {
-        var isBiz = r.kind === "business";
-        var row = el("article", "ad-row is-stack");
-        row.innerHTML = '<div class="ad-row-title">' + esc(r.type || "گزارش") + " " + pill(r._status) + "</div>" +
-          '<div class="ad-row-sub">' + (isBiz ? "کسب‌وکار: " : r.kind === "condolence" ? "همدردی در آگهی: " : "آگهی: ") + esc(r.listing || r.name || "—") + " · " + faDate(r.at) + " " + faTime(r.at) + "</div>" +
-          (r.note ? '<p class="ad-msg">' + esc(r.note) + "</p>" : "");
+      if (!groups.length) return empty(list, f === "open" ? "گزارش بازی نیست." : "گزارشی پیدا نشد.");
+      groups.forEach(function (g) {
+        var kindTxt = g.kind === "business" ? "کسب‌وکار" : g.kind === "condolence" ? "همدردی" : "آگهی";
+        var hidden = g.state.status === "hidden", auto = hidden && g.state.auto, gone = g.state.status === "deleted";
+        var row = el("article", "ad-row is-stack" + (auto ? " is-flagged" : ""));
+        var condName = /همدردی «(.+)»/.exec(g.name);
+        var author = condName ? condName[1] : (/^json:/.test(g.ref) ? g.ref.slice(5).split("|")[0] : "");
+        var who = g.kind === "condolence" ? "«" + esc(author || "همدردی") + "» در آگهی " + esc(g.name.split(" — ")[0]) : esc(g.name);
+        row.innerHTML = '<div class="ad-row-title">' + kindTxt + ": " + who + ' <span class="ad-pill is-' + (g.count >= lim && lim > 0 ? "bad" : "warn") + '">' + fa(g.count) + " گزارش</span>" +
+          (auto ? ' <span class="ad-pill is-bad">خودکار پنهان شد</span>' : hidden ? ' <span class="ad-pill is-warn">مخفی</span>' : gone ? ' <span class="ad-pill is-bad">حذف‌شده</span>' : "") + "</div>" +
+          '<div class="ad-row-sub">آخرین گزارش: ' + faDate(g.last) + " " + faTime(g.last) + "</div>" +
+          g.items.slice(0, 5).map(function (r) {
+            return '<p class="ad-msg"><b>' + esc(r.type || "گزارش") + "</b>" + (r.note ? " — " + esc(r.note) : "") +
+              (r.photo ? ' · <a href="' + esc(r.photo) + '" target="_blank" rel="noopener">تصویر</a>' : "") + "</p>";
+          }).join("") + (g.items.length > 5 ? '<p class="ad-muted">و ' + fa(g.items.length - 5) + " گزارش دیگر</p>" : "");
         var acts = el("div", "ad-row-acts");
-        if (r.id != null) {
-          var v = el("a", "ad-btn is-sm", svg(IC.eye, 16) + "<span>مشاهده</span>");
-          v.href = (isBiz ? "business-detail.html?id=" : "listing.html?id=") + encodeURIComponent(r.id); v.target = "_blank";
-          acts.appendChild(v);
-        }
-        if (r.photo) {
-          var ph = el("a", "ad-btn is-sm", "تصویر"); ph.href = r.photo; ph.target = "_blank"; ph.rel = "noopener";
-          acts.appendChild(ph);
-        }
-        acts.appendChild(actBtn(r._status === "open" ? "رسیدگی شد" : "بازکردن دوباره", r._status === "open" ? "is-ok" : "", function () {
-          if (DB) {
-            DB.update("reports", "id=eq." + r._id, { status: r._status === "open" ? "done" : "open" })
-              .then(function () { logAct(r._status === "open" ? "گزارش «" + (r.type || "") + "» رسیدگی شد" : "گزارش دوباره باز شد"); return loadDB(); })
-              .then(refresh).catch(dbFail);
-            return;
+        var viewUrl = g.kind === "business" ? "business-detail.html?id=" + encodeURIComponent(g.id) : "listing.html?id=" + encodeURIComponent(g.id);
+        var v = el("a", "ad-btn is-sm", svg(IC.eye, 16) + "<span>مشاهده</span>"); v.href = viewUrl; v.target = "_blank";
+        acts.appendChild(v);
+
+        /* همه‌ی گزارش‌های باز این مورد «رسیدگی‌شده» می‌شوند */
+        var closeAll = function () {
+          if (DB) return Promise.all(g.items.map(function (r) { return DB.update("reports", "id=eq." + r._id, { status: "done" }); }));
+          g.items.forEach(function (r) { S.reports[r._key] = "done"; });
+          return Promise.resolve();
+        };
+        var finish = function (msg) {
+          return save(msg).then(function () { return loadDB(); }).then(refresh);
+        };
+        if (f === "open") {
+          if (hidden) {
+            acts.appendChild(actBtn("بررسی شد؛ نمایش دوباره", "is-ok", function () {
+              setTargetStatus(g.kind, g.id, g.ref, "published").then(closeAll)
+                .then(function () { return finish(kindTxt + " «" + g.name + "» بررسی و دوباره نمایش داده شد"); }).catch(dbFail);
+            }));
+            acts.appendChild(actBtn("پنهان بماند", "", function () {
+              setTargetStatus(g.kind, g.id, g.ref, "hidden").then(closeAll)
+                .then(function () { return finish(kindTxt + " «" + g.name + "» پنهان ماند"); }).catch(dbFail);
+            }));
+          } else if (!gone) {
+            acts.appendChild(actBtn("گزارش‌ها وارد نیست", "is-ok", function () {
+              closeAll().then(function () { return finish("گزارش‌های «" + g.name + "» بررسی شد"); }).catch(dbFail);
+            }));
+            acts.appendChild(actBtn("پنهان کن", "", function () {
+              setTargetStatus(g.kind, g.id, g.ref, "hidden").then(closeAll)
+                .then(function () { return finish(kindTxt + " «" + g.name + "» پنهان شد"); }).catch(dbFail);
+            }));
           }
-          S.reports[r._key] = r._status === "open" ? "done" : "open";
-          save(r._status === "open" ? "گزارش «" + (r.type || "") + "» رسیدگی شد" : "گزارش دوباره باز شد"); refresh();
-        }));
-        acts.appendChild(actBtn("حذف", "is-danger", function () {
-          confirmBox("این گزارش برای همیشه حذف شود؟", "حذف", function () {
-            if (DB) {
-              DB.remove("reports", "id=eq." + r._id).then(function () { logAct("یک گزارش حذف شد"); return loadDB(); }).then(refresh).catch(dbFail);
-              return;
-            }
-            lsSet("sog:reports", lsGet("sog:reports", []).filter(function (x, i) { return String(x.at || i) !== r._key; }));
-            delete S.reports[r._key]; save("یک گزارش حذف شد"); refresh();
-          });
-        }));
+          if (!gone) acts.appendChild(actBtn("حذف", "is-danger", function () {
+            confirmBox(kindTxt + " «" + g.name + "» حذف شود؟", "حذف", function () {
+              setTargetStatus(g.kind, g.id, g.ref, "deleted").then(closeAll)
+                .then(function () { return finish(kindTxt + " «" + g.name + "» حذف شد"); }).catch(dbFail);
+            });
+          }));
+        } else {
+          acts.appendChild(actBtn("بازکردن دوباره", "", function () {
+            var reopen = DB ? Promise.all(g.items.map(function (r) { return DB.update("reports", "id=eq." + r._id, { status: "open" }); }))
+              : Promise.resolve(g.items.forEach(function (r) { S.reports[r._key] = "open"; }));
+            reopen.then(function () { return finish("گزارش‌های «" + g.name + "» دوباره باز شد"); }).catch(dbFail);
+          }));
+        }
         row.appendChild(acts);
         list.appendChild(row);
       });
     };
     toolbar("reports", "جستجو در گزارش‌ها…", [
-      { v: "open", l: "باز", n: R.filter(function (r) { return r._status === "open"; }).length },
-      { v: "done", l: "رسیدگی‌شده", n: R.filter(function (r) { return r._status === "done"; }).length }
+      { v: "open", l: "باز", n: openN },
+      { v: "done", l: "رسیدگی‌شده", n: doneN }
     ])();
   };
 
@@ -1189,12 +1302,13 @@
       ["needsTitle", "عنوان دکمه‌ی نیازمندی‌ها (صفحه‌ی آگهی)"],
       ["needsSub", "متن زیر دکمه‌ی نیازمندی‌ها"],
       ["condFirst", "تعداد همدردی در نمایش اول", "", "number"],
-      ["condStep", "تعداد همدردی در هر «دیدن همدردی بیشتر»", "", "number"]
+      ["condStep", "تعداد همدردی در هر «دیدن همدردی بیشتر»", "", "number"],
+      ["reportHideAt", "پنهان‌شدن خودکار با چند گزارش", "گزارش‌های یک دستگاه یک گزارش حساب می‌شود. صفر = خاموش", "number"]
     ];
     fields.forEach(function (x) {
       var lab = el("label", "ad-field", "<span>" + x[1] + "</span>");
       var i = x[3] === "textarea" ? el("textarea", "ad-input") : el("input", "ad-input");
-      if (x[3] === "number") { i.type = "number"; i.min = 1; i.max = 500; i.dir = "ltr"; }
+      if (x[3] === "number") { i.type = "number"; i.min = x[0] === "reportHideAt" ? 0 : 1; i.max = 500; i.dir = "ltr"; }
       if (x[3] === "textarea") i.rows = 2;
       i.name = x[0]; i.value = st[x[0]] == null ? "" : st[x[0]];
       lab.appendChild(i);
@@ -1208,7 +1322,10 @@
       e.preventDefault();
       fields.forEach(function (x) {
         var v = f.elements[x[0]].value.trim();
-        if (x[3] === "number") v = Math.max(1, parseInt(en(v), 10) || A.DEFAULT_SETTINGS[x[0]]);
+        if (x[3] === "number") {
+          var num = parseInt(en(v), 10);
+          v = x[0] === "reportHideAt" ? (isNaN(num) ? 3 : Math.max(0, num)) : Math.max(1, num || A.DEFAULT_SETTINGS[x[0]]);
+        }
         S.settings[x[0]] = v;
       });
       save("تنظیمات سایت ذخیره شد");
@@ -1285,7 +1402,7 @@
   /* به‌روز ماندن با تغییرات تب‌های دیگر (گزارش یا پیام تازه) */
   window.addEventListener("storage", function (e) {
     if (!loggedIn() || !main) return;
-    if (e.key === A.KEY) S = A.read();
+    if (e.key === A.KEY) { S = A.read(); BASE = clone(S); }
     if (e.key === A.KEY || e.key === "sog:chat" || e.key === "sog:reports" || e.key === "sog:draftListing") refresh();
   });
 
