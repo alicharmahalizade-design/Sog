@@ -40,6 +40,24 @@
     try { reps = JSON.parse(localStorage.getItem("sog:reports")) || []; } catch (e) {}
     MYREPORTS = reps.filter(function (x) { return x.kind !== "business" && mine.indexOf(String(x.id)) !== -1; })
       .reverse().map(function (x) { return { id: x.id, name: x.listing, kind: x.condolence ? "condolence" : "listing", type: x.type, note: x.note, at: x.at }; });
+    /* نسخه‌ی پیش‌نمایش (بدون Supabase): اگر خالی بود، نمونه نشان داده می‌شود تا ظاهر بخش دیده شود */
+    var day = 86400000, now = Date.now();
+    if (!INBOX.length) INBOX = [
+      { id: "demo-1", kind: "admin", at: now - 2 * 3600000, listing: "101", title: "آگهی «استاد محمود فرشچیان» منتشر شد",
+        body: "آگهی شما بررسی و برای همه منتشر شد. از «آگهی‌های من» می‌توانید آن را ببینید." },
+      { id: "demo-2", kind: "news", at: now - day, title: "امکان ثبت همدردی با عکس پروفایل",
+        body: "از این پس عکس پروفایل شما کنار همدردی‌هایتان نمایش داده می‌شود. عکس را از همین صفحه تغییر دهید." },
+      { id: "demo-3", kind: "admin", at: now - 3 * day, listing: "103", title: "یک گزارش خطا برای آگهی شما ثبت شد",
+        body: "کاربری اطلاعات تاریخ مراسم را نادرست گزارش کرده است. لطفاً آگهی را بررسی و در صورت نیاز اصلاح کنید." },
+      { id: "demo-4", kind: "news", at: now - 7 * day, title: "به سایت سوگ خوش آمدید",
+        body: "مرجع آگهی‌های سوگ ایران. برای ثبت آگهی، دکمه‌ی «ثبت سوگ» در پایین صفحه را بزنید." }
+    ];
+    if (!MYREPORTS.length) MYREPORTS = [
+      { id: "101", name: "استاد محمود فرشچیان", kind: "listing", type: "اطلاعات نادرست", note: "تاریخ تشییع اشتباه درج شده است", at: now - 5 * 3600000 },
+      { id: "101", name: "استاد محمود فرشچیان", kind: "condolence", type: "محتوای توهین‌آمیز یا نامناسب", note: "", at: now - day },
+      { id: "103", name: "استاد محمود فرشچیان", kind: "listing", type: "این آگهی تکراری است", note: "همین آگهی دو بار ثبت شده", at: now - 2 * day },
+      { id: "105", name: "علی انصاریان", kind: "listing", type: "عکس نامرتبط", note: "عکس متعلق به شخص دیگری است", at: now - 4 * day }
+    ];
     return Promise.resolve();
   }
   function readIds() { try { return JSON.parse(localStorage.getItem("sog:inboxRead")) || []; } catch (e) { return []; } }
