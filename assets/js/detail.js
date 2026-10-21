@@ -838,7 +838,7 @@
       ig.href = "https://instagram.com/" + handle;
       ig.target = "_blank"; ig.rel = "noopener";
       ig.innerHTML = '<span class="bi-ico">' + SogIcon("instagram", 22) + '</span>' +
-        '<span class="bi-info"><span class="bi-text">صفحه‌ی اینستاگرام</span>' +
+        '<span class="bi-info"><span class="bi-text">صفحه‌ی اینستاگرام درگذشته</span>' +
         '<span class="bi-handle">@' + esc(handle) + '</span></span>' +
         '<span class="bi-go">مشاهده</span>';
       wrap.appendChild(ig);
