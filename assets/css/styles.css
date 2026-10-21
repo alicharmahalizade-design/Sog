@@ -918,3 +918,7 @@ option { direction: rtl; text-align: right; }
 .sp-bar.is-played { background: var(--accent); }
 .sp.is-playing .sp-bar { transition: background .2s, transform .06s linear; }
 .sp-eq:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 6px; }
+
+/* دو دکمه‌ی کنار هم: دکمه‌ی اصلی (نارنجی) سه‌چهارم، دکمه‌ی انصراف یک‌چهارم */
+body .report-actions .btn-primary, body .crop-actions .btn-primary, body .ack-edit-actions .btn-primary { flex: 3 1 0; min-width: 0; }
+body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-actions .btn-ghost { flex: 1 1 0; min-width: 0; padding-inline: 8px; }

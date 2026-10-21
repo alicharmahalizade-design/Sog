@@ -245,3 +245,8 @@ select.ad-input { appearance: none; -webkit-appearance: none; }
 /* مورد پنهان‌شده با گزارش کاربران */
 .ad-row.is-flagged { box-shadow: inset -3px 0 0 #e07070; }   /* نوار قرمز سمت راست (شروع سطر) */
 .ad-msg a { color: var(--accent); }
+
+/* فرم‌های پنجره‌ای: دکمه‌ی اصلی سه‌چهارم، انصراف یک‌چهارم */
+.ad-modal .ad-form-actions { justify-content: stretch; }
+.ad-modal .ad-form-actions > .ad-btn { flex: 1 1 0; padding-inline: 8px; }
+.ad-modal .ad-form-actions > .ad-btn.is-primary, .ad-modal .ad-form-actions > .ad-btn.is-danger { flex: 3 1 0; }
