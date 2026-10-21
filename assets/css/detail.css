@@ -826,8 +826,12 @@
   width: 100%; max-width: var(--frame-w);
   height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 12px 0;
   display: flex; align-items: center; gap: 8px;
-  background: rgba(10,10,10,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #222;
+  /* شیشه‌ی نقره‌ای مات با گوشه‌های گرد پایین */
+  border-radius: 0 0 24px 24px;
+  background: linear-gradient(180deg, rgba(150,156,168,.62) 0%, rgba(92,97,108,.66) 100%);
+  backdrop-filter: blur(20px) saturate(1.5); -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,.22); border-top: none;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.18), 0 8px 24px rgba(0,0,0,.45);
   transform: translate(-50%, -100%); opacity: 0; pointer-events: none;
   transition: transform .22s ease, opacity .22s ease;
 }
@@ -845,8 +849,11 @@
 .detail-bar .db-text small { font-size: 12px; line-height: 16px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .detail-bar .db-back {
   flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
-  display: grid; place-items: center; background: #1e1e1e; border: 1px solid #2c2c2c; color: #fff;
+  display: grid; place-items: center; color: #fff;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25);
 }
+.detail-bar .db-text b { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+.detail-bar .db-text small { color: rgba(240,242,246,.8); }
 
 /* ===== خیرات به نیت درگذشته ===== */
 /* کارت ۶۴ پیکسلی زیر دکمه‌های عمل، پیش از زندگی‌نامه */
