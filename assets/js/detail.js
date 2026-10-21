@@ -286,7 +286,7 @@
     var photo = el("div", "hero-photo");
     var slides = el("div", "hero-slides");
     (d.photos && d.photos.length ? d.photos : ["assets/img/portrait-1.svg"]).forEach(function (src) {
-      var s = el("div", "hero-slide"); s.style.backgroundImage = 'url("' + src + '")'; slides.appendChild(s);
+      var s = el("div", "hero-slide" + (slides.children.length ? "" : " is-active")); s.style.backgroundImage = 'url("' + src + '")'; slides.appendChild(s);
     });
     photo.appendChild(slides);
 
@@ -306,11 +306,11 @@
       photo.appendChild(dots);
       var go = function (k) {
         idx = (k + n) % n;
-        slides.style.transform = "translateX(" + (idx * 100) + "%)"; // RTL: مثبت به‌سمت اسلاید بعد
+        [].forEach.call(slides.children, function (c, j) { c.classList.toggle("is-active", j === idx); });
         [].forEach.call(dots.children, function (c, j) { c.classList.toggle("is-active", j === idx); });
       };
       [].forEach.call(dots.children, function (c, j) { c.addEventListener("click", function () { go(j); }); });
-      setInterval(function () { go(idx + 1); }, 4500);
+      setInterval(function () { go(idx + 1); }, 5500);
     }
 
     wrap.appendChild(photo);

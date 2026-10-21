@@ -10,8 +10,15 @@
   background: #000 center/cover no-repeat;
   overflow: hidden;
 }
-.hero-slides { display: flex; height: 100%; transition: transform .35s ease; }
-.hero-slide { flex: 0 0 100%; height: 100%; background: #000 center/cover no-repeat; }
+/* تعویض نرم تصویرها: محو شدن آرام (۱.۲ ثانیه) به‌همراه بزرگ‌نمایی خیلی ملایم */
+.hero-slides { position: relative; height: 100%; }
+.hero-slide {
+  position: absolute; inset: 0; background: #000 center/cover no-repeat;
+  opacity: 0; transform: scale(1.04);
+  transition: opacity 1.2s cubic-bezier(.4, 0, .2, 1), transform 6s ease-out;
+}
+.hero-slide.is-active { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) { .hero-slide { transition: opacity .3s linear; transform: none; } }
 .hero-photo::after {
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(to top, var(--bg) 2%, rgba(13,13,13,0) 32%);
