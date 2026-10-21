@@ -651,17 +651,35 @@
 
 .anniv-empty-text { color: var(--text-mute); font-size: 13px; margin: 0 0 12px; text-align: center; }
 
-/* لینک اینستاگرام درگذشته در زندگی‌نامه */
+/* لینک اینستاگرام درگذشته در زندگی‌نامه — کارت ۶۴ پیکسلی روی شبکه‌ی ۴ پیکسلی:
+   آیکون دایره‌ای ۴۰ با رنگ‌های اینستاگرام، نام و شناسه در دو خط، دکمه‌ی «مشاهده» */
 .bio-instagram {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface-2); border-radius: 12px; padding: 12px 14px;
-  margin: 4px 0 16px; text-decoration: none; color: var(--text);
+  display: flex; align-items: center; gap: 12px;
+  min-height: 64px; padding: 11px 12px; margin: 4px 0 16px;   /* ۱۱ + ۴۰ + ۱۱ + ۲ کادر = ۶۴ */
+  border-radius: 16px; text-decoration: none; color: var(--text);
+  background: #151515;
+  border: 1px solid transparent;
+  background-image: linear-gradient(#151515, #151515),
+    linear-gradient(135deg, #feda75, #fa7e1e 30%, #d62976 60%, #962fbf 80%, #4f5bd5);
+  background-origin: border-box; background-clip: padding-box, border-box;
 }
-.bio-instagram .bi-ico { color: var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
-.bio-instagram .bi-text { font-size: 13.5px; font-weight: 700; }
+.bio-instagram:active { transform: scale(.99); }
+.bio-instagram .bi-ico {
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff;
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
+.bio-instagram .bi-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.bio-instagram .bi-text { font-size: 14px; font-weight: 700; line-height: 20px; }
 .bio-instagram .bi-handle {
-  margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute);
-  direction: ltr; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
+  font-size: 13px; line-height: 16px; color: #e9a6c9; text-align: start;
+  direction: ltr; unicode-bidi: isolate; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bio-instagram .bi-handle { align-self: flex-start; max-width: 100%; }
+.bio-instagram .bi-go {
+  flex: 0 0 auto; height: 32px; padding: 0 12px; border-radius: 8px;
+  display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #d62976, #962fbf);
 }
 
 /* ===== مراسمِ تمام‌شده: نمای خلاصه ===== */
