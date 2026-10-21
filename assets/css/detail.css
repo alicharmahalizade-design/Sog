@@ -1,5 +1,6 @@
 /* ===== صفحه جزئیات آگهی ===== */
 .detail { padding-bottom: 30px; --gap-y: 36px; }
+.has-bottom-nav .detail { padding-bottom: 96px; }   /* جا برای نوار پایین */
 
 /* ---- هدر قهرمان ---- */
 .detail-hero { position: relative; }
