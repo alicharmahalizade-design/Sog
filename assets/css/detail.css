@@ -826,11 +826,11 @@
   width: 100%; max-width: var(--frame-w);
   height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 12px 0;
   display: flex; align-items: center; gap: 8px;
-  /* همان رنگ‌های تیره‌ی سایت، با گوشه‌های گرد پایین */
+  /* شیشه‌ی تیره‌ی مات: محتوای زیر نوار محو دیده می‌شود؛ گوشه‌های پایین گرد */
   border-radius: 0 0 24px 24px;
-  background: rgba(30,30,30,.94);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border: 1px solid #2c2c2c; border-top: none;
+  background: rgba(24,24,24,.42);
+  backdrop-filter: blur(16px) saturate(1.6); -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,.08); border-top: none;
   box-shadow: 0 8px 24px rgba(0,0,0,.55);
   transform: translate(-50%, -100%); opacity: 0; pointer-events: none;
   transition: transform .22s ease, opacity .22s ease;
@@ -850,8 +850,9 @@
 .detail-bar .db-back {
   flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
   display: grid; place-items: center; color: #fff;
-  background: #141414; border: 1px solid #2c2c2c;
+  background: rgba(20,20,20,.5); border: 1px solid rgba(255,255,255,.12);
 }
+.detail-bar .db-text b { text-shadow: 0 1px 3px rgba(0,0,0,.6); }
 .detail-bar .db-text small { color: var(--text-dim); }
 
 /* ===== خیرات به نیت درگذشته ===== */
