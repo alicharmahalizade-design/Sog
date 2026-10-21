@@ -4,16 +4,17 @@
   var root = document.getElementById("bp");
   var id = new URLSearchParams(location.search).get("id");
 
-  var STAR = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.9 6.6 19.4l1.2-6L3.4 9.3l6-.7L12 3z" fill="currentColor"/></svg>';
+  var STAR = SogIcon("star", 14);
   var IC = {
-    back: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    wa: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 8c0 4 3 7 7 7 .7 0 1-1 .6-1.6l-1.7-.9-1 .9c-1.3-.5-2.3-1.5-2.8-2.8l.9-1-.9-1.7C11 7.1 9.7 7.3 9 8z" fill="currentColor"/></svg>',
-    call: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
-    map: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
-    clock: '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    pin: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
-    cart: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.4" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="currentColor"/></svg>'
+    back: SogIcon("back", 22),
+    wa: SogIcon("whatsapp", 20),
+    call: SogIcon("call", 20),
+    map: SogIcon("map", 20),
+    /* پرشده وقتی ذخیره شده است */
+    bookmark: function (on) { var v = SogIcon("bookmark", 20); return on ? v.replace('fill="none"', 'fill="currentColor"') : v; },
+    clock: SogIcon("clock", 16),
+    pin: SogIcon("pin", 16),
+    cart: SogIcon("cart", 20)
   };
   /* اعتبارسنجی کد ملی ایران */
   function validMelli(code) {
@@ -155,8 +156,8 @@
 
   function reportRow(b) {
     var wrap = el("div", "bp-section bp-report");
-    var btn = el("button", "report-error",
-      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> گزارش خطا');
+    var btn = el("button", "report-error", '<span class="report-art"></span>');
+    btn.setAttribute("aria-label", "گزارش خطا");
     btn.type = "button";
     btn.addEventListener("click", function () { openBizReport(b); });
     wrap.appendChild(btn);
@@ -169,7 +170,7 @@
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
     close.setAttribute("aria-label", "بستن");
 
@@ -255,9 +256,9 @@
     fetch("data/businesses.json").then(function (r) { return r.json(); }),
     new Promise(function (r) { setTimeout(r, 350); })
   ]).then(function (res) {
-    var biz = (res[0].businesses || []).filter(function (b) { return String(b.id) === String(id); })[0];
+    var biz = SogBizStore.merge(res[0].businesses || []).filter(function (b) { return String(b.id) === String(id); })[0];
     if (!biz) { root.innerHTML = '<p style="text-align:center;padding:50px;color:#c66">کسب‌وکار یافت نشد.</p>'; return; }
-    render(biz);
+    return SogBizStore.resolve(biz).then(render);
   }).catch(function (e) { root.innerHTML = '<p style="text-align:center;padding:50px;color:#c66">خطا در بارگذاری.</p>'; console.error(e); });
 
   var currentBiz = null;
@@ -274,7 +275,9 @@
     top.appendChild(el("a", "logo", '<img src="assets/img/logo.png" alt="سوگ">'));
     top.appendChild(back);
     cover.appendChild(top);
+    if (b.cover) cover.style.backgroundImage = 'linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,0) 40%), url("' + b.cover + '")';
     root.appendChild(cover);
+
 
     var head = el("div", "bp-head");
     var logo = el("div", "bp-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
@@ -286,6 +289,16 @@
     hi.appendChild(sub);
     head.appendChild(logo); head.appendChild(hi);
     root.appendChild(head);
+
+    /* کسب‌وکاری که خود کاربر ثبت کرده: وضعیت و دکمه‌ی ویرایش */
+    if (b.mine) {
+      var own = el("div", "bp-own");
+      own.innerHTML = '<span class="bp-own-state">در انتظار تأیید سوگ — فقط شما این صفحه را می‌بینید</span>';
+      var ed = el("a", "bp-own-edit", "ویرایش");
+      ed.href = "biz-register.html?edit=" + encodeURIComponent(b.id);
+      own.appendChild(ed);
+      root.appendChild(own);
+    }
 
     // دکمه‌های عمل
     var actions = el("div", "bp-actions");
@@ -317,7 +330,7 @@
       var wrap = el("div", "bp-services");
       b.services.forEach(function (sv) { wrap.appendChild(el("span", "svc", esc(sv))); });
       s3.appendChild(wrap);
-      s3.appendChild(el("p", "bp-desc", "شروع قیمت: " + esc(b.price_from)));
+      if (b.price_from) s3.appendChild(el("p", "bp-desc", "شروع قیمت: " + esc(b.price_from)));
       root.appendChild(s3);
     }
 
@@ -327,6 +340,15 @@
       var g = el("div", "bp-gallery");
       b.gallery.forEach(function (src) { var it = el("div", "g"); it.style.backgroundImage = 'url("' + src + '")'; g.appendChild(it); });
       s4.appendChild(g); root.appendChild(s4);
+    }
+
+    // نمونه‌ی صدا (قاری، مداح و خواننده)
+    if (b.audio && b.audio.length) {
+      var sa = el("div", "bp-section"); sa.appendChild(el("h2", null, "نمونه صدا"));
+      b.audio.forEach(function (a) {
+        sa.appendChild(SogPlayer(a.src, a.title));
+      });
+      root.appendChild(sa);
     }
 
     // نقشه و آدرس
@@ -393,7 +415,7 @@
     var link = SogUtil.waLink(currentBiz.whatsapp || currentBiz.phone, msg);
     // پیام موفقیت + باز کردن واتساپ
     e.target.replaceWith(el("div", "order-success",
-      '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
       '<p>در حال انتقال به واتساپ برای ارسال سفارش به «' + esc(currentBiz.name) + '»…</p>'));
     window.open(link, "_blank");
     setTimeout(closeOrder, 2200);

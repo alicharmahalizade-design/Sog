@@ -12,8 +12,8 @@
   }
 
   // نشان «همکار سوگ» یا «تأییدشده»
-  var CHECK = '<svg viewBox="0 0 24 24" width="11" height="11"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var GEM = '<svg viewBox="0 0 24 24" width="12" height="12"><path d="M6 3h12l3 6-9 12L3 9l3-6z" fill="currentColor"/><path d="M3 9h18M9 3l-2 6 5 12 5-12-2-6" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1"/></svg>';
+  var CHECK = SogIcon("check", 11);
+  var GEM = '' + SogIcon("gem", 12) + '';
   function badge(b) {
     if (b.partner) return '<span class="sog-badge partner" title="همکار رسمی سوگ">' + GEM + ' همکار سوگ</span>';
     if (b.verified) return '<span class="verified" title="تأییدشده">' + CHECK + '</span>';
@@ -76,8 +76,52 @@
     return J_WEEKDAYS[new Date(g.y, g.m - 1, g.d).getDay()];
   }
 
+  /* یک کلیکِ بعدی در کل صفحه خنثی می‌شود: پس از نگه‌داشتن، کلیکِ ناشی از
+     رها کردن انگشت روی چیزی که تازه باز شده می‌نشیند. */
+  function swallowNextClick() {
+    function kill(e) { e.preventDefault(); e.stopPropagation(); done(); }
+    function done() { document.removeEventListener("click", kill, true); clearTimeout(t); }
+    document.addEventListener("click", kill, true);
+    var t = setTimeout(done, 900);
+  }
+
+  /* نگه‌داشتن روی یک عنصر (حدود ۰٫۶ ثانیه) */
+  function longPress(node, fn, ms) {
+    var timer = null, fired = false, sx = 0, sy = 0;
+    function at(e) { var t = (e.touches && e.touches[0]) || e; return { x: t.clientX || 0, y: t.clientY || 0 }; }
+    function start(e) {
+      if (timer) return;
+      var p0 = at(e); sx = p0.x; sy = p0.y; fired = false;
+      timer = setTimeout(function () {
+        timer = null; fired = true;
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e2) {} }
+        swallowNextClick();
+        fn();
+      }, ms || 600);
+    }
+    function move(e) {
+      if (!timer) return;
+      var p1 = at(e);
+      if (Math.abs(p1.x - sx) > 12 || Math.abs(p1.y - sy) > 12) stop();
+    }
+    function stop() { if (timer) { clearTimeout(timer); timer = null; } }
+
+    node.addEventListener("pointerdown", start);
+    node.addEventListener("touchstart", start, { passive: true });
+    node.addEventListener("pointermove", move, { passive: true });
+    node.addEventListener("touchmove", move, { passive: true });
+    ["pointerup", "touchend", "touchcancel"].forEach(function (ev) { node.addEventListener(ev, stop); });
+    /* pointercancel عمداً تایمر را لغو نمی‌کند؛ مرورگر موبایل با شروع ژست
+       نگه‌داشتن همین را می‌فرستد. منوی لمسی هم همیشه جلویش گرفته می‌شود. */
+    node.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    node.addEventListener("click", function (e) {
+      if (fired) { e.preventDefault(); e.stopPropagation(); fired = false; }
+    }, true);
+  }
+
   g.SogUtil = {
     toEn: toEn, waLink: waLink, badge: badge,
+    longPress: longPress,
     jMonths: J_MONTHS,
     gregorianToJalali: gregorianToJalali,
     jalaliToGregorian: jalaliToGregorian,

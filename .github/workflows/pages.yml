@@ -29,6 +29,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          # اگر Pages هنوز فعال نشده باشد، خود workflow آن را فعال می‌کند
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

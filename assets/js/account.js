@@ -9,26 +9,18 @@
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
-  var IC = {
-    listing: 'M4 5h16v14H4zM4 9h16M8 13h8M8 16h5',
-    saved: 'M6 3h12v18l-6-4-6 4V3z',
-    follow: 'M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z',
-    order: 'M6 6h15l-1.5 9h-12zM6 6L5 3H2',
-    candle: 'M12 3c1.6 2 1.4 3.4 0 4.4M9.5 8.5h5v11h-5z',
-    biz: 'M4 9l1-4h14l1 4M5 9v10h14V9',
-    bell: 'M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6M10 21h4',
-    lock: 'M6 10V8a6 6 0 1112 0v2M5 10h14v11H5z',
-    support: 'M12 3a9 9 0 00-9 9v5a2 2 0 002 2h1v-6H5a7 7 0 0114 0h-1v6h1a2 2 0 002-2v-5a9 9 0 00-9-9z',
-    edit: 'M4 20l4-1 11-11-3-3L5 16z',
-    logout: 'M15 4h4v16h-4M11 8l-4 4 4 4M7 12h10',
-    chev: 'M15 5l-7 7 7 7',
-    check: 'M20 6L9 17l-5-5'
-  };
-  function svg(path, w) { w = w || 20; return '<svg viewBox="0 0 24 24" width="' + w + '" height="' + w + '"><path d="' + path + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+
 
   fetch("data/listings.json").then(function (r) { return r.json(); }).then(function (d) {
     LISTINGS = d.listings || [];
-  }).catch(function () {}).then(render);
+  }).catch(function () {}).then(function () {
+    render();
+    /* اگر از نوار پایینِ صفحه‌ی دیگری با نگه‌داشتن آمده‌ایم، فهرست حساب‌ها باز شود */
+    if (location.hash === "#accounts") {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+      if (SogStore.getUser()) openAccounts();
+    }
+  });
 
   function render() {
     root.innerHTML = "";
@@ -79,7 +71,7 @@
     head.setAttribute("aria-expanded", "false");
     head.innerHTML = '<span class="ar-label">' + esc(label) + '</span>' +
       '<span class="ar-count">' + faNum(items.length) + '</span>' +
-      '<span class="ar-chev">' + svg("M6 9l6 6 6-6", 20) + '</span>';
+      '<span class="ar-chev">' + SogIcon("chevron", 20) + '</span>';
 
     var body = el("div", "acc-body");
 
@@ -132,6 +124,8 @@
   function myListingItems() {
     return myListings().map(function (rawId) {
       var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
+      /* آگهی‌هایی که روی همین دستگاه ثبت شده‌اند هنوز در فهرست سرور نیستند */
+      if (!item && SogStore.getMyAd) item = SogStore.getMyAd(rawId);
       return item || { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
     });
   }
@@ -156,16 +150,20 @@
     list.appendChild(notifyRow(prefs.notify));
 
     var sup = el("button", "acc-row"); sup.type = "button";
-    sup.innerHTML = '<span class="ar-ic">' + svg(IC.support) + '</span>' +
-      '<span class="ar-label">پشتیبانی</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    sup.innerHTML = '<span class="ar-ic">' + SogIcon("support", 20) + '</span>' +
+      '<span class="ar-label">پشتیبانی</span><span class="ar-chev">' + SogIcon("chev", 18) + '</span>';
     sup.addEventListener("click", contactSupport);
     list.appendChild(sup);
 
     var out = el("button", "acc-row is-danger"); out.type = "button";
-    out.innerHTML = '<span class="ar-ic">' + svg(IC.logout) + '</span>' +
-      '<span class="ar-label">خروج از حساب</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    out.innerHTML = '<span class="ar-ic">' + SogIcon("logout", 20) + '</span>' +
+      '<span class="ar-label">' + (SogStore.getAccounts().length > 1 ? "خروج از این حساب" : "خروج از حساب") +
+      '</span><span class="ar-chev">' + SogIcon("chev", 18) + '</span>';
     out.addEventListener("click", function () {
-      confirmDialog("خروج از حساب", "می‌خواهید از حساب کاربری خارج شوید؟", function () {
+      var rest = SogStore.getAccounts().length - 1;
+      confirmDialog("خروج از حساب", rest > 0
+        ? "از این حساب خارج می‌شوید؛ " + faNum(rest) + " حساب دیگر روی این دستگاه باقی می‌ماند."
+        : "می‌خواهید از حساب کاربری خارج شوید؟", function () {
         SogStore.clearUser(); render(); toast("از حساب خارج شدید.");
       });
     });
@@ -175,9 +173,13 @@
   }
 
   /* پروفایل */
+  /* نگه‌داشتن روی پروفایل (حدود ۰٫۶ ثانیه) = باز شدن تعویض حساب.
+     بعد از آن کلیکِ همان لمس خنثی می‌شود تا مثلاً گالری باز نشود. */
+  function longPress(node, fn) { SogUtil.longPress(node, fn); }
+
   /* عکس پروفایل: انتخاب از گالری و ذخیره روی همین دستگاه */
   function avatarPicker(user) {
-    var AV_KEY = "sog:avatar";
+    var AV_KEY = "sog:avatar:" + (SogStore.getActiveId() || "guest");
     function read() { try { return localStorage.getItem(AV_KEY) || ""; } catch (e) { return ""; } }
     function write(v) { try { if (v) localStorage.setItem(AV_KEY, v); else localStorage.removeItem(AV_KEY); } catch (e) {} }
 
@@ -193,9 +195,9 @@
         var img = el("img", "avatar-img"); img.src = src; img.alt = "";
         box.appendChild(img);
       } else {
-        box.insertAdjacentHTML("beforeend", svg("M12 8m-4 0a4 4 0 108 0a4 4 0 10-8 0M4 21c0-4 3.5-7 8-7s8 3 8 7", 40));
+        box.insertAdjacentHTML("beforeend", SogIcon("user", 40));
       }
-      box.appendChild(el("span", "avatar-cam", svg("M3 7h4l1.5-2.5h7L17 7h4v13H3zM12 12.5m-3.2 0a3.2 3.2 0 106.4 0a3.2 3.2 0 10-6.4 0", 14)));
+      box.appendChild(el("span", "avatar-cam", SogIcon("camera", 14)));
       box.appendChild(input);
     }
 
@@ -230,21 +232,23 @@
   function profileCard(user) {
     var card = el("div", "profile-card");
     var avatar = avatarPicker(user);
+    if (user) { longPress(avatar, openAccounts); longPress(card, openAccounts); }
     var info = el("div", "profile-info");
     if (user) {
-      var nm = el("button", "profile-name is-editable", esc(user.name || "کاربر سوگ"));
+      var nm = el("button", "profile-name is-switch",
+        esc(user.name || "کاربر سوگ") + '<span class="pn-chev">' + SogIcon("chev", 16) + "</span>");
       nm.type = "button";
-      nm.setAttribute("aria-label", "ویرایش نام و نام خانوادگی");
-      nm.addEventListener("click", function () { openLogin(true); });
+      nm.setAttribute("aria-label", "تغییر حساب کاربری");
+      nm.addEventListener("click", openAccounts);
       info.appendChild(nm);
       info.appendChild(el("div", "profile-phone", esc(faNum(user.phone || ""))));
       /* نشان تأیید هویت و دکمه‌ی ویرایش در یک خط و هم‌تراز */
       var foot = el("div", "profile-foot");
       if (user.verified && validMelli(user.melli)) {
         foot.appendChild(el("span", "profile-verified",
-          '<span class="pv-tick">' + svg(IC.check, 13) + '</span><span>تأیید هویت شده</span>'));
+          '<span class="pv-tick">' + SogIcon("check", 13) + '</span><span>تأیید هویت شده</span>'));
       }
-      var edit = el("button", "profile-edit", svg(IC.edit, 16) + " ویرایش");
+      var edit = el("button", "profile-edit", SogIcon("edit", 16) + " ویرایش");
       edit.addEventListener("click", function () { openLogin(true); });
       foot.appendChild(edit);
       info.appendChild(foot);
@@ -333,7 +337,7 @@
       if (c.city) bits.push(esc(c.city));
       info.appendChild(el("span", "cond-meta", bits.join(" • ")));
       a.appendChild(ph); a.appendChild(info);
-      a.appendChild(el("span", "cond-chev", svg(IC.chev, 18)));
+      a.appendChild(el("span", "cond-chev", SogIcon("chev", 18)));
       wrap.appendChild(a);
     });
     return wrap;
@@ -342,10 +346,10 @@
   /* اکشن سریع */
   function quickActions() {
     var wrap = el("div", "quick-actions");
-    var reg = el("a", "qa-btn qa-primary", '<span class="qa-ic">' + svg("M12 5v14M5 12h14", 22) + '</span><span>ثبت سوگ جدید</span>');
+    var reg = el("a", "qa-btn qa-primary", '<span class="qa-ic">' + SogIcon("plus", 22) + '</span><span>ثبت سوگ جدید</span>');
     reg.href = "register.html";
-    var biz = el("a", "qa-btn", '<span class="qa-ic">' + svg(IC.biz, 22) + '</span><span>ثبت کسب‌وکار</span>');
-    biz.href = "business.html";
+    var biz = el("a", "qa-btn", '<span class="qa-ic">' + SogIcon("biz", 22) + '</span><span>ثبت کسب‌وکار</span>');
+    biz.href = "biz-register.html";
     wrap.appendChild(reg); wrap.appendChild(biz);
     return wrap;
   }
@@ -357,9 +361,9 @@
     items.forEach(function (it) {
       var row = it.href ? el("a", "acc-row") : el("button", "acc-row");
       if (it.href) row.href = it.href; else row.type = "button";
-      row.innerHTML = '<span class="ar-ic">' + svg(it.icon) + '</span><span class="ar-label">' + esc(it.label) + '</span>' +
+      row.innerHTML = '<span class="ar-ic">' + it.icon + '</span><span class="ar-label">' + esc(it.label) + '</span>' +
         (it.badge != null ? '<span class="ar-badge">' + esc(it.badge) + '</span>' : '') +
-        '<span class="ar-go">' + svg(IC.chev, 18) + '</span>';
+        '<span class="ar-go">' + SogIcon("chev", 18) + '</span>';
       if (it.onClick) row.addEventListener("click", it.onClick);
       list.appendChild(row);
     });
@@ -370,12 +374,12 @@
   function prefsList() {
     var prefs = SogStore.getPrefs();
     var list = el("div", "acc-menu");
-    list.appendChild(toggleRow(IC.bell, "اعلان مراسم‌ها و یادآوری‌ها", "notify", prefs.notify));
-    list.appendChild(toggleRow(IC.lock, "حالت حریم خصوصی (پنهان‌کردن شماره)", "privacy", prefs.privacy));
+    list.appendChild(toggleRow(SogIcon("bell"), "اعلان مراسم‌ها و یادآوری‌ها", "notify", prefs.notify));
+    list.appendChild(toggleRow(SogIcon("lock"), "حالت حریم خصوصی (پنهان‌کردن شماره)", "privacy", prefs.privacy));
     /* پشتیبانی در همین کادر تا کادر جداگانه‌ی خالی نداشته باشیم */
     var sup = el("button", "acc-row");
     sup.type = "button";
-    sup.innerHTML = '<span class="ar-ic">' + svg(IC.support) + '</span><span class="ar-label">پشتیبانی</span><span class="ar-chev">' + svg(IC.chev, 18) + '</span>';
+    sup.innerHTML = '<span class="ar-ic">' + SogIcon("support", 20) + '</span><span class="ar-label">پشتیبانی</span><span class="ar-chev">' + SogIcon("chev", 18) + '</span>';
     sup.addEventListener("click", contactSupport);
     list.appendChild(sup);
     return list;
@@ -387,7 +391,7 @@
 
     var head = el("div", "acc-row"); head.setAttribute("role", "button");
     head.setAttribute("aria-expanded", "false"); head.tabIndex = 0;
-    head.innerHTML = '<span class="ar-ic">' + svg(IC.bell) + '</span>' +
+    head.innerHTML = '<span class="ar-ic">' + SogIcon("bell", 20) + '</span>' +
       '<span class="ar-label">اعلان و یادآوری‌های مراسمات</span>' +
       '<span class="ar-count">' + faNum(rems.length) + '</span>';
 
@@ -403,7 +407,7 @@
       toast(on ? "اعلان‌ها روشن شد." : "همه‌ی اعلان‌ها خاموش شد.");
     });
     head.appendChild(sw);
-    head.insertAdjacentHTML("beforeend", '<span class="ar-chev">' + svg("M6 9l6 6 6-6", 20) + '</span>');
+    head.insertAdjacentHTML("beforeend", '<span class="ar-chev">' + SogIcon("chevron", 20) + '</span>');
 
     var body = el("div", "acc-body");
     if (!rems.length) {
@@ -510,7 +514,7 @@
 
   function toggleRow(icon, label, key, on) {
     var row = el("div", "acc-row");
-    row.innerHTML = '<span class="ar-ic">' + svg(icon) + '</span><span class="ar-label">' + esc(label) + '</span>';
+    row.innerHTML = '<span class="ar-ic">' + icon + '</span><span class="ar-label">' + esc(label) + '</span>';
     var sw = el("button", "switch" + (on ? " on" : ""));
     sw.type = "button"; sw.setAttribute("aria-pressed", on ? "true" : "false");
     sw.innerHTML = '<span class="knob"></span>';
@@ -523,7 +527,7 @@
   }
 
   function logoutBtn() {
-    var b = el("button", "acc-logout", svg(IC.logout) + " خروج از حساب");
+    var b = el("button", "acc-logout", SogIcon("logout", 20) + " خروج از حساب");
     b.addEventListener("click", function () { SogStore.clearUser(); render(); toast("از حساب خارج شدید."); });
     return b;
   }
@@ -577,20 +581,81 @@
     openSheet(body);
   }
 
+  /* نام و نام خانوادگی: هر دو بخش الزامی است */
+  function fullNameOf(v) {
+    var n = String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+    if (/[0-9\u06F0-\u06F9]/.test(n)) return "";
+    var parts = n.split(" ").filter(function (x) { return x.length >= 2; });
+    return parts.length >= 2 ? parts.join(" ") : "";
+  }
+
+  /* ---------- سوییچر حساب‌ها (مثل تلگرام) ---------- */
+  function accountAvatar(id, name) {
+    var box = el("span", "ai-av");
+    var src = "";
+    try { src = localStorage.getItem("sog:avatar:" + id) || ""; } catch (e) {}
+    if (src) {
+      var img = el("img"); img.src = src; img.alt = ""; box.appendChild(img);
+    } else {
+      box.textContent = String(name || "؟").trim().charAt(0) || "؟";
+      box.classList.add("is-letter");
+    }
+    return box;
+  }
+
+  window.SogOpenAccounts = function () { openAccounts(); };
+  function openAccounts() {
+    var body = el("div", "acc-sheet");
+    body.appendChild(el("div", "login-title", "حساب‌های کاربری"));
+    var all = SogStore.getAccounts(), active = SogStore.getActiveId();
+
+    var list = el("div", "acc-switch");
+    all.forEach(function (a) {
+      var row = el("button", "acc-switch-row" + (a.id === active ? " is-active" : ""));
+      row.type = "button";
+      row.appendChild(accountAvatar(a.id, a.name));
+      var txt = el("span", "ai-txt");
+      txt.appendChild(el("span", "ai-name", esc(a.name || "کاربر سوگ")));
+      txt.appendChild(el("span", "ai-phone", esc(faNum(a.phone || ""))));
+      row.appendChild(txt);
+      if (a.id === active) row.insertAdjacentHTML("beforeend", '<span class="ai-tick">' + SogIcon("check", 17) + "</span>");
+      row.addEventListener("click", function () {
+        if (a.id !== active) { SogStore.switchAccount(a.id); toast("به حساب " + (a.name || "") + " تغییر کرد."); }
+        closeSheet(); render();
+      });
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    if (SogStore.canAddAccount()) {
+      var add = el("button", "acc-add");
+      add.type = "button";
+      add.innerHTML = '<span class="aa-plus">+</span><span>افزودن حساب</span>';
+      add.addEventListener("click", function () { closeSheet(); openLogin(false, true); });
+      body.appendChild(add);
+    } else {
+      body.appendChild(el("p", "login-hint",
+        "تا " + faNum(SogStore.MAX_ACCOUNTS) + " حساب هم‌زمان می‌توانید داشته باشید. برای افزودن حساب تازه، از یکی خارج شوید."));
+    }
+    openSheet(body);
+  }
+
   /* ورود (OTP نمونه) */
-  function openLogin(editing) {
+  function openLogin(editing, adding) {
     var body = document.getElementById("loginBody");
     var step = 1, phoneVal = "";
-    var u = SogStore.getUser() || {};
+    var u = (editing && SogStore.getUser()) || {};
+    if (adding) u = {};
     function paintPhone() {
       body.innerHTML = "";
-      body.appendChild(el("div", "login-title", editing ? "ویرایش پروفایل" : "ورود / ثبت‌نام"));
-      body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود."));
-      var name = el("input", "login-input"); name.placeholder = "مثال: علی چرم‌حلی‌زاده"; name.value = u.name || ""; name.id = "lgName";
+      body.appendChild(el("div", "login-title", editing ? "ویرایش پروفایل" : (adding ? "افزودن حساب" : "ورود / ثبت‌نام")));
+      body.appendChild(el("p", "login-hint", editing ? "نام و شماره‌ی خود را ویرایش کنید."
+        : (adding ? "شماره‌ی موبایل حساب تازه را وارد کنید؛ باید با حساب‌های فعلی متفاوت باشد." : "شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود.")));
+      var name = el("input", "login-input"); name.placeholder = "مثال: علی رضایی"; name.value = u.name || ""; name.id = "lgName";
       var phone = el("input", "login-input"); phone.placeholder = "۰۹…"; phone.type = "tel"; phone.value = u.phone || ""; phone.id = "lgPhone";
       var melli = el("input", "login-input"); melli.placeholder = "کد ملی ۱۰ رقمی (برای تأیید هویت)";
       melli.type = "tel"; melli.inputMode = "numeric"; melli.maxLength = 10; melli.value = u.melli || ""; melli.id = "lgMelli";
-      body.appendChild(el("label", "login-label", "نام و نام خانوادگی"));
+      body.appendChild(el("label", "login-label", 'نام و نام خانوادگی <span class="req">*</span>'));
       body.appendChild(name);
       body.appendChild(el("label", "login-label", "شماره موبایل"));
       body.appendChild(phone);
@@ -598,8 +663,13 @@
       body.appendChild(melli);
       var btn = el("button", "login-btn", editing ? "ذخیره" : "دریافت کد تأیید");
       btn.addEventListener("click", function () {
-        if (!name.value.trim()) { toast("نام و نام خانوادگی را وارد کنید."); return; }
-        phoneVal = phone.value; u.name = name.value.trim(); u.phone = phone.value;
+        var fullName = fullNameOf(name.value);
+        if (!fullName) { toast("نام و نام خانوادگی را کامل وارد کنید (مثلاً: علی رضایی)."); name.focus(); return; }
+        var pk = SogStore.phoneKey(phone.value);
+        if (!/^09\d{9}$/.test(pk)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); phone.focus(); return; }
+        var dup = SogStore.findByPhone(pk);
+        if (dup && dup.id !== (u.id || SogStore.getActiveId())) { toast("این شماره قبلاً روی این دستگاه اضافه شده است."); phone.focus(); return; }
+        phoneVal = phone.value; u.name = fullName; u.phone = pk;
         var mv = SogUtil ? SogUtil.toEn(melli.value).replace(/[^0-9]/g, "") : melli.value;
         if (mv) {
           if (!validMelli(mv)) { toast("کد ملی معتبر نیست؛ لطفاً دوباره بررسی کنید."); return; }
@@ -618,7 +688,9 @@
       body.appendChild(code);
       var btn = el("button", "login-btn", "ورود");
       btn.addEventListener("click", function () {
-        SogStore.setUser({ name: u.name || "کاربر سوگ", phone: u.phone || phoneVal, melli: u.melli || "", verified: !!u.verified });
+        var saved = SogStore.setUser({ id: u.id, name: u.name, phone: u.phone || phoneVal,
+                                       melli: u.melli || "", verified: !!u.verified });
+        if (!saved) { toast("حداکثر " + faNum(SogStore.MAX_ACCOUNTS) + " حساب می‌توانید داشته باشید."); return; }
         closeSheet(); render(); toast("خوش آمدید 🌿");
       });
       body.appendChild(btn);

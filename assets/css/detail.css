@@ -57,30 +57,42 @@
 .info-line .val .sep-dash { color: var(--text-mute); margin: 0 4px; }
 
 /* ---- خانواده ---- */
-.family-grid { margin: 0 14px var(--gap-y); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.family-grid { margin: 0 12px var(--gap-y); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .family-card {
   position: relative;
   background: var(--surface-2); border: none;
-  border-radius: 14px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 7px;
+  border-radius: 16px; padding: 16px 10px 16px 12px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 /* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
 .family-card::before {
   content: ""; position: absolute; top: 12px; bottom: 12px;
-  inset-inline-start: 62px;            /* کمی به سمت چپِ برچسب‌ها */
+  inset-inline-start: 52px;            /* نزدیکِ برچسب‌ها تا برای مقدار جای بیشتری بماند */
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
-.family-row { display: grid; grid-template-columns: 48px 1fr; align-items: center; font-size: 13px; min-height: 22px; }
+/* بدون شمارنده؛ ارتفاع ردیف همان ارتفاع قبلی (۲۰) می‌ماند تا اندازه‌ی کادر عوض نشود */
+.family-row { display: grid; grid-template-columns: 38px 1fr; align-items: center; font-size: 14px; min-height: 20px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
   align-self: stretch;
 }
 .family-row .val {
-  color: var(--text); justify-self: start; text-align: start;
-  min-width: 0; overflow-wrap: anywhere;
-  padding-inline-start: 16px;          /* فاصله از خط جداکننده */
+  color: var(--text); justify-self: stretch; text-align: start;
+  min-width: 0;
+  padding-inline-start: 10px;          /* فاصله از خط جداکننده */
+  /* همیشه یک‌خطی، حتی پیش از آماده شدن چرخش؛ هرگز به خط دوم نمی‌رود */
+  overflow: hidden; white-space: nowrap;
+}
+/* متن تک‌خطی است و اگر جا نشد می‌چرخد، به‌جای اینکه چند سطر شود */
+.family-row .val.mq { overflow: hidden; white-space: nowrap; }
+.family-row .val .mq-inner { display: inline-block; will-change: transform; }
+.family-row .val.is-marquee .mq-inner {
+  animation: mq-slide var(--mq-dur, 8s) ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .family-row .val.is-marquee .mq-inner { animation: none; }
 }
 .family-row .val.is-empty { color: var(--text-mute); }
 .family-grid.is-single { grid-template-columns: 1fr; }
@@ -98,22 +110,25 @@
 .action-item { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .action-item button {
   width: 54px; height: 54px; border-radius: 50%;
-  background: var(--surface-2); border: 1px solid #2f2f2f; color: var(--text);
+  /* آیکون‌ها به رنگ اصلی سایت */
+  background: var(--surface-2); border: 1px solid #2f2f2f; color: var(--accent);
   display: grid; place-items: center;
 }
 .action-item button.is-active { color: var(--accent); border-color: var(--accent); }
-.action-item span { font-size: 12px; color: var(--text-dim); }
+.action-item span { font-size: 12px; color: var(--accent); }   /* هم‌رنگ آیکون */
 
 .report-error {
   display: flex; align-items: center; gap: 6px;
   width: fit-content;
   margin-inline-start: auto;   /* در چیدمان راست‌چین یعنی چسبیده به سمت چپ */
   margin-inline-end: 14px;
-  margin-top: 10px; margin-bottom: 10px;
-  height: 16px; padding: 0; line-height: 16px;
+  /* کوچک‌تر از قبل و وسط فاصله‌ی ۳۶ پیکسلی زیر دکمه‌ها: ۱۲ + ۱۲ + ۱۲ */
+  margin-top: 12px; margin-bottom: 12px;
+  height: 12px; padding: 0; line-height: 12px;
   color: var(--text-mute); font-size: 11px;
   background: none; border: none;
 }
+.report-error .report-art { height: 12px; }
 .report-error svg { width: 12px; height: 12px; }
 
 /* ===== یادداشت خصوصی کاربر (پیش‌فرض بسته) ===== */
@@ -380,7 +395,8 @@
 .cond-message { padding: 0 4px 14px; }
 .cond-message p {
   font-size: 13.5px; line-height: 1.75; color: var(--text-dim); margin: 0 0 8px;
-  text-align: justify;
+  text-align: start;
+  white-space: pre-line;   /* خط جدید و پاراگرافِ نوشته‌شده توسط کاربر حفظ می‌شود */
   overflow-wrap: anywhere; word-break: break-word;   /* متن‌های طولانیِ بدون فاصله هم می‌شکنند */
 }
 /* تاریخ در سمت چپ کادر */
@@ -698,3 +714,90 @@
 
 
 
+/* ---------- کاروسل افقی ---------- */
+.carousel { margin: 0 0 18px; }
+.car-track {
+  display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 8px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.car-track::-webkit-scrollbar { display: none; }
+.car-slide {
+  position: relative;
+  /* کمتر از تمام عرض، تا بخشی از تصویر بعدی هم دیده شود */
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+.car-img {
+  display: block; width: 100%; aspect-ratio: 4/3; border-radius: 14px;
+  background: #222 center/cover no-repeat; border: 1px solid #2c2c2c;
+  padding: 0; cursor: pointer;
+}
+.car-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.car-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #3f3a33;
+  transition: background .2s, width .2s;
+}
+.car-dot.is-on { background: var(--accent); width: 16px; border-radius: 3px; }
+
+/* ---------- نمایشگر تمام‌صفحه ---------- */
+.lb {
+  position: fixed; inset: 0; z-index: 90; background: #000;
+  display: flex; flex-direction: column;
+  opacity: 0; transition: opacity .18s ease;
+}
+.lb.is-in { opacity: 1; }
+.lb-bar {
+  /* دکمه‌ی بستن و هم‌رسانی سمت چپ؛ بستن در گوشه */
+  direction: ltr; justify-content: flex-start;
+  flex: 0 0 auto; display: flex; gap: 10px; padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+}
+.lb-btn {
+  width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
+  background: #1d1d1d; border: none; color: #eee;
+  display: grid; place-items: center;
+}
+.lb-stage { position: relative; flex: 1 1 auto; display: grid; place-items: center; min-height: 0; padding: 0 8px; }
+.lb-frame { position: relative; display: flex; max-width: 100%; max-height: 100%; }
+.lb-img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 56px; border: none; border-radius: 10px; cursor: pointer;
+  background: rgba(30,30,30,.72); color: #fff; display: grid; place-items: center;
+}
+.lb-prev { inset-inline-end: 10px; }
+.lb-next { inset-inline-start: 10px; }
+.lb-count {
+  position: absolute; bottom: 8px; inset-inline-start: 8px;
+  background: rgba(0,0,0,.65); color: #ddd; font-size: 12px;
+  padding: 4px 9px; border-radius: 7px;
+}
+/* واترمارک سوگ روی تصویر */
+.lb-mark {
+  position: absolute; bottom: 8px; inset-inline-end: 8px;
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(0,0,0,.55); border-radius: 8px; padding: 5px 9px;
+  color: #e9dcc8; font-size: 11.5px; font-weight: 700; opacity: .92;
+}
+.lb-mark img { width: 22px; height: 22px; border-radius: 5px; object-fit: contain; }
+.lb-mark { padding: 5px; }
+
+.lb-strip {
+  flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto;
+  padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background: #121212; scrollbar-width: none;
+}
+.lb-strip::-webkit-scrollbar { display: none; }
+.lb-thumb {
+  flex: 0 0 84px; height: 62px; border-radius: 9px; cursor: pointer;
+  background: #222 center/cover no-repeat;
+  border: 2px solid transparent; padding: 0;
+}
+.lb-thumb.is-on { border-color: var(--accent); }
+
+
+.report-sub { margin: -4px 0 12px; font-size: 12.5px; color: var(--text-mute); line-height: 1.7; }
+.mine-btn svg { width: 14px; height: 14px; vertical-align: -2px; }
+.cond-report { display: inline-flex; align-items: center; gap: 6px; color: #b65a5a; border-color: rgba(182,90,90,.55); background: transparent; padding: 6px 14px; }
+.cond-date { margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute); }

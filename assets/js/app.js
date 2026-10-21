@@ -49,6 +49,14 @@
   }
 
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[+d]; }); }
+  var toastEl;
+  function toast(msg) {
+    if (!toastEl) { toastEl = el("div", "toast"); document.body.appendChild(toastEl); }
+    toastEl.textContent = msg; toastEl.classList.add("show");
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function () { toastEl.classList.remove("show"); }, 2400);
+  }
 
   /* ---------- اسکلتون لودینگ ---------- */
   function renderSkeletons() {
@@ -77,7 +85,8 @@
       fetch("data/listings.json").then(function (r) { return r.json(); }),
       fetch("data/cities.json").then(function (r) { return r.json(); })
     ]).then(function (res) {
-      DATA.listings = res[0].listings || [];
+      /* آگهی‌های ثبت‌شده روی همین دستگاه، بالاتر از بقیه */
+      DATA.listings = (SogStore.getMyAds ? SogStore.getMyAds() : []).concat(res[0].listings || []);
       DATA.cities = res[1].cities || [];
       /* شهرهایی که کاربر از فهرست استان‌ها انتخاب کرده است */
       (SogStore.getExtraCities() || []).forEach(function (c) {
@@ -271,12 +280,12 @@
 
     var head = el("div", "sheet-head");
     head.appendChild(el("span", null, "انتخاب شهر"));
-    var close = el("button", "icon-btn", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "icon-btn", SogIcon("close", 22, 2));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
     head.appendChild(close);
 
     var search = el("div", "city-search");
-    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    search.innerHTML = SogIcon("search", 20).replace("<svg ", '<svg class="search-icon" ');
     var input = document.createElement("input");
     input.type = "search"; input.placeholder = "جستجوی شهر…"; input.setAttribute("aria-label", "جستجوی شهر");
     search.appendChild(input);
@@ -353,7 +362,7 @@
       '<p>می‌توانید چند شهر یا کل یک استان را انتخاب کنید.</p>';
 
     var search = el("div", "cob-search");
-    search.innerHTML = '<svg class="search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    search.innerHTML = SogIcon("search", 20).replace("<svg ", '<svg class="search-icon" ');
     var input = document.createElement("input");
     input.type = "search"; input.placeholder = "جستجوی شهر یا استان…";
     input.setAttribute("aria-label", "جستجوی شهر یا استان");
@@ -406,7 +415,7 @@
     var foot = el("div", "cob-foot");
     foot.appendChild(skip); foot.appendChild(confirm);
 
-    var closeBtn = el("button", "cob-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var closeBtn = el("button", "cob-close", SogIcon("close", 22, 2));
     closeBtn.type = "button";
     closeBtn.setAttribute("aria-label", "بستن");
     closeBtn.addEventListener("click", function () { if (opts.multi) close(); else useAllIran(); });
@@ -475,7 +484,7 @@
         var b = el("button", "cob-city" + (picked[selKey(sel)] ? " is-on" : ""));
         b.type = "button";
         b.dataset.key = selKey(sel);
-        b.innerHTML = '<span class="cob-tick"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+        b.innerHTML = '<span class="cob-tick">' + SogIcon("check", 13, 2.4) + '</span>' +
           "<span class=\"cob-cname\">" + esc(name) + "</span>" +
           (prov && opts.showProv ? '<span class="cob-prov">' + esc(prov) + "</span>" : "");
         b.addEventListener("click", function () { toggle(sel, b); });
@@ -510,7 +519,7 @@
           h.setAttribute("aria-expanded", "false");
           h.innerHTML = '<span class="cob-name">' + esc(p) + '</span>' +
             '<span class="cob-count">' + toFa((provinces[p] || []).length) + '</span>' +
-            '<span class="cob-chev"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+            '<span class="cob-chev">' + SogIcon("chevron", 20) + '</span>';
 
           var provSel = { slug: "p-" + citySlugFor(p), name: p, isProvince: true, cities: provinces[p] || [] };
           var all = el("span", "cob-all" + (picked[selKey(provSel)] ? " is-on" : ""), "کل استان");
@@ -608,7 +617,7 @@
 
     /* «نزدیک من» بعد از شهرهای کاربر */
     var gps = el("button", "city-chip is-gps",
-      '<span class="chip-label">نزدیک من</span><svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg>');
+      '<span class="chip-label">نزدیک من</span>' + SogIcon("pin", 15));
     gps.type = "button";
     gps.addEventListener("click", useNearMe);
     bar.appendChild(gps);
@@ -684,7 +693,7 @@
 
     // نزدیک من (GPS)
     var gps = el("button", "tool-chip tool-gps",
-      '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s7-6.2 7-12A7 7 0 105 9c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/></svg> نزدیک من');
+      SogIcon("pin", 15) + ' نزدیک من');
     gps.type = "button";
     gps.addEventListener("click", useNearMe);
     bar.appendChild(gps);
@@ -707,7 +716,7 @@
     // مرتب‌سازی
     var sortLabel = state.sort === "soonest" ? "نزدیک‌ترین مراسم" : "جدیدترین";
     var sort = el("button", "tool-chip",
-      '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M7 4v16M7 20l-3-3M7 4l3 3M17 20V4M17 4l-3 3M17 20l3-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + sortLabel);
+      SogIcon("sort", 14) + ' ' + sortLabel);
     sort.type = "button";
     sort.addEventListener("click", function () { state.sort = state.sort === "newest" ? "soonest" : "newest"; renderToolbar(); renderFeed(); });
     bar.appendChild(sort);
@@ -809,32 +818,45 @@
     var body = el("div", "listing-body");
 
     // بالای کارت: برچسب‌ها + بوکمارک
+    var notice = isNotice(item);
+    if (notice) card.classList.add("is-notice");
+
     var top = el("div", "listing-top");
     var tags = el("div", "tags");
-    (item.ceremony_labels || []).forEach(function (lbl) {
-      var t = el("span", "tag", lbl);
-      t.dataset.type = item.ceremony_type;
-      tags.appendChild(t);
-    });
+    if (item.pending) tags.appendChild(el("span", "tag is-review", "در انتظار تأیید"));
+    /* اطلاعیه‌ی سوگ سریع: چیپ ردیف خودش را می‌گیرد تا یک‌خطی جا شود */
+    var noticeTag = notice
+      ? el("div", "notice-line", '<span class="tag is-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</span>')
+      : null;
+    if (!notice) {
+      (item.ceremony_labels || []).forEach(function (lbl) {
+        var t = el("span", "tag", lbl);
+        t.dataset.type = item.ceremony_type;
+        tags.appendChild(t);
+      });
+    }
+
     var actions = el("div", "card-actions");
     actions.style.cssText = "display:flex;align-items:flex-start;order:2";
-    var saved = SogStore.isSaved(item.id);
-    var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
-    bm.type = "button";
-    bm.setAttribute("aria-label", "ذخیره");
-    bm.innerHTML = bookmarkSvg(saved);
-    bm.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var now = SogStore.toggleSaved(item.id);
-      bm.classList.toggle("is-saved", now);
-      bm.innerHTML = bookmarkSvg(now);
-    });
-    actions.appendChild(bm);
+    /* سوگ فوری زنگوله ندارد؛ «اطلاع دهید» در نمای بازشده‌ی آن است */
+    if (!notice) {
+      var saved = SogStore.isSaved(item.id);
+      var bm = el("button", "bookmark-btn" + (saved ? " is-saved" : ""));
+      bm.type = "button";
+      bm.setAttribute("aria-label", "ذخیره");
+      bm.innerHTML = bookmarkSvg(saved);
+      bm.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var now = SogStore.toggleSaved(item.id);
+        bm.classList.toggle("is-saved", now);
+        bm.innerHTML = bookmarkSvg(now);
+      });
+      actions.appendChild(bm);
+    }
     top.appendChild(tags);
     top.appendChild(actions);
 
     var name = el("h3", "listing-name", '<span class="mq-inner">' + item.deceased_name + '</span>');
-    var divider = el("div", "listing-divider");
 
     var meta = el("div", "listing-meta");
     meta.innerHTML = '<span class="mq-inner">' +
@@ -844,9 +866,9 @@
       '<span class="meta-city">' + item.city + '</span></span>';
     marquee(name); marquee(meta);
 
-    body.appendChild(top);
+    if (!notice || item.pending) body.appendChild(top);   /* سوگ فوری ردیف بالای خالی ندارد */
+    if (noticeTag) body.appendChild(noticeTag);
     body.appendChild(name);
-    body.appendChild(divider);
     body.appendChild(meta);
 
     card.appendChild(photo);
@@ -854,17 +876,191 @@
 
     card.addEventListener("click", function () {
       SogStore.markSeen(item.id);
+      /* اطلاعیه هنوز صفحه‌ی کاملی ندارد؛ همان چیزی که ثبت شده را نشان می‌دهیم */
+      if (notice) { openNoticeSheet(item); return; }
       location.href = "listing.html?id=" + encodeURIComponent(item.id);
     });
 
     return card;
   }
 
+  /* اطلاعیه‌ی سوگ سریع: مراسمی ثبت نشده است */
+  function isNotice(item) {
+    return !!item.is_notice || !(item.ceremony_labels && item.ceremony_labels.length);
+  }
+  /* آیا روی همین دستگاه شماره ثبت کرده‌ایم؟ */
+  function noticeMine(id) {
+    try { return (JSON.parse(localStorage.getItem("sog:notifyMine")) || []).indexOf(String(id)) !== -1; }
+    catch (e) { return false; }
+  }
+  function markNoticeMine(id) {
+    try {
+      var a = JSON.parse(localStorage.getItem("sog:notifyMine")) || [];
+      if (a.indexOf(String(id)) === -1) a.push(String(id));
+      localStorage.setItem("sog:notifyMine", JSON.stringify(a));
+    } catch (e) {}
+  }
+
+  function bellSvg(filled) {
+    var svg = SogIcon("bell", 20);
+    return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
+  }
+
+  /* ---------- کادر اطلاعیه‌ی سوگ ----------
+     کلیک روی کارتِ ثبت سریع، به‌جای صفحه‌ی تکی، همین کادر را باز می‌کند و
+     دقیقاً همان چیزی را نشان می‌دهد که هنگام ثبت پر شده است. */
+  function openNoticeSheet(item) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "notify-sheet notice-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    function done() {
+      sheet.classList.remove("is-in"); back.classList.remove("is-in");
+      setTimeout(function () { sheet.remove(); back.remove(); document.body.style.overflow = ""; }, 200);
+    }
+
+    function paintInfo() {
+      /* یک کارت: تصویر سمت چپ، عنوان و فهرست اطلاعات سمت راست، متن اطلاعیه زیرش */
+      var facts = [["پدر", item.father], ["طایفه", item.tayefe],
+                   ["تاریخ درگذشت", item.event_date_jalali], [null, item.city]]
+        .filter(function (f) { return f[1]; })
+        .map(function (f) {
+          return "<li>" + (f[0] ? esc(f[0]) + " : " : "") + esc(f[1]) + "</li>";
+        }).join("");
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<div class="nt-card">' +
+          '<div class="nt-top">' +
+            '<span class="nt-head">' +
+              '<span class="nt-badge">اطلاعیه درگذشت</span>' +
+              '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
+              (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
+            "</span>" +
+            '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+          "</div>" +
+          '<p class="nt-text">' + esc(item.notice_text || "جزئیات مراسم متعاقباً اعلام خواهد شد") + "</p>" +
+        "</div>" +
+        '<div class="nt-tiles"></div>' +
+        '<div class="nt-cta"></div>';
+
+      var tiles = sheet.querySelector(".nt-tiles");
+      var bell = el("button", "nt-tile");
+      bell.type = "button";
+      bell.innerHTML = '<span class="nt-ic">' + bellSvg(false) + "</span><span>به من اطلاع داده شود</span>";
+      bell.addEventListener("click", paintPhone);
+      tiles.appendChild(bell);
+
+      var story = el("button", "nt-tile");
+      story.type = "button";
+      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری / اشتراک</span>";
+      story.addEventListener("click", function () {
+        var url = location.origin + location.pathname.replace(/[^/]*$/, "") + "listing.html?id=" + item.id;
+        if (navigator.share) navigator.share({ title: item.deceased_name, url: url }).catch(function () {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("لینک کپی شد."); });
+      });
+      tiles.appendChild(story);
+
+      var cta = sheet.querySelector(".nt-cta");
+      var close = el("button", "nt-close", SogIcon("logout", 20) + "<span>بستن</span>");
+      close.type = "button";
+      close.addEventListener("click", done);
+      cta.appendChild(close);
+    }
+
+    function paintPhone() {
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<h3 class="ns-title">خبرم کنید</h3>' +
+        '<p class="ns-sub">به‌محض اینکه زمان و مکان مراسم‌های ' + esc(item.deceased_name) +
+          ' مشخص شد، با پیامک به شما اطلاع می‌دهیم.</p>' +
+        '<label class="ns-label">شماره موبایل</label>' +
+        '<input class="ns-input" type="tel" inputmode="numeric" placeholder="۰۹…" maxlength="13">' +
+        '<div class="ns-actions">' +
+          '<button type="button" class="ns-cancel">بازگشت</button>' +
+          '<button type="button" class="ns-ok">ثبت شماره</button>' +
+        "</div>";
+      var input = sheet.querySelector(".ns-input");
+      var user = (SogStore.getUser && SogStore.getUser()) || {};
+      if (user.phone) input.value = user.phone;
+      sheet.querySelector(".ns-cancel").addEventListener("click", paintInfo);
+      sheet.querySelector(".ns-ok").addEventListener("click", function () {
+        var k = SogStore.phoneKey(input.value);
+        if (!/^09\d{9}$/.test(k)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); input.focus(); return; }
+        if (SogStore.hasNotified(item.id, k)) { toast("این شماره قبلاً ثبت شده است."); paintInfo(); return; }
+        SogStore.addNotify(item.id, k);
+        markNoticeMine(item.id);
+        done();
+        renderFeed();
+        toast("ثبت شد؛ به‌محض مشخص شدن مراسم خبرتان می‌کنیم.");
+      });
+      input.focus();
+    }
+
+    paintInfo();
+    back.addEventListener("click", done);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+  }
+
+  /* کادر پایین‌آمدنی برای گرفتن شماره‌ی موبایل */
+  function openNotifySheet(item, bell) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "notify-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+
+    sheet.innerHTML =
+      '<div class="sheet-handle"></div>' +
+      '<h3 class="ns-title">خبرم کنید</h3>' +
+      '<p class="ns-sub">به‌محض اینکه زمان و مکان مراسم‌های ' + esc(item.deceased_name) +
+        ' مشخص شد، با پیامک به شما اطلاع می‌دهیم.</p>' +
+      '<label class="ns-label">شماره موبایل</label>' +
+      '<input class="ns-input" type="tel" inputmode="numeric" placeholder="۰۹…" maxlength="13">' +
+      '<p class="ns-count"></p>' +
+      '<div class="ns-actions">' +
+        '<button type="button" class="ns-cancel">بی‌خیال</button>' +
+        '<button type="button" class="ns-ok">ثبت شماره</button>' +
+      '</div>';
+
+    var input = sheet.querySelector(".ns-input");
+    var countEl = sheet.querySelector(".ns-count");
+    function paintCount() {
+      var n = SogStore.getNotifyCount(item.id);
+      countEl.textContent = n ? faNum(n) + " نفر منتظر خبر این آگهی هستند." : "";
+    }
+    paintCount();
+
+    var user = (window.SogStore && SogStore.getUser && SogStore.getUser()) || {};
+    if (user.phone) input.value = user.phone;
+
+    function done() {
+      sheet.remove(); back.remove();
+      document.body.style.overflow = "";
+    }
+    back.addEventListener("click", done);
+    sheet.querySelector(".ns-cancel").addEventListener("click", done);
+    sheet.querySelector(".ns-ok").addEventListener("click", function () {
+      var k = SogStore.phoneKey(input.value);
+      if (!/^09\d{9}$/.test(k)) { toast("شماره موبایل را درست وارد کنید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷)."); input.focus(); return; }
+      if (SogStore.hasNotified(item.id, k)) { toast("این شماره قبلاً ثبت شده است."); done(); return; }
+      SogStore.addNotify(item.id, k);
+      markNoticeMine(item.id);
+      bell.classList.add("is-saved");
+      bell.innerHTML = bellSvg(true);
+      done();
+      toast("ثبت شد؛ به‌محض مشخص شدن مراسم خبرتان می‌کنیم.");
+    });
+
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+  }
+
   function bookmarkSvg(filled) {
-    return '<svg viewBox="0 0 24 24" width="20" height="20">' +
-      '<path d="M6 3h12v18l-6-4-6 4V3z" ' +
-      (filled ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') +
-      ' stroke-width="1.8" stroke-linejoin="round"/></svg>';
+    var svg = SogIcon("bookmark", 20);
+    return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
   }
 
   /* ---------- ماندگاری آگهی در صفحه‌ی اول ----------
@@ -1019,7 +1215,7 @@
 
       list.forEach(function (q) {
         var row = el("div", "sh-item");
-        var go = el("button", "sh-go", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span>' + esc(q) + '</span>');
+        var go = el("button", "sh-go", SogIcon("clock", 15) + '<span>' + esc(q) + '</span>');
         go.type = "button";
         go.addEventListener("mousedown", function (e) { e.preventDefault(); });
         go.addEventListener("click", function () {

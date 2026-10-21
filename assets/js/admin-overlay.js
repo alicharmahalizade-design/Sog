@@ -118,6 +118,16 @@
     };
   }
 
+  /* کسب‌وکارهایی که کاربران ثبت کرده‌اند بعد از خواندن JSON اضافه می‌شوند؛
+     تصمیم مدیر روی آن‌ها هم در فهرست و صفحه‌ی تکی کسب‌وکار اعمال می‌شود. */
+  var page = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (global.SogBizStore && !global.SOG_ADMIN_RAW && (page === "business.html" || page === "business-detail.html")) {
+    var bs = global.SogBizStore, rawAll = bs.all;
+    bs.all = function () { return applyBusinesses({ businesses: rawAll() }, read()).businesses; };
+    bs.merge = function (list) { return bs.all().concat(list || []); };
+    bs.get = function (id) { return bs.all().filter(function (b) { return String(b.id) === String(id); })[0] || null; };
+  }
+
   /* اطلاعیه‌ی سراسری مدیر بالای صفحه‌ی اصلی */
   function showNotice() {
     var text = (read().settings || {}).notice;

@@ -173,7 +173,12 @@
   }
 
   function allBusinesses() {
-    return D.businesses.map(function (b) {
+    var mine = window.SogBizStore ? SogBizStore.all().map(function (b) {
+      var x = Object.assign({}, b, { _user: true });
+      if (typeof x.logo === "string" && x.logo.indexOf("idb:") === 0) x.logo = "";
+      return x;
+    }) : [];
+    return mine.concat(D.businesses).map(function (b) {
       var o = S.businesses[b.id] || {};
       var x = o.edits ? Object.assign({}, b, o.edits) : Object.assign({}, b);
       if (o.verified != null) x.verified = o.verified;
@@ -684,7 +689,8 @@
         var row = el("article", "ad-row");
         row.innerHTML = '<span class="ad-thumb is-logo" style="background-image:url(\'' + esc(b.logo) + '\')"></span>' +
           '<div class="ad-row-main"><div class="ad-row-title">' + esc(b.name) +
-          (b.verified ? ' <span class="ad-pill is-ok">تأییدشده</span>' : "") + (b.featured ? ' <span class="ad-pill is-info">ویژه</span>' : "") + "</div>" +
+          (b.verified ? ' <span class="ad-pill is-ok">تأییدشده</span>' : "") + (b.featured ? ' <span class="ad-pill is-info">ویژه</span>' : "") +
+          (b._user ? ' <span class="ad-pill is-warn">ثبت کاربر</span>' : "") + "</div>" +
           '<div class="ad-row-sub">' + esc(b.category_name) + " · " + esc(b.city) + " · " + esc(b.phone || "") + "</div></div>";
         var acts = el("div", "ad-row-acts");
         var setB = function (patch, msg) { S.businesses[b.id] = Object.assign(S.businesses[b.id] || {}, patch); save(msg); refresh(); };

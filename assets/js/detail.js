@@ -9,27 +9,32 @@
 
   /* ---------- آیکون‌ها ---------- */
   var ICON = {
-    back: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    chevron: '<svg class="chev" viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    pin: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
-    share: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="18" cy="5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="19" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3" stroke="currentColor" stroke-width="1.8"/></svg>',
-    story: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="3" width="16" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 19c1.2-2.2 3-3.3 5-3.3s3.8 1.1 5 3.3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-    sound: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9c1.5 1.8 1.5 4.2 0 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    soundOff: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 9l4 6M21 9l-4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    bookmark: function (f) { return '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 3h12v18l-6-4-6 4V3z" ' + (f ? 'fill="currentColor" stroke="currentColor"' : 'fill="none" stroke="currentColor"') + ' stroke-width="1.8" stroke-linejoin="round"/></svg>'; },
-    report: '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M5 21V4h9l-1 3 1 3H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
-    pencil: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-    candle: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.8v1" stroke="currentColor" stroke-width="1.4"/></svg>',
-    route: '<svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 22s7-6.2 7-12A7 7 0 105 10c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
-    bell: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-    calAdd: '<svg viewBox="0 0 24 24" width="17" height="17"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 3v4M16 3v4M12 13v4M10 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    call: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h4l1.5 5-2 1.5a12 12 0 005 5l1.5-2 5 1.5v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="currentColor"/></svg>',
-    sms: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 5h16v11H8l-4 3V5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    whatsapp: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 8c0 4 3 7 7 7 .7 0 1-1 .6-1.6l-1.7-.9-1 .9c-1.3-.5-2.3-1.5-2.8-2.8l.9-1-.9-1.7C11 7.1 9.7 7.3 9 8z" fill="currentColor"/></svg>',
-    telegram: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M21 5L3 12l5 2 2 5 3-3 4 3 4-14z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 14l9-6-6 7" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg>',
+    back: SogIcon("back", 22),
+    /* کلاس chev برای چرخش فلش آکاردئون لازم است */
+    chevron: SogIcon("chevron", 20).replace("<svg ", '<svg class="chev" '),
+    clock: SogIcon("clock", 18),
+    pin: SogIcon("pin", 18),
+    share: SogIcon("share", 22),
+    story: SogIcon("story", 22),
+    sound: SogIcon("sound", 22),
+    soundOff: SogIcon("soundOff", 22),
+    bookmark: function (f) {
+      var svg = SogIcon("bookmark", 22);
+      return f ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
+    },
+    report: SogIcon("report", 16),
+    pencil: SogIcon("pencil", 17),
+    plus: SogIcon("plus", 26, 2.4),
+    candle: SogIcon("candle", 24),
+    route: SogIcon("route", 17),
+    bell: SogIcon("bell", 22),
+    calAdd: SogIcon("calAdd", 17),
+    call: SogIcon("call", 22),
+    sms: SogIcon("sms", 22),
+    whatsapp: SogIcon("whatsapp", 22),
+    telegram: SogIcon("telegram", 22),
+    instagram: SogIcon("instagram", 22),
+    /* ایتا در مجموعه‌های متن‌باز نشان رسمی ندارد */
     eitaa: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 14c2 2 6 2 8-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/></svg>'
   };
 
@@ -70,6 +75,8 @@
   ]).then(function (res) {
     var details = res[0] || {};
     var listings = (res[1] && res[1].listings) || [];
+    /* آگهی‌های ثبت‌شده روی همین دستگاه هم باید باز شوند */
+    if (window.SogStore && SogStore.getMyAds) listings = SogStore.getMyAds().concat(listings);
     ALL_LISTINGS = listings;
     var lst = listings.filter(function (x) { return String(x.id) === String(id); })[0];
     if (lst) { deceasedCity = lst.city; }
@@ -301,6 +308,20 @@
     grid.appendChild(familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]]));
     return grid;
   }
+  /* متن تک‌خطی که اگر جا نشد آرام می‌چرخد (مثل کارت‌های صفحه‌ی اصلی) */
+  function marquee(node) {
+    node.classList.add("mq");
+    requestAnimationFrame(function () {
+      var inner = node.querySelector(".mq-inner");
+      if (!inner) return;
+      var over = inner.scrollWidth - node.clientWidth;
+      if (over <= 4) return;
+      node.classList.add("is-marquee");
+      node.style.setProperty("--mq-shift", over + "px");
+      node.style.setProperty("--mq-dur", Math.max(5, over / 16).toFixed(1) + "s");
+    });
+  }
+
   function familyCard(rows) {
     var card = el("div", "family-card");
     rows.forEach(function (r) {
@@ -312,12 +333,18 @@
         empty.setAttribute("aria-label", "ثبت‌نشده");
         row.appendChild(empty);
       } else if (key) {
-        var a = el("a", "val clan-link", esc(r[1]));
+        /* متن در یک ستون کشسان که در صورت طولانی‌بودن می‌چرخد؛
+           شمارنده ستون جداگانه‌ی خودش را دارد و هیچ‌وقت جابه‌جا نمی‌شود. */
+        var a = el("a", "val clan-link",
+          '<span class="mq-inner">' + esc(r[1]) + "</span>");
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
         row.appendChild(a);
+        marquee(a);
       } else {
-        row.appendChild(el("span", "val", esc(r[1])));
+        var v = el("span", "val", '<span class="mq-inner">' + esc(r[1]) + "</span>");
+        row.appendChild(v);
+        marquee(v);
       }
       card.appendChild(row);
     });
@@ -328,7 +355,7 @@
   function actionRow(d) {
     var row = el("div", "action-row");
     row.appendChild(actionItem(ICON.bell, "یادآوری", function () { openRemindSheet(d); }));
-    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری", function () { openStory(d); }));
+    if (d.photos && d.photos.length) row.appendChild(actionItem(ICON.story, "استوری اشتراک", function () { openStory(d); }));
     if (d.has_audio !== false) {
       var soundBtn = actionItem(ICON.sound, "صدا", null);
       var b = soundBtn.querySelector("button");
@@ -431,7 +458,8 @@
     return item;
   }
   function reportError(d) {
-    var b = el("button", "report-error", ICON.report + " گزارش خطا");
+    var b = el("button", "report-error", '<span class="report-art"></span>');
+    b.setAttribute("aria-label", "گزارش خطا");
     b.addEventListener("click", function () { openReportSheet(d); });
     return b;
   }
@@ -467,7 +495,7 @@
     sheet.setAttribute("aria-modal", "true");
     sheet.setAttribute("aria-label", "یادآوری مراسم");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button"; close.setAttribute("aria-label", "بستن");
 
     sheet.appendChild(close);
@@ -509,7 +537,7 @@
         info.appendChild(el("span", "rr-meta",
           esc([c.nextYear ? "سالگرد بعدی: " + c.date : c.date, c.time_from ? "ساعت " + c.time_from : ""].filter(Boolean).join(" • "))));
         row.appendChild(info);
-        row.appendChild(el("span", "rr-check", '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'));
+        row.appendChild(el("span", "rr-check", SogIcon("check", 15)));
         row.addEventListener("click", function () {
           chosen[key] = !chosen[key];
           row.classList.toggle("is-on", chosen[key]);
@@ -553,30 +581,36 @@
     requestAnimationFrame(function () { back.classList.add("is-in"); sheet.classList.add("is-in"); });
   }
 
-  function openReportSheet(d) {
+  /* گزارش همدردی: دلیل‌ها مخصوص همان پیام است */
+  var COND_REPORT_TYPES = ["محتوای توهین‌آمیز یا نامناسب", "اطلاعات نادرست", "تبلیغات یا هرزنامه", "سایر"];
+
+  function openReportSheet(d, cd) {
     closeReportSheet();
+    var title = cd ? "گزارش همدردی" : "گزارش خطا";
+    var types = cd ? COND_REPORT_TYPES : REPORT_TYPES;
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "report-sheet");
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
-    sheet.setAttribute("aria-label", "گزارش خطا");
+    sheet.setAttribute("aria-label", title);
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
     close.setAttribute("aria-label", "بستن");
 
     var form = el("form", "report-form");
     form.innerHTML =
-      '<h3 class="report-title">گزارش خطا</h3>' +
-      '<label class="report-field"><span>نوع خطا</span>' +
-      '<select name="type" required>' + REPORT_TYPES.map(function (t) {
+      '<h3 class="report-title">' + title + '</h3>' +
+      (cd ? '<p class="report-sub">گزارش شما برای ' + esc(cd.name) + ' (ثبت‌کننده‌ی این همدردی) ارسال می‌شود.</p>' : '') +
+      '<label class="report-field"><span>' + (cd ? "دلیل گزارش" : "نوع خطا") + '</span>' +
+      '<select name="type" required>' + types.map(function (t) {
         return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
       }).join("") + '</select></label>' +
       '<label class="report-field"><span>توضیحات</span>' +
       '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
       '<div class="report-field"><span>بارگذاری تصویر (اختیاری)</span>' +
       '<label class="report-upload"><input type="file" name="photo" accept="image/png,image/jpeg" hidden>' +
-      '<span class="up-ico"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 7l1.4-2.4h3.2L15 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>' +
+      '<span class="up-ico">' + SogIcon("camera", 26) + '</span>' +
       '<span class="up-hint">فرمت قابل پذیرش: png، jpg، jpeg</span></label></div>' +
       '<div class="report-actions">' +
       '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
@@ -612,16 +646,17 @@
           type: fd.get("type"),
           note: fd.get("note") || "",
           at: Date.now(),
-          /* گیرنده‌ها: هم پشتیبانی سوگ، هم ثبت‌کننده‌ی آگهی */
-          to: ["sog-support", "listing-owner"],
+          /* گیرنده: گزارش همدردی به ثبت‌کننده‌ی همان همدردی؛ گزارش خطا به پشتیبانی و ثبت‌کننده‌ی آگهی */
+          condolence: cd ? condKey(cd) : null,
+          to: cd ? ["condolence-author"] : ["sog-support", "listing-owner"],
           owner: (d && d.owner_id) || null,
           status: "queued"
         });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
       form.replaceWith(el("div", "report-done",
-        '<div class="ok-ico"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-        '<p>گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد. با تشکر از همراهی‌تان.</p>'));
+        '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
+        '<p>' + (cd ? "گزارش شما ثبت و برای ثبت‌کننده‌ی این همدردی ارسال شد." : "گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد.") + ' با تشکر از همراهی‌تان.</p>'));
       setTimeout(closeReportSheet, 1800);
     });
   }
@@ -744,9 +779,7 @@
     wrap.appendChild(el("p", "bio-text", fmtDesc(bio.text)));
     if (bio.gallery && bio.gallery.length) {
       /* چیدمان تصاویر همان چیزی است که هنگام ثبت انتخاب شده (پیش‌فرض: دو ستونه) */
-      var g = el("div", "bio-gallery lay-" + (bio.layout || "two"));
-      bio.gallery.forEach(function (src) { var i = el("img"); i.src = src; i.alt = ""; g.appendChild(i); });
-      wrap.appendChild(g);
+      wrap.appendChild(carousel(bio.gallery, function (n) { openLightbox(bio.gallery, n); }));
     }
     /* لینک اختیاری اینستاگرام درگذشته */
     if (bio.instagram) {
@@ -754,7 +787,7 @@
       var ig = el("a", "bio-instagram");
       ig.href = "https://instagram.com/" + handle;
       ig.target = "_blank"; ig.rel = "noopener";
-      ig.innerHTML = '<span class="bi-ico"><svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg></span>' +
+      ig.innerHTML = '<span class="bi-ico">' + SogIcon("instagram", 20) + '</span>' +
         '<span class="bi-text">صفحه‌ی اینستاگرام</span>' +
         '<span class="bi-handle">@' + esc(handle) + '</span>';
       wrap.appendChild(ig);
@@ -880,6 +913,168 @@
   }
   function eventAccordion(c) { return markPast(accordion(c.title, eventBody(c)), c); }
 
+  /* ---------- کاروسل افقی ----------
+     اسکرول افقی با snap، بخشی از تصویر بعدی پیداست و خودکار می‌چرخد.
+     با دست زدن کاربر مکث می‌کند و بعد از چند ثانیه دوباره راه می‌افتد. */
+  function carousel(images, onOpen, extra) {
+    var box = el("div", "carousel");
+    var track = el("div", "car-track");
+
+    images.forEach(function (src, i) {
+      var slide = el("div", "car-slide");
+      var btn = el("button", "car-img"); btn.type = "button";
+      btn.style.backgroundImage = 'url("' + src + '")';
+      btn.setAttribute("aria-label", "بزرگ‌نمایی تصویر " + faNum(i + 1));
+      btn.addEventListener("click", function () { onOpen(i); });
+      slide.appendChild(btn);
+      if (extra) extra(slide, i);
+      track.appendChild(slide);
+    });
+    box.appendChild(track);
+
+    if (images.length < 2) return box;
+
+    var dots = el("div", "car-dots");
+    images.forEach(function (_, i) {
+      var d = el("span", "car-dot" + (i === 0 ? " is-on" : ""));
+      dots.appendChild(d);
+    });
+    box.appendChild(dots);
+
+    function slideAt() {
+      var first = track.firstChild;
+      return first ? first.getBoundingClientRect().width + 10 : 1;
+    }
+    /* در چیدمان راست‌به‌چپ، scrollLeft منفی می‌شود؛ جهت باید لحاظ شود
+       وگرنه scrollTo به صفر چسبانده می‌شود و کاروسل تکان نمی‌خورد. */
+    /* جهت باید هنگام استفاده خوانده شود، نه هنگام ساخت: عنصرِ هنوز
+       اضافه‌نشده به صفحه همیشه ltr گزارش می‌شود. */
+    function dir() { return getComputedStyle(track).direction === "rtl" ? -1 : 1; }
+    function current() { return Math.round(Math.abs(track.scrollLeft) / slideAt()); }
+    function goTo(n) { track.scrollTo({ left: dir() * n * slideAt(), behavior: "smooth" }); }
+    function markDots() {
+      var n = Math.min(images.length - 1, Math.max(0, current()));
+      Array.prototype.forEach.call(dots.children, function (d, i) {
+        d.classList.toggle("is-on", i === n);
+      });
+    }
+    track.addEventListener("scroll", markDots, { passive: true });
+
+    /* چرخش خودکار */
+    var paused = false, resume = null;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) {
+      var timer = setInterval(function () {
+        /* وقتی صفحه دوباره ساخته شد، تایمر قدیمی خودش را جمع می‌کند */
+        if (!document.body.contains(box)) { clearInterval(timer); return; }
+        if (paused || document.hidden) return;
+        var r = box.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;   /* بیرون از دید */
+        var next = current() + 1;
+        if (next >= images.length) next = 0;
+        goTo(next);
+      }, 4000);
+    }
+    function pause() {
+      paused = true;
+      clearTimeout(resume);
+      resume = setTimeout(function () { paused = false; }, 6000);
+    }
+    ["pointerdown", "touchstart", "wheel"].forEach(function (ev) {
+      track.addEventListener(ev, pause, { passive: true });
+    });
+
+    return box;
+  }
+
+  /* ---------- نمایشگر تمام‌صفحه ----------
+     تصویر بزرگ با نوار بندانگشتی پایین؛ کلیک روی هر بندانگشتی آن را بالا می‌آورد. */
+  function openLightbox(images, start) {
+    var i = start || 0;
+    var lb = el("div", "lb");
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+
+    var bar = el("div", "lb-bar");
+    var close = el("button", "lb-btn", SogIcon("close", 22));
+    close.type = "button"; close.setAttribute("aria-label", "بستن");
+    var share = el("button", "lb-btn", SogIcon("upload", 22));
+    share.type = "button"; share.setAttribute("aria-label", "هم‌رسانی");
+    bar.appendChild(close); bar.appendChild(share);
+
+    var stage = el("div", "lb-stage");
+    var img = el("img", "lb-img"); img.alt = "";
+    var prev = el("button", "lb-nav lb-prev", SogIcon("chevLeft", 24));
+    var next = el("button", "lb-nav lb-next", SogIcon("chevRight", 24));
+    prev.type = next.type = "button";
+    prev.setAttribute("aria-label", "تصویر قبلی"); next.setAttribute("aria-label", "تصویر بعدی");
+    var count = el("span", "lb-count");
+    /* واترمارک سوگ، روی خود تصویر */
+    var mark = el("span", "lb-mark",
+      '<img src="assets/img/logo.png" alt="سوگ">');   /* فقط لوگو */
+    /* شمارنده و واترمارک داخل قابِ خودِ تصویر می‌نشینند، نه گوشه‌ی صفحه */
+    var frame = el("div", "lb-frame");
+    frame.appendChild(img); frame.appendChild(count); frame.appendChild(mark);
+    stage.appendChild(frame); stage.appendChild(prev); stage.appendChild(next);
+
+    var strip = el("div", "lb-strip");
+    images.forEach(function (src, n) {
+      var t = el("button", "lb-thumb"); t.type = "button";
+      t.style.backgroundImage = 'url("' + src + '")';
+      t.setAttribute("aria-label", "تصویر " + faNum(n + 1));
+      t.addEventListener("click", function () { show(n); });
+      strip.appendChild(t);
+    });
+
+    lb.appendChild(bar); lb.appendChild(stage); lb.appendChild(strip);
+
+    function show(n) {
+      i = (n + images.length) % images.length;
+      img.src = images[i];
+      count.textContent = faNum(i + 1) + " از " + faNum(images.length);
+      Array.prototype.forEach.call(strip.children, function (t, k) {
+        t.classList.toggle("is-on", k === i);
+      });
+      var on = strip.children[i];
+      if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }
+    prev.addEventListener("click", function () { show(i - 1); });
+    next.addEventListener("click", function () { show(i + 1); });
+
+    /* کشیدن انگشت چپ و راست */
+    var x0 = null;
+    stage.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", function (e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) show(dx > 0 ? i - 1 : i + 1);   /* RTL: کشیدن به راست = قبلی */
+      x0 = null;
+    });
+
+    function done() {
+      lb.remove();
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") done();
+      else if (e.key === "ArrowLeft") show(i + 1);
+      else if (e.key === "ArrowRight") show(i - 1);
+    }
+    close.addEventListener("click", done);
+    document.addEventListener("keydown", onKey);
+    share.addEventListener("click", function () {
+      var url = location.href;
+      if (navigator.share) navigator.share({ title: document.title, url: url }).catch(function () {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("نشانی کپی شد."); });
+    });
+
+    document.body.appendChild(lb);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { lb.classList.add("is-in"); });
+    show(i);
+  }
+
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
     var box = el("div", "event-gallery");
@@ -893,10 +1088,7 @@
 
       if (all.length) {
         box.appendChild(el("h3", "gallery-title", "تصاویر مراسم " + esc(c.title || "")));
-        var hs = el("div", "hscroll");
-        all.forEach(function (src, i) {
-          var t = el("div", "thumb");
-          t.style.backgroundImage = 'url("' + src + '")';
+        box.appendChild(carousel(all, function (n) { openLightbox(all, n); }, function (slide, i) {
           /* فقط تصاویری که خود کاربر اضافه کرده قابل حذف‌اند */
           if (owner && i >= (c.gallery || []).length) {
             var x = el("button", "thumb-x", "×"); x.type = "button";
@@ -906,17 +1098,15 @@
               SogStore.removeEventPhoto(id, key, i - (c.gallery || []).length);
               paint();
             });
-            t.appendChild(x);
+            slide.appendChild(x);
           }
-          hs.appendChild(t);
-        });
-        box.appendChild(hs);
+        }));
       }
 
       if (!owner) return;
 
       var add = el("label", "event-add-photo");
-      add.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+      add.innerHTML = SogIcon("plus", 18) +
         "<span>افزودن تصویر مراسم " + esc(c.title || "") + "</span>";
       var inp = document.createElement("input");
       inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
@@ -1247,7 +1437,7 @@
     var item = el("div", "condolence-item is-mine is-open");
     var head = el("div", "cond-head");
     head.innerHTML = '<span class="cond-logo mine-avatar">' +
-      '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
+      '' + SogIcon("user", 22) + '</span>' +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
       '<span class="mine-badge">شما</span>';
     var body = el("div", "cond-body");
@@ -1282,7 +1472,7 @@
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
 
-    var close = el("button", "report-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+    var close = el("button", "report-close", SogIcon("close", 22));
     close.type = "button";
 
     var form = el("form", "report-form");
@@ -1524,12 +1714,12 @@
     var logo = '<img class="cond-logo" src="' + esc(cd.logo) + '" alt="">';
     /* همدردی اداریِ تأییدشده نشان می‌گیرد */
     var verified = cd.kind === "org" && cd.verified
-      ? '<span class="cond-verified" title="تأییدشده"><svg viewBox="0 0 24 24" width="11" height="11"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+      ? '<span class="cond-verified" title="تأییدشده">' + SogIcon("check", 11) + '</span>'
       : "";
     head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + ICON.chevron;
     var body = el("div", "cond-body");
     var inner = el("div");
-    var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p><time>" + esc(cd.date) + "</time>");
+    var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p>");
 
     var tools = el("div", "mine-tools");
 
@@ -1545,9 +1735,18 @@
       });
       tools.appendChild(hide);
     }
+    /* هر همدردی قابل گزارش است؛ گزارش به ثبت‌کننده‌ی همان همدردی می‌رود */
+    var rep = el("button", "mine-btn cond-report", ICON.report + " گزارش");
+    rep.type = "button";
+    rep.setAttribute("aria-label", "گزارش همدردی");
+    rep.addEventListener("click", function (e) { e.stopPropagation(); openReportSheet(d, cd); });
+    tools.appendChild(rep);
+    /* تاریخ هم‌ردیفِ دکمه‌ی گزارش، سمت چپ */
+    tools.appendChild(el("time", "cond-date", esc(cd.date)));
     msg.appendChild(tools);
 
-    inner.appendChild(msg); body.appendChild(inner);
+    inner.appendChild(msg);
+    body.appendChild(inner);
     item.appendChild(head); item.appendChild(body);
     return item;
   }
@@ -1701,59 +1900,167 @@
     return list.filter(Boolean)[0] || null;
   }
 
-  /* استوری سپاسگزاری: متن تشکر خانواده در قالب استوری */
+  /* استوری سپاسگزاری: کارت تیره با تصویر و نام در بالا، متن تشکر، امضا و
+     نوار «اطلاعات بیشتر در سایت سوگ» در پایین.
+     ارتفاع کارت به اندازه‌ی متن است و کل گروه در قاب استوری وسط می‌نشیند. */
   function makeAckStory(d, ack, portrait, logo) {
     var W = 1080, H = 1920, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
+    x.direction = "rtl";
 
-    var g = x.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#1b1611"); g.addColorStop(.55, "#100e0c"); g.addColorStop(1, "#070707");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    var glow = x.createRadialGradient(W / 2, 420, 60, W / 2, 420, 620);
-    glow.addColorStop(0, "rgba(217,154,91,.13)"); glow.addColorStop(1, "rgba(217,154,91,0)");
+    x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
+    var glow = x.createRadialGradient(W / 2, 420, 80, W / 2, 420, 950);
+    glow.addColorStop(0, "rgba(217,154,91,.07)"); glow.addColorStop(1, "rgba(217,154,91,0)");
     x.fillStyle = glow; x.fillRect(0, 0, W, H);
-    x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(48, 48, W - 96, H - 96);
 
-    x.direction = "rtl"; x.textAlign = "center";
-    if (logo) x.drawImage(logo, W / 2 - 55, 110, 110, 110);
+    var CX = 56, CW = W - CX * 2, PAD = 52, innerW = CW - PAD * 2;
+    var PH = 230, HEAD_GAP = 110, SIGN_GAP = 130;
+    var FOOT_H = 132, FOOT_GAP = 30, MARGIN = 110;
 
-    drawPortrait(x, portrait, W / 2, 450, 150);
-    drawCeremonyBadge(x, "سپاسگزاری", W / 2, 650);
+    /* ۱) اندازه‌ی متن را طوری انتخاب می‌کنیم که گروه در ارتفاع قاب جا شود */
+    /* هر خطِ نوشته‌شده جدا می‌ماند؛ خط خالی یعنی فاصله‌ی بین پاراگراف‌ها */
+    var paras = String(ack && ack.text ? ack.text : "").replace(/^\s+|\s+$/g, "").split("\n")
+      .map(function (t) { return t.trim(); });
+    var roomForCard = H - MARGIN * 2 - FOOT_H - FOOT_GAP;
+    var fixed = PAD + PH + HEAD_GAP + SIGN_GAP + 24 + PAD;   /* همه‌چیز جز خود متن */
 
-    x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 60);
-    x.fillText(d.deceased_name, W / 2, 760);
-
-    x.strokeStyle = "#333"; x.lineWidth = 2;
-    x.beginPath(); x.moveTo(W / 2 - 180, 810); x.lineTo(W / 2 + 180, 810); x.stroke();
-
-    /* متن سپاسگزاری با اندازه‌ی خودتنظیم تا در کادر جا شود */
-    var text = String(ack && ack.text ? ack.text : "");
-    var size = 42, lineH, used, maxW = W - 220, boxTop = 880, boxBottom = H - 330;
-    do {
+    var size = 42, lineH, gap, textH;
+    while (true) {
       x.font = "400 " + size + "px Vazirmatn, Tahoma";
-      lineH = Math.round(size * 1.9);
-      used = measureWrapped(x, text, maxW, lineH);
+      lineH = Math.round(size * 1.75);
+      gap = lineH;   /* خط خالی = یک سطر فاصله */
+      textH = paras.reduce(function (sum, t) {
+        return sum + (t ? measureWrapped(x, t, innerW, lineH) : gap);
+      }, 0);
+      if (textH < 0) textH = 0;
+      if (fixed + textH <= roomForCard || size <= 22) break;
       size -= 2;
-    } while (used > (boxBottom - boxTop) && size > 22);
-
-    x.fillStyle = "#e2e2e2";
-    wrapText(x, text, W / 2, boxTop + lineH, maxW, lineH);
-
-    /* امضا و تاریخ */
-    var signY = boxTop + used + 90;
-    if (signY > H - 240) signY = H - 240;
-    if (ack && ack.signature) {
-      x.fillStyle = "#d99a5b"; x.font = "700 40px Vazirmatn, Tahoma";
-      x.fillText(ack.signature, W / 2, signY);
-    }
-    if (ack && ack.date) {
-      x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma";
-      x.fillText(ack.date, W / 2, signY + 54);
     }
 
-    x.fillStyle = "#7a6a4f"; x.font = "400 32px Vazirmatn, Tahoma";
-    x.fillText("اطلاعات بیشتر در سوگ", W / 2, H - 130);
+    var CH = fixed + textH;
+    var groupH = CH + FOOT_GAP + FOOT_H;
+    var CY = Math.round((H - groupH) / 2);
+
+    /* ۲) کارت */
+    roundPath(x, CX, CY, CW, CH, 40);
+    x.fillStyle = "#121212"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.16)"; x.lineWidth = 3; x.stroke();
+
+    var right = CX + CW - PAD, left = CX + PAD;
+
+    /* سربرگ: تصویر سمت چپ، برچسب و نام سمت راست */
+    var phTop = CY + PAD;
+    drawFramedPhoto(x, portrait, left, phTop, PH, PH, 22);
+
+    /* برچسب «سپاسگزاری» داخل کادر گرد نارنجیِ تیره */
+    x.textAlign = "right";
+    x.font = "700 36px Vazirmatn, Tahoma";
+    var bw = x.measureText("سپاسگزاری").width + 56, bh = 64, bTop = phTop + 30;
+    roundPath(x, right - bw, bTop, bw, bh, 14);
+    x.fillStyle = "#33241a"; x.fill();
+    x.fillStyle = "#f07d1f";
+    x.fillText("سپاسگزاری", right - 28, bTop + 44);
+
+    /* «شادروان» در خط اول و نام در خط دوم */
+    x.fillStyle = "#f4f4f4";
+    var nameSize = 50;
+    do { x.font = "700 " + nameSize + "px Vazirmatn, Tahoma"; nameSize -= 2; }
+    while (x.measureText(d.deceased_name).width > innerW - PH - 40 && nameSize > 30);
+    x.fillText("شادروان", right - 12, bTop + bh + 76);
+    x.fillText(d.deceased_name, right - 12, bTop + bh + 76 + Math.round(nameSize * 1.5));
+
+    /* ۳) متن */
+    x.fillStyle = "#dcdcdc";
+    x.font = "400 " + size + "px Vazirmatn, Tahoma";
+    var y = phTop + PH + HEAD_GAP + lineH;
+    /* متن وسط‌چین، با همان شکستن خط‌هایی که خانواده نوشته است */
+    x.textAlign = "center";
+    paras.forEach(function (t) {
+      if (!t) { y += gap; return; }
+      wrapLines(x, t, innerW).forEach(function (ln) { x.fillText(ln, CX + CW / 2, y); y += lineH; });
+    });
+
+    /* ۴) امضا و تاریخ کنار هم، وسط کارت */
+    var signY = phTop + PH + HEAD_GAP + textH + SIGN_GAP;
+    var sign = [ack && ack.signature, ack && ack.date].filter(Boolean).join("     ");
+    if (sign) {
+      x.textAlign = "center";
+      x.fillStyle = "#e6e6e6"; x.font = "400 36px Vazirmatn, Tahoma";
+      x.fillText(sign, CX + CW / 2, signY);
+    }
+
+    /* ۵) نوار پایین: لوگو، متن و فلش */
+    var fy = CY + CH + FOOT_GAP;
+    roundPath(x, CX, fy, CW, FOOT_H, 34);
+    x.fillStyle = "#151515"; x.fill();
+    x.strokeStyle = "rgba(255,255,255,.08)"; x.lineWidth = 2; x.stroke();
+
+    if (logo) {
+      var LS = 84, lx = CX + 30, ly = fy + (FOOT_H - LS) / 2;
+      roundPath(x, lx, ly, LS, LS, 18);
+      x.save(); x.clip();
+      x.fillStyle = "#fff"; x.fillRect(lx, ly, LS, LS);
+      x.drawImage(logo, lx + 4, ly + 4, LS - 8, LS - 8);
+      x.restore();
+    }
+
+    /* متن وسط نوار و فلش دقیقاً کنارش، تا روی هم نیفتند */
+    var label = "اطلاعات بیشتر در سایت سوگ";
+    x.font = "700 38px Vazirmatn, Tahoma";
+    var tw = x.measureText(label).width;
+    var cxLabel = CX + CW / 2 + 40;
+    x.textAlign = "center";
+    x.fillStyle = "#e8e8e8";
+    x.fillText(label, cxLabel, fy + FOOT_H / 2 + 14);
+
+    var ax = cxLabel - tw / 2 - 46, ay = fy + FOOT_H / 2;
+    x.strokeStyle = "#9a9a9a"; x.lineWidth = 4;
+    x.lineCap = "round"; x.lineJoin = "round";
+    x.beginPath(); x.moveTo(ax - 16, ay - 8); x.lineTo(ax, ay + 10); x.lineTo(ax + 16, ay - 8); x.stroke();
+
+    x.textAlign = "center";
     return x.canvas;
+  }
+
+  /* متن راست‌چینِ دوطرفه‌چین: فاصله‌ی بین کلمات کشیده می‌شود تا هر سطر
+     (جز سطر آخر) هر دو لبه را پر کند. */
+  function drawJustified(ctx, text, right, y, maxW, lineH) {
+    var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = [];
+    words.forEach(function (w) {
+      var test = line.concat(w).join(" ");
+      if (ctx.measureText(test).width > maxW && line.length) { lines.push(line); line = [w]; }
+      else line.push(w);
+    });
+    if (line.length) lines.push(line);
+
+    var space = ctx.measureText(" ").width;
+    lines.forEach(function (ws, i) {
+      var ly = y + i * lineH;
+      var last = i === lines.length - 1;
+      if (last || ws.length < 2) { ctx.textAlign = "right"; ctx.fillText(ws.join(" "), right, ly); return; }
+      var wordsW = ws.reduce(function (sum, w) { return sum + ctx.measureText(w).width; }, 0);
+      var extra = (maxW - wordsW) / (ws.length - 1);
+      if (extra < space) extra = space;          /* هرگز از فاصله‌ی عادی کمتر نشود */
+      ctx.textAlign = "right";
+      var cursor = right;
+      ws.forEach(function (w) {
+        ctx.fillText(w, cursor, ly);
+        cursor -= ctx.measureText(w).width + extra;
+      });
+    });
+    ctx.textAlign = "right";
+  }
+
+  /* متن را به سطرهایی که در عرض جا می‌شوند می‌شکند */
+  function wrapLines(ctx, text, maxW) {
+    var words = String(text).split(/\s+/).filter(Boolean), lines = [], line = "";
+    words.forEach(function (w) {
+      var test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    });
+    if (line) lines.push(line);
+    return lines;
   }
 
   /* ارتفاع مورد نیاز متن چندخطی را حساب می‌کند (بدون کشیدن) */
@@ -1907,7 +2214,7 @@
           box.setAttribute("aria-modal", "true");
           box.setAttribute("aria-label", "استوری آگهی");
 
-          var close = el("button", "story-close", '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+          var close = el("button", "story-close", SogIcon("close", 22));
           close.type = "button"; close.setAttribute("aria-label", "بستن");
 
           var img = el("img", "story-img"); img.src = url; img.alt = "استوری " + d.deceased_name;

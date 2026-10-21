@@ -32,6 +32,14 @@
     "از لطف و محبت شما بزرگواران که در این ایام سخت همراه ما بودید، صمیمانه سپاسگزاریم. اجرکم عندالله."
   ];
 
+  /* متن‌های آماده‌ی سوگ سریع: وقتی هنوز زمان مراسم مشخص نیست */
+  var READY_QUICK = [
+    "با نهایت تأسف و تأثر، درگذشت این عزیز را اطلاع می‌دهیم. زمان و مکان مراسم خاکسپاری و بزرگداشت متعاقباً اعلام می‌گردد.",
+    "انا لله و انا الیه راجعون. خبر درگذشت ایشان را به اطلاع آشنایان می‌رسانیم؛ جزئیات مراسم پس از هماهنگی اعلام خواهد شد.",
+    "با قلبی آکنده از اندوه، درگذشت عزیزمان را اعلام می‌داریم. اطلاعات تکمیلی مراسم به‌زودی در همین صفحه منتشر می‌شود.",
+    "درگذشت این عزیز را به اطلاع می‌رسانیم. زمان تشییع متعاقباً از همین صفحه اعلام می‌گردد."
+  ];
+
   /* داده‌ی فرم */
   var data = {
     photos: [null, null, null],      /* اولی تصویر اصلی */
@@ -42,7 +50,8 @@
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
     bio: "", bio_photos: [], bio_layout: "one", bio_instagram: "", music: null,
-    phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: ""
+    phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: "",
+    mode: "", quick_note: ""        /* mode: "" تا وقتی نوع ثبت انتخاب نشده */
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
@@ -297,7 +306,7 @@
         box.appendChild(rm);
       } else {
         box.appendChild(el("span", "slot-txt",
-          '<svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7l1.3-2.2h3.4L15 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> ' + esc(label)));
+          '' + SogIcon("camera", 18) + ' ' + esc(label)));
       }
       var inp = document.createElement("input");
       inp.type = "file"; inp.accept = "image/*"; inp.hidden = true;
@@ -324,7 +333,7 @@
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
         x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { ev.photos.splice(i, 1); paint(); });
-        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        var ed = el("button", "bio-thumb-edit", SogIcon("pencil", 14));
         ed.type = "button";
         ed.setAttribute("aria-label", "ویرایش تصویر");
         ed.addEventListener("click", function () {
@@ -394,7 +403,7 @@
         var x = el("button", "bio-thumb-x", "×"); x.type = "button";
         x.setAttribute("aria-label", "حذف تصویر");
         x.addEventListener("click", function () { data.bio_photos.splice(i, 1); paint(); });
-        var ed = el("button", "bio-thumb-edit", '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
+        var ed = el("button", "bio-thumb-edit", SogIcon("pencil", 14));
         ed.type = "button";
         ed.setAttribute("aria-label", "ویرایش تصویر");
         ed.addEventListener("click", function () {
@@ -468,6 +477,18 @@
 
   function buildSteps() {
     var steps = [];
+
+    /* ۰) انتخاب نوع ثبت */
+    if (!data.mode) {
+      steps.push({ title: "نوع ثبت", build: buildModePicker });
+      return steps;
+    }
+
+    /* مسیر سریع: همه‌چیز در یک مرحله */
+    if (data.mode === "quick") {
+      steps.push({ title: "ثبت سریع اطلاعیه سوگ", build: buildQuickPanel });
+      return steps;
+    }
 
     /* ۱) تصویر و نام */
     steps.push({ title: "مشخصات درگذشته", build: function () {
@@ -683,10 +704,10 @@
       var pair = el("div", "final-pair");
       var thanksBtn = el("button", "pair-btn" + (data.thanks ? " is-on" : ""));
       thanksBtn.type = "button";
-      thanksBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span><span>متن سپاسگزاری</span>';
+      thanksBtn.innerHTML = '<span class="pair-ico">' + SogIcon("thanks", 24) + '</span><span>متن سپاسگزاری</span>';
       var condBtn = el("button", "pair-btn is-off");
       condBtn.type = "button";
-      condBtn.innerHTML = '<span class="pair-ico"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3c1.6 2 1.4 3.4 0 4.4C10.6 6.4 10.4 5 12 3z" fill="currentColor"/><rect x="9.5" y="8.5" width="5" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span>ثبت همدردی</span>';
+      condBtn.innerHTML = '<span class="pair-ico">' + SogIcon("condole", 24) + '</span><span>ثبت همدردی</span>';
       condBtn.disabled = true;
       condBtn.title = "پس از انتشار آگهی، بازدیدکنندگان می‌توانند همدردی ثبت کنند";
       pair.appendChild(thanksBtn); pair.appendChild(condBtn);
@@ -728,6 +749,91 @@
     return steps;
   }
 
+  /* ---------- انتخاب نوع ثبت ---------- */
+  function buildModePicker() {
+    var p = el("section", "reg-panel");
+
+    function card(mode, title, time, desc, icon) {
+      var b = el("button", "mode-card"); b.type = "button";
+      b.innerHTML =
+        '<span class="mc-top">' +
+          '<span class="mc-head">' +
+            '<span class="mc-title">' + esc(title) + "</span>" +
+            '<span class="mc-time">' + esc(time) + "</span>" +
+          "</span>" +
+          '<span class="mc-ico">' + icon + "</span>" +
+        "</span>" +
+        '<span class="mc-desc">' + esc(desc) + "</span>";
+      b.addEventListener("click", function () {
+        data.mode = mode;
+        steps = buildSteps();
+        show(0);
+      });
+      return b;
+    }
+
+    p.appendChild(card("quick", "ثبت سریع اطلاعیه سوگ", "زمان ثبت ۳۰ ثانیه",
+      "اگر هنوز زمان و مکان و جزییات مراسم مشخص نشده، همین حالا خبر فوت را ثبت و استوری کنید.",
+      SogIcon("zap", 26)));
+
+    p.appendChild(card("full", "ثبت کامل سوگ", "زمان ثبت ۶ دقیقه",
+      "ثبت کامل اعم از زمان، مکان، نشانی و مراسم‌ها (خاکسپاری، ختم، چهلم، سالگرد و…).",
+      SogIcon("bookmark", 26)));
+
+    return p;
+  }
+
+  /* ---------- سوگ سریع: یک مرحله ---------- */
+  function buildQuickPanel() {
+    var p = el("section", "reg-panel");
+
+    var slots = el("div", "photo-slots is-lead");
+    slots.appendChild(photoSlot(0, "انتخاب تصویر درگذشته"));
+    p.appendChild(field("تصویر درگذشته", true, slots));
+
+    p.appendChild(field("نام و نام خانوادگی درگذشته", true,
+      textInput("name", "نام و نام خانوادگی درگذشته را وارد کنید")));
+    p.appendChild(fieldRow(
+      field("نام پدر", false, textInput("father", "نام پدر")),
+      field("طایفه", false, textInput("father_tayefe", "نام طایفه"))
+    ));
+    p.appendChild(field("شهر", true, textInput("city", "نام شهر را وارد کنید")));
+
+    /* متن اطلاعیه با متن‌های آماده.
+       textInput برای textareaِ دارای شمارنده، یک پوشش برمی‌گرداند نه خود فیلد. */
+    var noteBox = textInput("quick_note",
+      "متن اطلاعیه سوگ را وارد کنید یا از متن‌های آماده استفاده کنید",
+      { tag: "textarea", rows: 4, max: 400 });
+    var ta = noteBox.querySelector ? (noteBox.querySelector("textarea") || noteBox) : noteBox;
+    p.appendChild(field("متن اطلاعیه", true, noteBox,
+      "اگر زمان مراسم هنوز معلوم نیست، یکی از متن‌های آماده‌ی زیر را بزنید."));
+
+    var picker = el("div", "ready-picker");
+    picker.appendChild(el("p", "ready-title", "متن‌های آماده:"));
+    var track = el("div", "ready-track");
+    READY_QUICK.forEach(function (t) {
+      var card = el("button", "ready-card", esc(t)); card.type = "button";
+      if (data.quick_note === t) card.classList.add("is-picked");
+      card.addEventListener("click", function () {
+        Array.prototype.forEach.call(track.children, function (n) { n.classList.remove("is-picked"); });
+        card.classList.add("is-picked");
+        data.quick_note = t;
+        ta.value = t;
+        var c = noteBox.querySelector && noteBox.querySelector(".char-count");
+        if (c) c.textContent = faNum(400 - t.length);
+      });
+      track.appendChild(card);
+    });
+    picker.appendChild(track);
+    p.appendChild(picker);
+
+    p.appendChild(field("کد ملی ثبت‌کننده", true,
+      textInput("melli", "کد ملی ۱۰ رقمی ثبت‌کننده", { type: "tel", inputmode: "numeric", max: 10 }),
+      "برای جلوگیری از ثبت آگهی جعلی لازم است و در آگهی نمایش داده نمی‌شود."));
+
+    return p;
+  }
+
   /* ---------- ناوبری ---------- */
   var steps = buildSteps();
   var current = 0;
@@ -743,9 +849,27 @@
     paintProgress();
   }
 
+  var MODE_TITLE = { quick: "ثبت سریع اطلاعیه سوگ", full: "ثبت کامل سوگ" };
+
   function paintProgress() {
+    var bar = document.querySelector(".reg-progress");
+    var h1 = document.querySelector(".reg-title h1");
+    if (h1) h1.textContent = MODE_TITLE[data.mode] || "ثبت آگهی سوگ";
+
+    /* روی صفحه‌ی انتخاب نوع ثبت، شمارنده‌ی مرحله معنی ندارد */
+    if (!data.mode) {
+      if (bar) { bar.hidden = false; bar.classList.add("is-plain"); }
+      document.getElementById("stepTitle").textContent = "نوع ثبت را انتخاب کنید";
+      document.getElementById("stepCount").textContent = "";
+      document.getElementById("stepBar").style.width = "0%";
+      return;
+    }
+    /* ثبت سریع تک‌مرحله‌ای است و عنوانش در هدر آمده؛ نوار مرحله لازم نیست */
+    if (bar) bar.hidden = steps.length < 2;
+    if (bar) bar.classList.remove("is-plain");
     document.getElementById("stepTitle").textContent = steps[current].title;
-    document.getElementById("stepCount").textContent = "مرحله " + faNum(current + 1) + " از " + faNum(steps.length);
+    document.getElementById("stepCount").textContent = steps.length > 1
+      ? "مرحله " + faNum(current + 1) + " از " + faNum(steps.length) : "";
     document.getElementById("stepBar").style.width = ((current + 1) / steps.length * 100) + "%";
   }
 
@@ -763,9 +887,18 @@
   function renderActions() {
     var bar = document.getElementById("regActions");
     bar.innerHTML = "";
-    var prev = el("button", "btn-prev", "قبلی"); prev.type = "button";
-    prev.disabled = current === 0;
-    prev.addEventListener("click", function () { show(current - 1); });
+    /* روی صفحه‌ی انتخاب نوع ثبت، دکمه‌ای لازم نیست */
+    if (!data.mode) { bar.hidden = true; return; }
+    bar.hidden = false;
+
+    var prev = el("button", "btn-prev", current === 0 ? "تغییر نوع ثبت" : "قبلی");
+    prev.type = "button";
+    prev.addEventListener("click", function () {
+      if (current > 0) { show(current - 1); return; }
+      data.mode = "";
+      steps = buildSteps();
+      show(0);
+    });
     var isLast = current === steps.length - 1;
     var next = el("button", "btn-next", isLast ? "ثبت آگهی" : "بعدی"); next.type = "button";
     next.addEventListener("click", function () {
@@ -796,7 +929,89 @@
     }, 2600);
   }
 
+  /* اطلاعیه‌ی هم‌نامِ منتظر را تکمیل‌شده اعلام می‌کند.
+     ارسال واقعی پیامک کار سرور است؛ اینجا در صف خروجی گذاشته می‌شود. */
+  function notifyCompleted(name) {
+    var store = window.SogStore;
+    if (!store || !store.completeNotice) return 0;
+    var pend = [];
+    try { pend = JSON.parse(localStorage.getItem("sog:pendingNotices")) || []; } catch (e) {}
+    var key = String(name || "").replace(/\s+/g, " ").trim();
+    var rest = [], sent = 0;
+    pend.forEach(function (n) {
+      var same = String(n.name || "").replace(/\s+/g, " ").trim() === key;
+      if (same && key) sent += store.completeNotice(n.id, n.name) || 0;
+      else rest.push(n);
+    });
+    try { localStorage.setItem("sog:pendingNotices", JSON.stringify(rest)); } catch (e) {}
+    return sent;
+  }
+
+  /* داده‌ی فرم را به قالب یک آگهی تبدیل می‌کند تا مثل بقیه‌ی آگهی‌ها
+     در فهرست‌ها و صفحه‌ی تکی قابل نمایش باشد. */
+  function buildAd(id) {
+    var labels = [], firstKey = "";
+    CEREMONIES.forEach(function (c) {
+      if (!data.picked[c.key]) return;
+      if (!firstKey) firstKey = c.key;
+      labels.push(c.name);
+    });
+    if (data.mode === "quick") { labels = []; firstKey = ""; }
+
+    var ev = firstEventDate() || jToday();
+    return {
+      id: id,
+      deceased_name: data.name || "",
+      photo: data.photos[0] || "",
+      photos: data.photos.filter(Boolean),
+      subtitle: data.brief || "",
+      ceremony_type: firstKey || "",
+      ceremony_labels: labels,
+      is_notice: data.mode === "quick",
+      notice_text: data.quick_note || "",
+      death_year: parseInt(toEnNum(ev).split("/")[0], 10) || null,
+      event_date_jalali: ev,
+      event_weekday: "",
+      city: data.city || "",
+      city_slug: "",
+      location: data.city || "",
+      tayefe: data.father_tayefe || "",
+      il: data.father_il || "",
+      father: data.father || "",
+      mother: data.mother || "",
+      is_mine: true,
+      pending: true,
+      created_at: new Date().toISOString().slice(0, 10)
+    };
+  }
+
+  function toEnNum(v) {
+    return String(v == null ? "" : v).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
+  }
+  function jToday() { return faNum(TODAY.y) + "/" + pad2(TODAY.m) + "/" + pad2(TODAY.d); }
+  /* نخستین تاریخی که برای مراسم‌ها ثبت شده است */
+  function firstEventDate() {
+    var keys = Object.keys(data.events || {});
+    for (var i = 0; i < keys.length; i++) {
+      var e = data.events[keys[i]];
+      if (e && e.date && e.date.y) return faNum(e.date.y) + "/" + pad2(e.date.m) + "/" + pad2(e.date.d);
+    }
+    return "";
+  }
+
+  var lastNotified = 0;
   function submit() {
+    if (data.mode === "quick") {
+      if (!data.photos[0]) { toast("تصویر درگذشته را انتخاب کنید."); return; }
+      var nm = String(data.name || "").replace(/\s+/g, " ").trim();
+      if (nm.split(" ").filter(Boolean).length < 2) {
+        toast("نام و نام خانوادگی درگذشته را کامل وارد کنید."); return;
+      }
+      if (!String(data.city || "").trim()) { toast("نام شهر را وارد کنید."); return; }
+      if (!String(data.quick_note || "").trim()) {
+        toast("متن اطلاعیه را بنویسید یا یکی از متن‌های آماده را انتخاب کنید."); return;
+      }
+    }
     if (!validMelli(data.melli)) {
       toast("کد ملی ثبت‌کننده معتبر نیست؛ لطفاً آن را بررسی کنید.");
       return;
@@ -806,18 +1021,43 @@
       localStorage.setItem("sog:draftListing", JSON.stringify(data));
       /* تا وقتی حساب کاربری واقعی وصل نشده، ثبت‌کننده روی همین دستگاه شناخته می‌شود */
       /* کد ملیِ تأییدشده‌ی ثبت‌کننده روی حساب کاربر ثبت می‌شود تا نشان «تأیید هویت شده» بگیرد */
-      var user = JSON.parse(localStorage.getItem("sog:user")) || {};
+      /* روی حساب فعالِ کاربر ثبت می‌شود (پشتیبانی از چند حساب) */
+      var store = window.SogStore;
+      var user = (store && store.getUser && store.getUser()) || {};
       user.melli = data.melli;
       user.verified = true;
       if (!user.name && data.applicant_name) user.name = data.applicant_name;
       if (!user.phone && data.phone) user.phone = data.phone;
-      localStorage.setItem("sog:user", JSON.stringify(user));
+      if (store && store.setUser) store.setUser(user);
+      else localStorage.setItem("sog:user", JSON.stringify(user));
 
       var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
       var newId = "draft-" + Date.now();
       mine.push(newId);
       localStorage.setItem("sog:myListings", JSON.stringify(mine));
+
+      /* آگهی تا وصل شدن سرور روی همین دستگاه نگه داشته می‌شود تا در
+         صفحه‌ی اصلی و «آگهی‌های من» دیده شود. */
+      if (store && store.addMyAd) store.addMyAd(buildAd(newId));
+
+      if (data.mode === "quick") {
+        /* اطلاعیه‌ی منتظرِ تکمیل، تا بعداً بدانیم به چه کسانی خبر بدهیم */
+        var pend = JSON.parse(localStorage.getItem("sog:pendingNotices")) || [];
+        pend.push({ id: newId, name: data.name || "" });
+        localStorage.setItem("sog:pendingNotices", JSON.stringify(pend));
+      } else {
+        /* ثبت کامل: اگر اطلاعیه‌ای از همین دستگاه منتظر بود، تکمیل‌شده حساب
+           می‌شود و شماره‌های ثبت‌شده به صف پیامک می‌روند. */
+        lastNotified = notifyCompleted(data.name);
+      }
     } catch (e) {}
+    var sp = document.querySelector("#regSuccess p");
+    if (data.mode === "quick" && sp) {
+      sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
+    } else if (sp && lastNotified > 0) {
+      sp.textContent = "آگهی تکمیل شد و به " + faNum(lastNotified) +
+        " نفر که منتظر خبر مراسم بودند پیامک اطلاع‌رسانی ارسال می‌شود.";
+    }
     document.getElementById("regSuccess").classList.add("is-in");
   }
 
