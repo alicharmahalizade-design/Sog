@@ -78,3 +78,4 @@
 .br-new { margin: 10px 0 8px; }
 .br .up-inner[hidden] { display: none; }
 .br-audio .sp { margin-bottom: 0; }
+.br-mine-btn.story { color: var(--accent); border-color: rgba(217,154,91,.5); }

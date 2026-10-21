@@ -411,7 +411,18 @@
         if (!confirm("«" + b.name + "» حذف شود؟")) return;
         SogBizStore.remove(b.id); paintMine(); toast("کسب‌وکار حذف شد.");
       });
-      row.appendChild(lg); row.appendChild(info); row.appendChild(ed); row.appendChild(del);
+      /* استوری: انتخاب عکس همین‌جا، انتشار در صفحه‌ی کسب‌وکارها */
+      var st = el("label", "br-mine-btn story", "استوری");
+      var sf = el("input"); sf.type = "file"; sf.accept = "image/*"; sf.hidden = true;
+      sf.addEventListener("change", function () {
+        var f = sf.files && sf.files[0]; if (!f) return;
+        SogBizStore.storyImage(f).then(function (data) {
+          try { sessionStorage.setItem("sog:storyDraft", data); } catch (e) { toast("تصویر خیلی بزرگ است."); return; }
+          location.href = "business.html?story=" + encodeURIComponent(b.id);
+        }).catch(function () { toast("این تصویر خوانده نشد."); });
+      });
+      st.appendChild(sf);
+      row.appendChild(lg); row.appendChild(info); row.appendChild(st); row.appendChild(ed); row.appendChild(del);
       box.appendChild(row);
     });
     box.appendChild(el("p", "br-sec-sub br-new", "یا یک کسب‌وکار جدید ثبت کنید:"));

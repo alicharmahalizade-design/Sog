@@ -1,0 +1,85 @@
+{
+  "note": "استوری‌های نمونه؛ hours = چند ساعت پیش منتشر شده (بیش از ۲۴ ساعت نمایش داده نمی‌شود).",
+  "stories": [
+    {
+      "biz": 501,
+      "items": [
+        {
+          "img": "assets/img/candles.jpg",
+          "text": "تاج گل‌های تازه برای مراسم امروز",
+          "hours": 1
+        },
+        {
+          "img": "assets/img/art-1.jpg",
+          "text": "ارسال فوری در کمتر از یک ساعت",
+          "hours": 3
+        }
+      ]
+    },
+    {
+      "biz": 503,
+      "items": [
+        {
+          "img": "assets/img/hall-2.jpg",
+          "text": "تلاوت مجلسی — نوبت‌گیری برای هفته‌ی آینده",
+          "hours": 2
+        }
+      ]
+    },
+    {
+      "biz": 505,
+      "items": [
+        {
+          "img": "assets/img/art-3.jpg",
+          "text": "سالن جدید با ظرفیت ۳۰۰ نفر",
+          "hours": 5
+        },
+        {
+          "img": "assets/img/hall-4.jpg",
+          "text": "چیدمان مراسم ترحیم",
+          "hours": 6
+        },
+        {
+          "img": "assets/img/art-2.jpg",
+          "text": "پذیرایی کامل با خرما و حلوا",
+          "hours": 7
+        }
+      ]
+    },
+    {
+      "biz": 502,
+      "items": [
+        {
+          "img": "assets/img/farshchian-1.jpg",
+          "text": "طرح‌های جدید سنگ مزار",
+          "hours": 4
+        }
+      ]
+    },
+    {
+      "biz": 513,
+      "items": [
+        {
+          "img": "assets/img/hall-1.jpg",
+          "text": "پخش زنده‌ی مراسم برای عزیزان دور",
+          "hours": 8
+        }
+      ]
+    },
+    {
+      "biz": 509,
+      "items": [
+        {
+          "img": "assets/img/art-4.jpg",
+          "text": "حجله‌ی یادبود با نور شمع",
+          "hours": 10
+        },
+        {
+          "img": "assets/img/candles.jpg",
+          "text": "قاب عکس یادبود",
+          "hours": 11
+        }
+      ]
+    }
+  ]
+}

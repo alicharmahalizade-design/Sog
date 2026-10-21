@@ -54,6 +54,11 @@
       "slug": "khanande",
       "name": "خواننده و نوازنده",
       "icon": "mic"
+    },
+    {
+      "slug": "misc",
+      "name": "متفرقه",
+      "icon": "grid"
     }
   ],
   "businesses": [
@@ -692,6 +697,38 @@
           "date": "۱۴۰۵/۰۲/۱۵"
         }
       ]
+    },
+    {
+      "id": 513,
+      "name": "صوت و تصویر نوا",
+      "category_slug": "misc",
+      "category_name": "متفرقه",
+      "city": "اصفهان",
+      "city_slug": "isfahan",
+      "logo": "assets/img/biz/logo-tashrifat.svg",
+      "rating": "۴.۷",
+      "reviews": "۶۴",
+      "verified": true,
+      "featured": false,
+      "price_from": "از ۱٬۵۰۰٬۰۰۰ تومان",
+      "services": [
+        "سیستم صوتی مجلس",
+        "فیلم‌برداری مراسم",
+        "پخش زنده"
+      ],
+      "phone": "۰۹۱۳۴۴۴۵۵۶۶",
+      "whatsapp": "۰۹۱۳۴۴۴۵۵۶۶",
+      "description": "اجاره‌ی سیستم صوتی، فیلم‌برداری و پخش زنده‌ی مراسم ترحیم و بزرگداشت برای عزیزانی که نمی‌توانند حضوری شرکت کنند.",
+      "partner": false,
+      "tier": "silver",
+      "address": "اصفهان - خیابان چهارباغ",
+      "hours": "همه‌روزه ۸ تا ۲۳",
+      "gallery": [
+        "assets/img/hall-3.jpg",
+        "assets/img/hall-5.jpg",
+        "assets/img/hall-1.jpg"
+      ],
+      "reviews_list": []
     }
   ]
 }

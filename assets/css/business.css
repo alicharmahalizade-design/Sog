@@ -456,3 +456,207 @@
 .biz-join-txt b { font-size: 14px; color: var(--accent); }
 .biz-join-txt span { font-size: 11.5px; color: var(--text-dim); }
 .biz-join-btn { flex: 0 0 auto; background: var(--accent); color: #1a1206; font-weight: 700; font-size: 12.5px; border-radius: 10px; padding: 8px 12px; }
+
+/* ===== استوری کسب‌وکارها (شبکه‌ی ۴px) ===== */
+.story-bar { padding: 12px 0 4px; }
+.st-track {
+  display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 8px;
+  scrollbar-width: none; scroll-snap-type: x proximity;
+}
+.st-track::-webkit-scrollbar { display: none; }
+.st-item {
+  flex: 0 0 72px; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; padding: 0; color: var(--text); cursor: pointer; scroll-snap-align: start;
+}
+.st-ring {
+  width: 68px; height: 68px; border-radius: 50%; padding: 2px;
+  background: #3a3a3a; display: grid; place-items: center;
+  transition: transform .15s;
+}
+.st-item:active .st-ring { transform: scale(.94); }
+.st-item.is-new .st-ring { background: conic-gradient(from 200deg, #f4c27a, #d99a5b, #b5562e, #e07a52, #f4c27a); }
+.st-logo {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #222 center/cover no-repeat; border: 3px solid var(--bg);
+}
+.st-name {
+  width: 72px; font-size: 11px; line-height: 16px; text-align: center; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.st-item.is-new .st-name { color: var(--text); font-weight: 600; }
+
+/* نمایشگر تمام‌صفحه */
+.st-viewer {
+  position: fixed; inset: 0; z-index: 200; background: #000;
+  display: grid; place-items: center;
+  opacity: 0; transform: scale(.96); transition: opacity .22s ease, transform .22s ease;
+}
+.st-viewer.is-in { opacity: 1; transform: none; }
+.st-stage {
+  position: relative; width: 100%; height: 100%; max-width: 480px; overflow: hidden;
+  background: #111;
+}
+@media (min-width: 520px) { .st-stage { height: min(100%, 860px); border-radius: 16px; } }
+.st-img { position: absolute; inset: 0; background: #111 center/cover no-repeat; }
+.st-shade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 22%, transparent 58%, rgba(0,0,0,.8));
+}
+.st-bars {
+  position: absolute; top: calc(8px + env(safe-area-inset-top)); inset-inline: 8px; z-index: 3;
+  display: flex; gap: 4px; direction: rtl;
+}
+.st-bar { flex: 1 1 0; height: 2px; border-radius: 2px; background: rgba(255,255,255,.32); overflow: hidden; }
+.st-bar i { display: block; height: 100%; width: 0; background: #fff; }
+.st-top {
+  position: absolute; top: calc(20px + env(safe-area-inset-top)); inset-inline: 12px; z-index: 4;
+  display: flex; align-items: center; gap: 8px;
+}
+.st-av { flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: #222 center/cover no-repeat; border: 2px solid rgba(255,255,255,.8); }
+.st-who { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; color: #fff; }
+.st-who b { font-size: 14px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-who small { font-size: 11px; line-height: 16px; opacity: .75; }
+.st-x {
+  flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center;
+  background: none; border: none; color: #fff; cursor: pointer;
+}
+.st-text {
+  position: absolute; inset-inline: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 3;
+  margin: 0; color: #fff; font-size: 15px; line-height: 24px; font-weight: 600; text-align: center;
+  text-shadow: 0 1px 8px rgba(0,0,0,.6);
+}
+.st-cta {
+  position: absolute; inset-inline: 16px; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 4;
+  display: flex; gap: 8px;
+}
+.st-go {
+  flex: 1 1 auto; height: 48px; border-radius: 12px; display: grid; place-items: center;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: #fff;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.st-call {
+  flex: 0 0 48px; width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--accent); color: #1a1206; text-decoration: none;
+}
+/* در راست‌به‌چپ: لمس سمت چپ = بعدی، سمت راست = قبلی */
+.st-zone {
+  position: absolute; top: 72px; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 2;
+  background: none; border: none; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: none;
+}
+.st-zone.is-next { left: 0; width: 64%; }
+.st-zone.is-prev { right: 0; width: 36%; }
+.st-viewer.is-paused .st-top, .st-viewer.is-paused .st-cta, .st-viewer.is-paused .st-text { opacity: 0; transition: opacity .2s; }
+
+/* ===== کارت کسب‌وکار (طراحی تازه) ===== */
+.bz-cards { display: flex; flex-direction: column; gap: 12px; }
+.bz-card {
+  position: relative; background: #2a2a2a; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+}
+.bz-cover {
+  position: relative; height: 112px; background: #333 center/cover no-repeat; cursor: pointer;
+}
+.bz-cover::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.35), transparent 40%, rgba(0,0,0,.55));
+}
+.bz-tag {
+  position: absolute; top: 8px; right: 8px; z-index: 1;
+  height: 24px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 700; color: #fff; background: rgba(0,0,0,.5);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.bz-tag.is-gold { background: var(--accent); color: #1a1206; }
+.bz-story-dot {
+  position: absolute; top: 8px; left: 8px; z-index: 1;
+  height: 24px; padding: 0 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: #fff; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #e07a52, #d99a5b);
+}
+.bz-logo {
+  position: absolute; top: 80px; right: 16px; z-index: 2;
+  width: 56px; height: 56px; border-radius: 16px; cursor: pointer;
+  background: #222 center/cover no-repeat; border: 3px solid #2a2a2a;
+}
+.bz-logo.has-story {
+  border-radius: 50%; border-color: #2a2a2a;
+  box-shadow: 0 0 0 2px #e07a52, 0 0 0 3px #d99a5b;
+}
+.bz-body { padding: 8px 16px 12px; padding-inline-start: 84px; min-height: 48px; cursor: pointer; }
+.bz-name {
+  display: flex; align-items: center; gap: 4px; margin: 0;
+  font-size: 15px; line-height: 24px; font-weight: 700; color: var(--text);
+}
+.bz-name > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.bz-name .sog-badge, .bz-name svg { flex: 0 0 auto; }
+.bz-meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; line-height: 20px; color: var(--text-dim);
+}
+.bz-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: #666; }
+.bz-rate { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 700; }
+.bz-rate i { font-style: normal; font-weight: 400; color: var(--text-mute); }
+.bz-price { color: var(--text); }
+.bz-svcs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px -68px 0 0; }
+.bz-svcs span {
+  height: 24px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center;
+  font-size: 11px; color: var(--text-dim); background: #333;
+}
+.bz-svcs span.is-more { color: var(--accent); background: var(--accent-soft); }
+.bz-acts {
+  display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 8px;
+  padding: 0 12px 12px;
+}
+.bz-btn {
+  height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  background: #363636; color: var(--text); border: none; text-decoration: none;
+  font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.bz-btn:active { transform: scale(.97); }
+.bz-btn.is-wa { color: #4ade80; }
+.bz-btn.is-order { background: var(--accent); color: #1a1206; }
+
+/* «استوری شما» */
+.st-add .st-ring { background: none; border: 1px dashed #4a4a4a; position: relative; }
+.st-add .st-logo { background-color: #1e1e1e; }
+.st-plus {
+  position: absolute; bottom: 0; left: 0; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--accent); color: #1a1206; border: 3px solid var(--bg);
+}
+.st-plus svg { width: 12px; height: 12px; stroke-width: 3; }
+.st-del {
+  flex: 0 0 auto; height: 32px; padding: 0 12px; border-radius: 8px;
+  background: rgba(224,96,96,.2); color: #ffb4b4; border: 1px solid rgba(224,96,96,.5);
+  font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+
+/* پنجره‌ی گذاشتن استوری */
+.st-compose {
+  position: fixed; inset: 0; z-index: 210; background: rgba(0,0,0,.72);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity .22s;
+}
+.st-compose.is-in { opacity: 1; }
+.stc-card {
+  width: 100%; max-width: 480px; display: flex; gap: 16px;
+  background: var(--surface-2); border-radius: 20px 20px 0 0;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  transform: translateY(24px); transition: transform .22s;
+}
+.st-compose.is-in .stc-card { transform: none; }
+.stc-prev { flex: 0 0 108px; width: 108px; height: 192px; border-radius: 12px; background: #111 center/cover no-repeat; }
+.stc-form { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.stc-title { font-size: 16px; line-height: 24px; color: var(--text); }
+.stc-who { font-size: 13px; color: var(--accent); font-weight: 700; }
+.stc-biz, .stc-text {
+  width: 100%; background: #111; color: var(--text); border: 1px solid #333; border-radius: 12px;
+  padding: 8px 12px; font: inherit; font-size: 13px; outline: none;
+}
+.stc-biz:focus, .stc-text:focus { border-color: var(--accent); }
+.stc-text { resize: none; }
+.stc-note { margin: 0; font-size: 11px; color: var(--text-mute); }
+.stc-acts { display: grid; grid-template-columns: 1fr 3fr; gap: 8px; margin-top: auto; }
+.stc-acts button { height: 40px; border-radius: 12px; border: none; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.stc-cancel { background: #333; color: var(--text-dim); }
+.stc-ok { background: var(--accent); color: #1a1206; }

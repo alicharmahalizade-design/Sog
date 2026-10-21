@@ -18,7 +18,8 @@
     food: SogIcon("food", 26),
     car: SogIcon("car", 26),
     candle: SogIcon("candle", 26),
-    mic: SogIcon("reciter", 26)
+    mic: SogIcon("reciter", 26),
+    grid: SogIcon("grid", 26)
   };
   var STAR = SogIcon("star", 14);
   var CHECK = SogIcon("check", 11);
@@ -41,8 +42,10 @@
     return Promise.all([
       fetch("data/businesses.json").then(function (r) { return r.json(); }),
       fetch("data/cities.json").then(function (r) { return r.json(); }),
-      new Promise(function (r) { setTimeout(r, 400); })
+      new Promise(function (r) { setTimeout(r, 400); }),
+      fetch("data/stories.json").then(function (r) { return r.json(); }).catch(function () { return { stories: [] }; })
     ]).then(function (res) {
+      DATA.storyData = res[3].stories || [];
       DATA.siteBusinesses = res[0].businesses || [];
       DATA.categories = res[0].categories || [];
       DATA.cities = (res[1].cities || []).filter(function (c) { return c.slug !== "all" ? true : true; });
@@ -502,12 +505,293 @@
 
         var items = catItems(r.cat.slug, sub);
         if (!items.length) body.appendChild(el("p", "acc-empty", "موردی در این زیرشاخه نیست."));
-        else items.forEach(function (b) { body.appendChild(accBiz(b)); });
+        else {
+          var cards = el("div", "bz-cards");
+          items.forEach(function (b) { cards.appendChild(bizRich(b)); });
+          body.appendChild(cards);
+        }
 
         item.appendChild(body);
       }
 
       wrap.appendChild(item);
+    });
+  }
+
+  /* ---------- کارت کسب‌وکار (طراحی تازه) ----------
+     کاور ۱۱۲ + لوگوی ۵۶ روی لبه، نام و نشان، امتیاز و قیمت، خدمات، و سه دکمه‌ی همیشه‌پیدا */
+  function bizRich(b) {
+    var card = el("article", "bz-card");
+    var go = function () { location.href = "business-detail.html?id=" + b.id; };
+    var cover = el("div", "bz-cover");
+    var gl = b.gallery || [];
+    var img = b.cover || (gl.length ? gl[(parseInt(b.id, 10) || 0) % gl.length] : "");
+    if (img) cover.style.backgroundImage = 'url("' + img + '")';
+    if (b.featured && !b.partner) cover.appendChild(el("span", "bz-tag", "ویژه"));
+    if (hasStory(b.id)) {
+      var sb = el("button", "bz-story-dot", SogIcon("story", 14) + "<span>استوری</span>"); sb.type = "button";
+      sb.addEventListener("click", function (e) { e.stopPropagation(); openStoriesFor(b.id); });
+      cover.appendChild(sb);
+    }
+    cover.addEventListener("click", go);
+    card.appendChild(cover);
+    var logo = el("span", "bz-logo" + (hasStory(b.id) ? " has-story" : ""));
+    logo.style.backgroundImage = 'url("' + b.logo + '")';
+    logo.addEventListener("click", function () { if (hasStory(b.id)) openStoriesFor(b.id); else go(); });
+    card.appendChild(logo);
+    var body = el("div", "bz-body");
+    body.addEventListener("click", go);
+    body.appendChild(el("h3", "bz-name", '<span>' + esc(b.name) + "</span>" + SogUtil.badge(b)));
+    var r = parseFloat(SogUtil.toEn(b.rating)) || 0;
+    body.appendChild(el("div", "bz-meta",
+      '<span class="bz-rate">' + STAR + " " + esc(b.rating || "—") + ' <i>(' + esc(b.reviews || "۰") + ")</i></span>" +
+      '<span class="dot"></span><span>' + esc(b.city || "") + "</span>" +
+      (b.price_from ? '<span class="dot"></span><span class="bz-price">' + esc(b.price_from) + "</span>" : "")));
+    if (b.services && b.services.length) {
+      var sv = el("div", "bz-svcs");
+      b.services.slice(0, 3).forEach(function (x) { sv.appendChild(el("span", null, esc(x))); });
+      if (b.services.length > 3) sv.appendChild(el("span", "is-more", "+" + faNum(b.services.length - 3)));
+      body.appendChild(sv);
+    }
+    void r;
+    card.appendChild(body);
+    var acts = el("div", "bz-acts");
+    var call = el("a", "bz-btn", SogIcon("call", 18) + "<span>تماس</span>"); call.href = "tel:" + toEn(b.phone);
+    var wa = el("a", "bz-btn is-wa", SogIcon("whatsapp", 18) + "<span>واتساپ</span>");
+    wa.href = SogUtil.waLink(b.whatsapp || b.phone, ""); wa.target = "_blank"; wa.rel = "noopener";
+    var order = el("button", "bz-btn is-order", SogIcon("cart", 18) + "<span>سفارش سریع</span>"); order.type = "button";
+    order.addEventListener("click", function () { openOrder(b); });
+    acts.appendChild(call); acts.appendChild(wa); acts.appendChild(order);
+    card.appendChild(acts);
+    return card;
+  }
+
+  /* ---------- استوری کسب‌وکارها (مثل اینستاگرام) ---------- */
+  var SEEN_KEY = "sog:storySeen", DAY = 86400000;
+  function seenMap() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
+  function markSeen(sid) { var m = seenMap(); m[sid] = Date.now(); try { localStorage.setItem(SEEN_KEY, JSON.stringify(m)); } catch (e) {} }
+  /* استوری‌های فعال (۲۴ ساعت اخیر): نمونه‌ها + استوری‌هایی که کسب‌وکارهای همین دستگاه گذاشته‌اند */
+  function storyGroups() {
+    var now = Date.now(), groups = {};
+    (DATA.storyData || []).forEach(function (g) {
+      (g.items || []).forEach(function (it, i) {
+        var at = it.at || (now - (it.hours || 0) * 3600000);
+        (groups[g.biz] = groups[g.biz] || []).push({ id: "s" + g.biz + "-" + i, img: it.img, text: it.text, at: at });
+      });
+    });
+    var mine = {};
+    try { mine = JSON.parse(localStorage.getItem("sog:bizStories")) || {}; } catch (e) {}
+    Object.keys(mine).forEach(function (bid) {
+      (mine[bid] || []).forEach(function (it) { (groups[bid] = groups[bid] || []).push({ id: it.id, img: it.img, text: it.text, at: it.at, mine: true }); });
+    });
+    var seen = seenMap();
+    return Object.keys(groups).map(function (bid) {
+      var biz = DATA.businesses.filter(function (b) { return String(b.id) === String(bid); })[0];
+      var items = groups[bid].filter(function (it) { return now - it.at < DAY; }).sort(function (a, b) { return a.at - b.at; });
+      if (!biz || !items.length) return null;
+      if (state.city !== "all" && biz.city_slug !== state.city) return null;
+      var unseen = items.some(function (it) { return !seen[it.id]; });
+      return { biz: biz, items: items, unseen: unseen, last: items[items.length - 1].at };
+    }).filter(Boolean).sort(function (a, b) { return (b.unseen - a.unseen) || (b.last - a.last); });
+  }
+  function hasStory(bid) { return storyGroups().some(function (g) { return String(g.biz.id) === String(bid); }); }
+  function ago(at) {
+    var m = Math.max(1, Math.round((Date.now() - at) / 60000));
+    return m < 60 ? faNum(m) + " دقیقه پیش" : faNum(Math.round(m / 60)) + " ساعت پیش";
+  }
+
+  function renderStories() {
+    var bar = document.getElementById("storyBar");
+    if (!bar) return;
+    var groups = storyGroups();
+    bar.hidden = false;
+    bar.innerHTML = "";
+    var track = el("div", "st-track");
+    /* اول نوار: «استوری شما» برای صاحبان کسب‌وکار */
+    var add = el("button", "st-item st-add");
+    add.type = "button";
+    add.innerHTML = '<span class="st-ring"><span class="st-logo"></span><span class="st-plus">' + SogIcon("plus", 16) + "</span></span>" +
+      '<span class="st-name">استوری شما</span>';
+    var myBiz = DATA.businesses.filter(function (b) { return SogBizStore.get(b.id); });
+    if (myBiz[0] && myBiz[0].logo) add.querySelector(".st-logo").style.backgroundImage = 'url("' + myBiz[0].logo + '")';
+    add.addEventListener("click", function () { composeStory(myBiz); });
+    track.appendChild(add);
+    groups.forEach(function (g, i) {
+      var b = el("button", "st-item" + (g.unseen ? " is-new" : ""));
+      b.type = "button";
+      b.innerHTML = '<span class="st-ring"><span class="st-logo" style="background-image:url(\'' + esc(g.biz.logo) + '\')"></span></span>' +
+        '<span class="st-name">' + esc(g.biz.name) + "</span>";
+      b.addEventListener("click", function () { openStories(groups, i); });
+      track.appendChild(b);
+    });
+    bar.appendChild(track);
+  }
+  function openStoriesFor(bid) {
+    var groups = storyGroups();
+    for (var i = 0; i < groups.length; i++) if (String(groups[i].biz.id) === String(bid)) return openStories(groups, i);
+  }
+
+  /* نمایشگر تمام‌صفحه: نوار پیشرفت، ۵ ثانیه برای هر استوری، لمس چپ = بعدی، لمس راست = قبلی،
+     نگه داشتن = توقف، کشیدن به پایین = بستن */
+  function openStories(groups, gi) {
+    var DUR = 5000, ii = 0, t0 = 0, elapsed = 0, paused = false, raf = 0;
+    var g = groups[gi];
+    var first = g.items.findIndex ? g.items.findIndex(function (it) { return !seenMap()[it.id]; }) : -1;
+    ii = first > 0 ? first : 0;
+    var ov = el("div", "st-viewer");
+    ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = '<div class="st-stage"><div class="st-img"></div><div class="st-shade"></div>' +
+      '<div class="st-bars"></div>' +
+      '<div class="st-top"><span class="st-av"></span><span class="st-who"><b></b><small></small></span>' +
+      '<button type="button" class="st-del" hidden>حذف</button>' +
+      '<button type="button" class="st-x" aria-label="بستن">' + SogIcon("close", 24) + "</button></div>" +
+      '<p class="st-text"></p>' +
+      '<div class="st-cta"><a class="st-go">مشاهده‌ی کسب‌وکار</a><a class="st-call" aria-label="تماس">' + SogIcon("call", 20) + "</a></div>" +
+      '<button type="button" class="st-zone is-prev" aria-label="قبلی"></button><button type="button" class="st-zone is-next" aria-label="بعدی"></button></div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { ov.classList.add("is-in"); });
+    var q = function (s) { return ov.querySelector(s); };
+
+    function paint() {
+      g = groups[gi];
+      var it = g.items[ii];
+      q(".st-img").style.backgroundImage = 'url("' + it.img + '")';
+      q(".st-av").style.backgroundImage = 'url("' + g.biz.logo + '")';
+      q(".st-who b").textContent = g.biz.name;
+      q(".st-who small").textContent = ago(it.at);
+      q(".st-text").textContent = it.text || "";
+      q(".st-text").hidden = !it.text;
+      q(".st-del").hidden = !it.mine;
+      q(".st-go").href = "business-detail.html?id=" + g.biz.id;
+      q(".st-call").href = "tel:" + toEn(g.biz.phone || "");
+      var bars = q(".st-bars"); bars.innerHTML = "";
+      g.items.forEach(function (x, k) {
+        var bb = el("span", "st-bar", "<i></i>");
+        if (k < ii) bb.firstChild.style.width = "100%";
+        bars.appendChild(bb);
+      });
+      markSeen(it.id);
+      t0 = performance.now(); elapsed = 0;
+    }
+    function tick(now) {
+      if (!paused) {
+        var p = Math.min(1, (elapsed + now - t0) / DUR);
+        var cur = q(".st-bars").children[ii];
+        if (cur) cur.firstChild.style.width = (p * 100) + "%";
+        if (p >= 1) { next(); }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    function next() {
+      if (ii < groups[gi].items.length - 1) ii++;
+      else if (gi < groups.length - 1) { gi++; ii = 0; }
+      else return close();
+      paint();
+    }
+    function prev() {
+      if (ii > 0) ii--;
+      else if (gi > 0) { gi--; ii = groups[gi].items.length - 1; }
+      paint();
+    }
+    function pause(on) {
+      if (on && !paused) { elapsed += performance.now() - t0; paused = true; ov.classList.add("is-paused"); }
+      else if (!on && paused) { t0 = performance.now(); paused = false; ov.classList.remove("is-paused"); }
+    }
+    function close() {
+      cancelAnimationFrame(raf);
+      ov.classList.remove("is-in");
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+      setTimeout(function () { ov.remove(); }, 220);
+      renderStories(); renderAccordion();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") next();
+      else if (e.key === "ArrowRight") prev();
+    }
+    document.addEventListener("keydown", onKey);
+    q(".st-x").addEventListener("click", close);
+    q(".st-del").addEventListener("click", function () {
+      var it = groups[gi].items[ii];
+      if (!confirm("این استوری حذف شود؟")) return;
+      removeMyStory(groups[gi].biz.id, it.id);
+      groups[gi].items.splice(ii, 1);
+      if (!groups[gi].items.length) { groups.splice(gi, 1); ii = 0; if (gi >= groups.length) return close(); }
+      else if (ii >= groups[gi].items.length) ii = groups[gi].items.length - 1;
+      paint();
+    });
+    /* لمس کوتاه = جابه‌جایی؛ نگه‌داشتن = توقف؛ کشیدن به پایین = بستن */
+    var downAt = 0, downY = 0, held = false, holdT;
+    ["is-prev", "is-next"].forEach(function (cls) {
+      var z = q(".st-zone." + cls);
+      z.addEventListener("pointerdown", function (e) {
+        downAt = Date.now(); downY = e.clientY; held = false;
+        holdT = setTimeout(function () { held = true; pause(true); }, 220);
+      });
+      z.addEventListener("pointerup", function (e) {
+        clearTimeout(holdT);
+        if (e.clientY - downY > 80) return close();
+        if (held) { pause(false); return; }
+        if (cls === "is-next") next(); else prev();
+      });
+      z.addEventListener("pointercancel", function () { clearTimeout(holdT); pause(false); });
+    });
+    paint();
+    raf = requestAnimationFrame(tick);
+  }
+
+  /* ---------- گذاشتن استوری (فعلاً روی همین دستگاه؛ با اتصال پایگاه داده برای همه) ---------- */
+  var MY_KEY = "sog:bizStories";
+  function myStories() { try { return JSON.parse(localStorage.getItem(MY_KEY)) || {}; } catch (e) { return {}; } }
+  function saveMyStories(m) {
+    var now = Date.now();
+    Object.keys(m).forEach(function (k) {
+      m[k] = (m[k] || []).filter(function (it) { return now - it.at < DAY; });
+      if (!m[k].length) delete m[k];
+    });
+    try { localStorage.setItem(MY_KEY, JSON.stringify(m)); return true; } catch (e) { return false; }
+  }
+  function removeMyStory(bid, sid) {
+    var m = myStories();
+    m[bid] = (m[bid] || []).filter(function (it) { return it.id !== sid; });
+    saveMyStories(m);
+  }
+  function composeStory(myBiz) {
+    if (!myBiz.length) {
+      if (confirm("برای گذاشتن استوری، اول کسب‌وکارتان را ثبت کنید. به صفحه‌ی ثبت کسب‌وکار بروید؟")) location.href = "biz-register.html";
+      return;
+    }
+    var file = el("input"); file.type = "file"; file.accept = "image/*";
+    file.addEventListener("change", function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      SogBizStore.storyImage(f).then(function (data) { composeSheet(myBiz, data); }).catch(function () { alert("این تصویر خوانده نشد."); });
+    });
+    file.click();
+  }
+  function composeSheet(myBiz, data) {
+    var ov = el("div", "st-compose");
+    ov.innerHTML = '<div class="stc-card"><div class="stc-prev" style="background-image:url(\'' + data + '\')"></div>' +
+      '<div class="stc-form"><b class="stc-title">استوری تازه</b>' +
+      (myBiz.length > 1 ? '<select class="stc-biz">' + myBiz.map(function (b) { return '<option value="' + esc(b.id) + '">' + esc(b.name) + "</option>"; }).join("") + "</select>" : '<span class="stc-who">' + esc(myBiz[0].name) + "</span>") +
+      '<textarea class="stc-text" rows="3" maxlength="120" placeholder="یک جمله‌ی کوتاه روی استوری (اختیاری)"></textarea>' +
+      '<p class="stc-note">استوری ۲۴ ساعت دیده می‌شود.</p>' +
+      '<div class="stc-acts"><button type="button" class="stc-cancel">انصراف</button><button type="button" class="stc-ok">انتشار استوری</button></div></div></div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { ov.classList.add("is-in"); });
+    function done() { ov.classList.remove("is-in"); document.body.style.overflow = ""; setTimeout(function () { ov.remove(); }, 220); }
+    ov.querySelector(".stc-cancel").addEventListener("click", done);
+    ov.addEventListener("click", function (e) { if (e.target === ov) done(); });
+    ov.querySelector(".stc-ok").addEventListener("click", function () {
+      var sel = ov.querySelector(".stc-biz"), bid = sel ? sel.value : myBiz[0].id;
+      var m = myStories();
+      (m[bid] = m[bid] || []).push({ id: "m" + Date.now(), img: data, text: ov.querySelector(".stc-text").value.trim(), at: Date.now() });
+      if (!saveMyStories(m)) { alert("حافظه‌ی مرورگر پر است؛ یک استوری قبلی را حذف کنید."); return; }
+      done(); renderStories(); renderAccordion();
+      openStoriesFor(bid);
     });
   }
 
@@ -525,6 +809,7 @@
     if (empty) empty.hidden = true;
     if (acc) acc.hidden = false;
 
+    renderStories();
     renderAccordion();
   }
 
@@ -644,6 +929,11 @@
   /* ---------- راه‌اندازی ---------- */
   load().then(function () {
     renderCities(); renderCategories(); bindCityPicker(); applyView(); bindSearch();
+    /* از «کسب‌وکارهای من»: عکس انتخاب‌شده آنجا، این‌جا منتشر می‌شود */
+    var sq = new URLSearchParams(location.search).get("story"), draft = null;
+    try { draft = sessionStorage.getItem("sog:storyDraft"); sessionStorage.removeItem("sog:storyDraft"); } catch (e) {}
+    var mineB = DATA.businesses.filter(function (b) { return String(b.id) === sq && SogBizStore.get(b.id); });
+    if (sq && draft && mineB.length) { history.replaceState(null, "", "business.html"); composeSheet(mineB, draft); }
   }).catch(function (e) {
     document.getElementById("bizList").innerHTML = '<p style="color:#c66;text-align:center;padding:30px">خطا در بارگذاری کسب‌وکارها.</p>';
     console.error(e);

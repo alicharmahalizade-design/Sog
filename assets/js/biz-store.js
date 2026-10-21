@@ -60,7 +60,27 @@
     ]).then(function () { return c; });
   }
 
+  /* عکس عمودی ۹:۱۶ با عرض حداکثر ۷۲۰ */
+  function storyImage(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var W = Math.min(720, img.naturalWidth), H = Math.round(W * 16 / 9);
+        var c = document.createElement("canvas"); c.width = W; c.height = H;
+        var x = c.getContext("2d");
+        x.fillStyle = "#111"; x.fillRect(0, 0, W, H);
+        var s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        var w = img.naturalWidth * s, h = img.naturalHeight * s;
+        x.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(); };
+      img.src = url;
+    });
+  }
   g.SogBizStore = {
+    storyImage: storyImage,
     putMedia: putMedia, mediaURL: mediaURL, delMedia: delMedia, resolve: resolve,
     resolveAll: function (list) { return Promise.all((list || []).map(resolve)); },
     all: all,
