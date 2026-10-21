@@ -238,6 +238,7 @@
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
     root.appendChild(reportError(d));
+    root.appendChild(charityCard(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
@@ -343,6 +344,95 @@
       bar.classList.toggle("is-in", show);
       bar.setAttribute("aria-hidden", show ? "false" : "true");
     }).observe(target);
+  }
+
+  /* ---------- خیرات به نیت درگذشته ---------- */
+  var CHARITY = null;
+  function loadCharities() {
+    if (CHARITY) return Promise.resolve(CHARITY);
+    return fetch("data/charities.json").then(function (r) { return r.json(); }).then(function (j) { CHARITY = j; return j; });
+  }
+  function myDonations() { try { return JSON.parse(localStorage.getItem("sog:donations")) || []; } catch (e) { return []; } }
+  function toman(n) { return faNum(String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "٬")) + " تومان"; }
+
+  function charityCard(d) {
+    var card = el("button", "charity-card"); card.type = "button";
+    var mine = myDonations().filter(function (x) { return String(x.listing) === String(id); });
+    card.innerHTML =
+      '<span class="cc-ico">' + SogIcon("condole", 24) + "</span>" +
+      '<span class="cc-text"><b>خیرات به نیت ' + esc(d.deceased_name) + "</b>" +
+      "<small>" + (mine.length ? "شما " + faNum(mine.length) + " بار خیرات کرده‌اید · باز هم" : "کودکان سرطانی، کمیته امداد، هلال احمر، زندانیان، بهزیستی") + "</small></span>" +
+      '<span class="cc-go">خیرات</span>';
+    card.addEventListener("click", function () { loadCharities().then(function () { openCharitySheet(d); }); });
+    return card;
+  }
+
+  function openCharitySheet(d) {
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "report-sheet charity-sheet");
+    sheet.setAttribute("role", "dialog"); sheet.setAttribute("aria-modal", "true");
+    var pick = { charity: null, amount: CHARITY.amounts[1] };
+    sheet.innerHTML =
+      '<div class="sheet-handle"></div>' +
+      '<h3 class="report-title">خیرات به نیت ' + esc(d.deceased_name) + "</h3>" +
+      '<p class="ch-label">به نیت کجا؟</p><div class="ch-orgs"></div>' +
+      '<p class="ch-label">مبلغ</p><div class="ch-amounts"></div>' +
+      '<label class="ch-custom"><input type="text" inputmode="numeric" placeholder="مبلغ دلخواه"><span>تومان</span></label>' +
+      '<p class="ch-note">پرداخت در سایت رسمی همان مؤسسه انجام می‌شود.</p>' +
+      '<div class="report-actions"><button type="button" class="btn-primary ch-pay" disabled>انتخاب مؤسسه</button>' +
+      '<button type="button" class="btn-ghost ch-cancel">بی‌خیال</button></div>';
+    var orgs = sheet.querySelector(".ch-orgs"), amts = sheet.querySelector(".ch-amounts");
+    var custom = sheet.querySelector(".ch-custom input"), pay = sheet.querySelector(".ch-pay");
+    function paintPay() {
+      pay.disabled = !pick.charity || !(pick.amount >= 1000);
+      pay.textContent = !pick.charity ? "انتخاب مؤسسه" : pick.amount >= 1000 ? "پرداخت " + toman(pick.amount) : "مبلغ را وارد کنید";
+    }
+    CHARITY.charities.forEach(function (c) {
+      var b = el("button", "ch-org", '<span class="ch-dot" style="background:' + esc(c.color) + '"></span><span><b>' + esc(c.name) + "</b><small>" + esc(c.org) + "</small></span>");
+      b.type = "button";
+      b.addEventListener("click", function () {
+        pick.charity = c;
+        Array.prototype.forEach.call(orgs.children, function (n) { n.classList.toggle("is-on", n === b); });
+        paintPay();
+      });
+      orgs.appendChild(b);
+    });
+    CHARITY.amounts.forEach(function (a) {
+      var b = el("button", "ch-amt" + (a === pick.amount ? " is-on" : ""), toman(a)); b.type = "button";
+      b.addEventListener("click", function () {
+        pick.amount = a; custom.value = "";
+        Array.prototype.forEach.call(amts.children, function (n) { n.classList.toggle("is-on", n === b); });
+        paintPay();
+      });
+      amts.appendChild(b);
+    });
+    custom.addEventListener("input", function () {
+      var v = parseInt(toEnNum(custom.value).replace(/\D/g, ""), 10) || 0;
+      custom.value = v ? faNum(String(v).replace(/\B(?=(\d{3})+(?!\d))/g, "٬")) : "";
+      pick.amount = v;
+      Array.prototype.forEach.call(amts.children, function (n) { n.classList.remove("is-on"); });
+      paintPay();
+    });
+    function done() {
+      sheet.classList.remove("is-in"); back.classList.remove("is-in");
+      document.body.style.overflow = "";
+      setTimeout(function () { sheet.remove(); back.remove(); }, 220);
+    }
+    pay.addEventListener("click", function () {
+      var rec = { listing: id, name: d.deceased_name, charity: pick.charity.id, charityName: pick.charity.name, amount: pick.amount, at: Date.now() };
+      var all = myDonations(); all.push(rec);
+      try { localStorage.setItem("sog:donations", JSON.stringify(all)); } catch (e) {}
+      window.open(pick.charity.url, "_blank", "noopener");
+      done();
+      toast("در سایت " + pick.charity.org + " مبلغ " + toman(pick.amount) + " را پرداخت کنید. خدا قبول کند.");
+      render(d);
+    });
+    sheet.querySelector(".ch-cancel").addEventListener("click", done);
+    back.addEventListener("click", done);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    paintPay();
+    requestAnimationFrame(function () { back.classList.add("is-in"); sheet.classList.add("is-in"); });
   }
 
   /* ---------- جعبه اطلاعات ---------- */
