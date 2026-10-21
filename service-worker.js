@@ -2,7 +2,7 @@
    سیاست: هیچ چیزی از کش سرو نمی‌شود مگر اینکه شبکه در دسترس نباشد.
    همه‌ی درخواست‌ها با cache:"no-store" می‌روند تا کش خود مرورگر هم دور زده شود؛
    کپی‌ها فقط برای حالت آفلاین نگه داشته می‌شوند. */
-var CACHE = "sog-live-v141";
+var CACHE = "sog-live-v142";
 
 /* فقط چیزهای سنگین و بدون تغییر از کش خوانده می‌شوند */
 function isStatic(url, dest) {
@@ -47,6 +47,8 @@ self.addEventListener("fetch", function (e) {
   var req = e.request;
   var url = req.url;
   if (req.method !== "GET") return;
+  /* درخواست‌های پایگاه داده (Supabase) نه کش می‌شوند نه دست‌کاری؛ مستقیم به شبکه */
+  if (url.indexOf("/rest/v1/") !== -1 || url.indexOf("/auth/v1/") !== -1) return;
 
   /* ویدیو دست‌نخورده به مرورگر سپرده می‌شود (درخواست‌های Range) */
   if (req.destination === "video" || url.indexOf(".mp4") !== -1) return;

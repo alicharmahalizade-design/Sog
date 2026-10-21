@@ -1000,6 +1000,7 @@
   }
 
   var lastNotified = 0;
+  var savedId = "";
   function submit() {
     if (data.mode === "quick") {
       if (!data.photos[0]) { toast("تصویر درگذشته را انتخاب کنید."); return; }
@@ -1016,8 +1017,10 @@
       toast("کد ملی ثبت‌کننده معتبر نیست؛ لطفاً آن را بررسی کنید.");
       return;
     }
-    /* بدون بک‌اند: داده به‌صورت محلی نگه داشته می‌شود تا در نسخه‌ی وردپرس ارسال شود */
-    try {
+    /* نسخه‌ی محلی (برای «آگهی‌های من») فقط یک‌بار ساخته می‌شود؛ اگر ارسال به سرور
+       ناموفق بود و کاربر دوباره «ثبت» زد، تکرار نمی‌شود */
+    var newId = savedId;
+    if (!savedId) try {
       localStorage.setItem("sog:draftListing", JSON.stringify(data));
       /* تا وقتی حساب کاربری واقعی وصل نشده، ثبت‌کننده روی همین دستگاه شناخته می‌شود */
       /* کد ملیِ تأییدشده‌ی ثبت‌کننده روی حساب کاربر ثبت می‌شود تا نشان «تأیید هویت شده» بگیرد */
@@ -1032,7 +1035,7 @@
       else localStorage.setItem("sog:user", JSON.stringify(user));
 
       var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
-      var newId = "draft-" + Date.now();
+      newId = savedId = "draft-" + Date.now();
       mine.push(newId);
       localStorage.setItem("sog:myListings", JSON.stringify(mine));
 
@@ -1051,6 +1054,29 @@
         lastNotified = notifyCompleted(data.name);
       }
     } catch (e) {}
+    /* با Supabase: آگهی برای بررسی به پنل مدیریت فرستاده می‌شود و پس از تأیید برای همه منتشر می‌شود */
+    if (window.SogDB && SogDB.enabled) {
+      var sendBtn = document.querySelector(".btn-next");
+      if (sendBtn) sendBtn.disabled = true;
+      toast("در حال ارسال آگهی…");
+      var ad = buildAd(newId || ("draft-" + Date.now()));
+      SogDB.uploadAll({ form: data, ad: ad }, "listings").then(function (payload) {
+        payload.ad.pending = false; payload.ad.is_mine = false;
+        return SogDB.insert("submissions", { kind: "listing", payload: payload });
+      }).then(function () {
+        if (sendBtn) sendBtn.disabled = false;
+        showRegSuccess();
+      }).catch(function (err) {
+        console.error(err);
+        if (sendBtn) sendBtn.disabled = false;
+        toast("ارسال نشد؛ اتصال اینترنت را بررسی کنید و دوباره «ثبت» را بزنید.");
+      });
+      return;
+    }
+    showRegSuccess();
+  }
+
+  function showRegSuccess() {
     var sp = document.querySelector("#regSuccess p");
     if (data.mode === "quick" && sp) {
       sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
@@ -1058,7 +1084,7 @@
       sp.textContent = "آگهی تکمیل شد و به " + faNum(lastNotified) +
         " نفر که منتظر خبر مراسم بودند پیامک اطلاع‌رسانی ارسال می‌شود.";
     }
-    document.getElementById("regSuccess").classList.add("is-in");
+    document.getElementById("regSuccess").classList.add("show");
   }
 
   var backBtn = document.getElementById("backBtn");

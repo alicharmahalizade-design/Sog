@@ -1,13 +1,15 @@
 /* پنل مدیریت سوگ.
-   داده‌ی پایه از data/*.json خوانده می‌شود و تصمیم‌های مدیر در «sog:admin» ذخیره می‌شود
-   (assets/js/admin-overlay.js همان تصمیم‌ها را روی صفحه‌های سایت اعمال می‌کند).
-   گزارش‌ها، پیام‌های پشتیبانی و آگهی‌های در انتظار از حافظه‌ی همین مرورگر می‌آیند.
-   در نسخه‌ی وردپرس، همه‌ی این‌ها به REST API و پیشخوان وردپرس منتقل می‌شود. */
+   • با Supabase (sog-config.js پر باشد): ورود با ایمیل و رمز مدیر؛ آگهی/کسب‌وکارهای در انتظار،
+     همدردی‌ها، گزارش‌ها و گفت‌وگوهای پشتیبانی همه‌ی کاربران از پایگاه داده خوانده می‌شوند و
+     تصمیم‌های مدیر (جدول site_state) برای همه‌ی بازدیدکننده‌ها اعمال می‌شود.
+   • بدون Supabase: نسخه‌ی پیش‌نمایش؛ همه‌چیز فقط روی همین مرورگر.
+   داده‌ی پایه‌ی سایت از data/*.json است و assets/js/admin-overlay.js تصمیم‌ها را روی آن اعمال می‌کند. */
 (function () {
   "use strict";
 
   var root = document.getElementById("admin");
   var A = window.SogAdmin;
+  var DB = A.db || null;
   var fetchRaw = A.rawFetch || window.fetch.bind(window);
 
   /* ---------- کمک ---------- */
@@ -62,28 +64,64 @@
   function pill(st) { var s = STATUS[st] || [st, ""]; return '<span class="ad-pill is-' + s[1] + '">' + s[0] + "</span>"; }
 
   /* ---------- وضعیت ---------- */
-  var D = { listings: [], details: {}, businesses: [], categories: [], cities: [], users: [], provinces: {} };
+  var D = { listings: [], details: {}, businesses: [], categories: [], cities: [], users: [], provinces: {},
+            db: { listings: [], businesses: [], subs: [], conds: [], reports: [], msgs: [] } };
   var S = A.read();
   var view = "dash";
   var ui = { q: {}, f: {} };
 
+  /* ذخیره‌ی تصمیم‌ها (با Supabase در جدول site_state، وگرنه در همین مرورگر) */
   function save(msg) {
-    if (!A.write(S)) { toast("ذخیره نشد؛ حافظه‌ی مرورگر پر است."); return; }
-    if (msg) { logAct(msg); toast(msg); }
+    if (msg) {
+      S.log.unshift({ at: Date.now(), msg: msg });
+      S.log = S.log.slice(0, 60);
+    }
+    return A.write(S).then(function () { if (msg) toast(msg); return true; }, function (e) {
+      toast(DB ? "ذخیره نشد: " + (e && e.message || "خطای شبکه") : "ذخیره نشد؛ حافظه‌ی مرورگر پر است.");
+      S = A.read();            /* برگشت به آخرین نسخه‌ی ذخیره‌شده */
+      if (main) refresh();
+      return false;
+    });
   }
-  function logAct(msg) {
-    S.log.unshift({ at: Date.now(), msg: msg });
-    S.log = S.log.slice(0, 60);
-    A.write(S);
+  function logAct(msg) { save(msg); }
+
+  /* خطای عملیات روی پایگاه داده */
+  function dbFail(e) { console.error(e); toast("انجام نشد: " + (e && e.message || "خطای شبکه")); }
+
+  /* داده‌های Supabase */
+  function loadDB() {
+    if (!DB) return Promise.resolve();
+    var q = function (t, query) { return DB.select(t, query).catch(function (e) { console.error(t, e); return []; }); };
+    return Promise.all([
+      q("listings", "select=id,data,status,created_at&order=created_at.desc&limit=2000"),
+      q("businesses", "select=id,data,status,created_at&order=created_at.desc&limit=2000"),
+      q("submissions", "select=*&order=created_at.desc&limit=1000"),
+      q("condolences", "select=id,listing_id,name,message,kind,org_melli,verified,status,created_at&order=created_at.desc&limit=3000"),
+      q("reports", "select=*&order=created_at.desc&limit=1000"),
+      q("support_messages", "select=*&order=id.asc&limit=5000")
+    ]).then(function (r) {
+      D.db = { listings: r[0], businesses: r[1], subs: r[2], conds: r[3], reports: r[4], msgs: r[5] };
+    });
   }
+  function reloadAll() { return Promise.all([loadDB(), DB ? A.reload().then(function (st) { S = st; }) : null]); }
 
   /* ---------- ورود ---------- */
   var SESSION = "sog:adminSession";
   function pass() { return (S.settings && S.settings.adminPass) || "sog1405"; }
-  function loggedIn() { try { return sessionStorage.getItem(SESSION) === "1"; } catch (e) { return false; } }
+  function loggedIn() {
+    if (DB) return DB.auth.signedIn().then(function (ok) { return ok ? DB.rpc("is_admin").then(function (x) { return x === true; }) : false; })
+      .catch(function () { return false; });
+    try { return Promise.resolve(sessionStorage.getItem(SESSION) === "1"); } catch (e) { return Promise.resolve(false); }
+  }
+  function signOut() {
+    if (DB) DB.auth.signOut();
+    try { sessionStorage.removeItem(SESSION); } catch (e) {}
+    loginScreen();
+  }
 
   function loginScreen() {
     root.innerHTML = "";
+    if (DB) return dbLoginScreen();
     var box = el("form", "ad-login");
     box.innerHTML =
       '<img src="assets/img/logo.png" alt="سوگ" class="ad-login-logo">' +
@@ -107,6 +145,37 @@
     setTimeout(function () { box.p.focus(); }, 50);
   }
 
+  /* ورود مدیر با حساب Supabase */
+  function dbLoginScreen() {
+    var box = el("form", "ad-login");
+    box.innerHTML =
+      '<img src="assets/img/logo.png" alt="سوگ" class="ad-login-logo">' +
+      '<h1>پنل مدیریت سوگ</h1>' +
+      '<p class="ad-muted">با ایمیل و رمز حساب مدیر وارد شوید.</p>' +
+      '<input class="ad-input" type="email" name="e" dir="ltr" autocomplete="username" placeholder="ایمیل" required>' +
+      '<input class="ad-input" type="password" name="p" dir="ltr" autocomplete="current-password" placeholder="رمز" required>' +
+      '<p class="ad-login-err" hidden></p>' +
+      '<button class="ad-btn is-primary is-block" type="submit">ورود</button>';
+    var err = box.querySelector(".ad-login-err");
+    box.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var btn = box.querySelector("button"); btn.disabled = true; err.hidden = true;
+      DB.auth.signIn(box.e.value.trim(), box.p.value).then(function () {
+        return DB.rpc("is_admin");
+      }).then(function (ok) {
+        if (ok !== true) { DB.auth.signOut(); throw new Error("این حساب دسترسی مدیر ندارد."); }
+        boot();
+      }).catch(function (er) {
+        btn.disabled = false;
+        var m = er && er.message || "";
+        err.textContent = /invalid login|invalid_grant|credentials/i.test(m) ? "ایمیل یا رمز درست نیست." : (m || "ورود انجام نشد؛ اتصال اینترنت را بررسی کنید.");
+        err.hidden = false;
+      });
+    });
+    root.appendChild(box);
+    setTimeout(function () { box.e.focus(); }, 50);
+  }
+
   /* ---------- بارگذاری ---------- */
   function j(url, fb) { return fetchRaw(url, { cache: "no-store" }).then(function (r) { return r.json(); }).catch(function () { return fb; }); }
 
@@ -114,7 +183,8 @@
     root.innerHTML = '<div class="ad-loading">در حال بارگذاری…</div>';
     Promise.all([
       j("data/listings.json", { listings: [] }), j("data/details.json", {}), j("data/businesses.json", { businesses: [], categories: [] }),
-      j("data/cities.json", { cities: [] }), j("data/users.json", { users: [] }), j("data/provinces.json", { provinces: {} })
+      j("data/cities.json", { cities: [] }), DB ? { users: [] } : j("data/users.json", { users: [] }), j("data/provinces.json", { provinces: {} }),
+      reloadAll()
     ]).then(function (r) {
       D.listings = r[0].listings || [];
       D.details = r[1] || {};
@@ -131,16 +201,21 @@
 
   /* ---------- داده‌های ترکیبی ---------- */
   function lstStatus(id) { var o = S.listings[id]; return (o && o.status) || "published"; }
+  function dbItems(rows) {
+    return rows.map(function (r) { return Object.assign({}, r.data, { id: r.id, _db: true, _dbStatus: r.status }); });
+  }
   function allListings() {
-    return D.listings.concat(S.newListings).map(function (it) {
+    return dbItems(D.db.listings).concat(D.listings, S.newListings).map(function (it) {
       var o = S.listings[it.id];
       var x = o && o.edits ? Object.assign({}, it, o.edits) : Object.assign({}, it);
       x._status = lstStatus(it.id);
-      x._new = S.newListings.some(function (n) { return n.id === it.id; });
+      x._new = it._db || S.newListings.some(function (n) { return n.id === it.id; });
+      if (it._dbStatus === "hidden") x._status = "hidden";
       return x;
     });
   }
   function drafts() {
+    if (DB) return D.db.subs.filter(function (x) { return x.status === "pending"; });
     var d = lsGet("sog:draftListing", null);
     if (!d || !d.name) return [];
     if (S.reviewedDraft && S.reviewedDraft === draftSig(d)) return [];
@@ -160,6 +235,16 @@
                    status: o.status || "published" });
       });
     });
+    if (DB) {
+      var names = {};
+      allListings().forEach(function (l) { names[l.id] = l.deceased_name; });
+      D.db.conds.forEach(function (c) {
+        out.unshift({ key: "db:" + c.id, dbId: c.id, listingId: c.listing_id, listing: names[c.listing_id] || "آگهی " + fa(c.listing_id),
+                      name: c.name, message: c.message, date: faDate(c.created_at), kind: c.kind, melli: c.org_melli,
+                      verified: c.verified, status: c.status, live: true });
+      });
+      return out;
+    }
     var mine = lsGet("sog:myCondolence", {});
     Object.keys(mine).forEach(function (id) {
       var cd = mine[id] || {};
@@ -173,7 +258,7 @@
   }
 
   function allBusinesses() {
-    var mine = window.SogBizStore ? SogBizStore.all().map(function (b) {
+    var mine = DB ? dbItems(D.db.businesses).map(function (b) { b._live = true; return b; }) : window.SogBizStore ? SogBizStore.all().map(function (b) {
       var x = Object.assign({}, b, { _user: true });
       if (typeof x.logo === "string" && x.logo.indexOf("idb:") === 0) x.logo = "";
       return x;
@@ -188,6 +273,10 @@
   }
 
   function reports() {
+    if (DB) return D.db.reports.map(function (r) {
+      return { _key: "db:" + r.id, _id: r.id, _status: r.status, kind: r.kind, id: r.target_id, listing: r.target_name,
+               type: r.type, note: r.note, photo: r.photo_url, at: r.created_at };
+    });
     return lsGet("sog:reports", []).map(function (r, i) {
       var k = String(r.at || i);
       return Object.assign({ _key: k, _status: S.reports[k] || "open" }, r);
@@ -195,6 +284,27 @@
   }
   function chat() { return lsGet("sog:chat", []); }
   function users() {
+    if (DB) {
+      var byKey = {};
+      var add = function (name, phone, extra) {
+        var k = en(phone || "").replace(/\D/g, "") || (extra.melli ? "m" + extra.melli : "") || name;
+        if (!k) return;
+        var u = byKey[k] || (byKey[k] = { id: k, name: name || "بی‌نام", phone: fa(phone || ""), listings: 0, condolences: 0, businesses: 0, chats: 0, verified: false, joined: "" });
+        if (name && u.name === "بی‌نام") u.name = name;
+        Object.keys(extra).forEach(function (x) { u[x] = typeof extra[x] === "number" ? (u[x] || 0) + extra[x] : extra[x]; });
+      };
+      D.db.subs.forEach(function (x) {
+        if (x.kind === "listing") {
+          var f = (x.payload && x.payload.form) || {};
+          add(f.applicant_name || "ثبت‌کننده‌ی آگهی «" + (f.name || "") + "»", f.phone, { listings: 1, verified: !!f.melli, joined: faDate(x.created_at), melli: f.melli || "" });
+        } else {
+          var b = (x.payload && x.payload.biz) || {};
+          add(b.manager || b.name, b.phone, { businesses: 1, joined: faDate(x.created_at) });
+        }
+      });
+      threads().forEach(function (t) { if (t.phone || t.name) add(t.name, t.phone, { chats: 1 }); });
+      return Object.keys(byKey).map(function (k) { return Object.assign({ _status: "active" }, byKey[k]); });
+    }
     var list = D.users.slice();
     var me = lsGet("sog:user", null);
     if (me && (me.phone || me.name)) {
@@ -224,7 +334,20 @@
     if (key === "support") return unreadChat();
     return 0;
   }
+  function threads() {
+    var map = {};
+    D.db.msgs.forEach(function (m) {
+      var t = map[m.thread_id] || (map[m.thread_id] = { id: m.thread_id, msgs: [], name: "", phone: "" });
+      t.msgs.push(m);
+      if (m.user_name) t.name = m.user_name;
+      if (m.user_phone) t.phone = m.user_phone;
+    });
+    return Object.keys(map).map(function (k) {
+      var t = map[k]; t.last = t.msgs[t.msgs.length - 1]; t.waiting = t.last.sender === "user"; return t;
+    }).sort(function (a, b) { return b.last.id - a.last.id; });
+  }
   function unreadChat() {
+    if (DB) return threads().filter(function (t) { return t.waiting; }).length;
     var m = chat(), seen = S.chatSeen || 0, n = 0;
     for (var i = seen; i < m.length; i++) if (m[i].from === "me") n++;
     return n;
@@ -247,7 +370,7 @@
     var foot = el("div", "ad-side-foot");
     var site = el("a", "ad-nav-item", svg(IC.ext) + "<span>مشاهده‌ی سایت</span>"); site.href = "index.html"; site.target = "_blank";
     var out = el("button", "ad-nav-item", svg(IC.logout) + "<span>خروج</span>"); out.type = "button";
-    out.addEventListener("click", function () { try { sessionStorage.removeItem(SESSION); } catch (e) {} loginScreen(); });
+    out.addEventListener("click", signOut);
     foot.appendChild(site); foot.appendChild(out);
     side.appendChild(foot);
 
@@ -257,6 +380,15 @@
     menu.addEventListener("click", openDrawer);
     title = el("h1", "ad-title", "");
     top.appendChild(menu); top.appendChild(title);
+    if (DB) {
+      var rl = el("button", "ad-icon-btn ad-reload", svg("M20 11a8 8 0 10-2.3 5.7M20 4v7h-7", 20));
+      rl.type = "button"; rl.setAttribute("aria-label", "به‌روزرسانی");
+      rl.addEventListener("click", function () {
+        rl.classList.add("is-spin");
+        reloadAll().then(function () { refresh(); rl.classList.remove("is-spin"); toast("به‌روز شد"); });
+      });
+      top.appendChild(rl);
+    }
     main = el("main", "ad-main");
     wrap.appendChild(top); wrap.appendChild(main);
 
@@ -525,6 +657,14 @@
       } else {
         data.id = "n" + Date.now();
         data.created_at = new Date().toISOString().slice(0, 10);
+        if (DB) {
+          var row = Object.assign({}, data); delete row.id;
+          DB.insert("listings", { id: data.id, data: row }).then(function () {
+            logAct("آگهی «" + v.deceased_name + "» منتشر شد");
+            return loadDB();
+          }).then(refresh).catch(dbFail);
+          return;
+        }
         S.newListings.push(data);
         save("آگهی «" + v.deceased_name + "» منتشر شد");
       }
@@ -571,6 +711,63 @@
 
   /* ---- در انتظار تأیید ---- */
   VIEWS.pending = function () {
+    if (DB) return pendingDB();
+    pendingLocal();
+  };
+
+  /* با Supabase: آگهی‌ها و کسب‌وکارهای فرستاده‌شده از همه‌ی کاربران */
+  function pendingDB() {
+    main.appendChild(el("p", "ad-intro", "آگهی‌ها و کسب‌وکارهایی که کاربران از فرم‌های «ثبت سوگ» و «ثبت کسب‌وکار» فرستاده‌اند. پس از تأیید برای همه منتشر می‌شوند."));
+    var list = el("div", "ad-list");
+    main.appendChild(list);
+    var subs = drafts();
+    if (!subs.length) return empty(list, "موردی در انتظار بررسی نیست.");
+    var dateTxt = function (o) { return o && typeof o === "object" ? fa([o.y, o.m, o.d].filter(Boolean).join("/")) : esc(o || "—"); };
+    subs.forEach(function (sub) {
+      var card = el("article", "ad-card ad-pending");
+      var P = sub.payload || {};
+      var isBiz = sub.kind === "business";
+      var f = P.form || {}, ad = P.ad || {}, biz = P.biz || {};
+      var photo = isBiz ? (biz.logo || "assets/img/logo.png") : (ad.photo || (f.photos || []).filter(Boolean)[0] || "assets/img/portrait-1.svg");
+      var rows = isBiz
+        ? [["دسته", biz.category_name], ["شهر", biz.city], ["مدیر", biz.manager], ["تلفن", fa(biz.phone || "")],
+           ["نشانی", biz.address], ["قیمت", biz.price_from], ["تصاویر", fa((biz.gallery || []).length)], ["صدا", fa((biz.audio || []).length)]]
+        : [["تولد", dateTxt(f.birth)], ["وفات", dateTxt(f.death)], ["پدر", f.father], ["مادر", f.mother],
+           ["ثبت‌کننده", f.applicant_name], ["تلفن", fa(f.phone || "")], ["کد ملی", fa(f.melli || "")], ["نسبت", f.relation],
+           ["نوع", f.mode === "quick" ? "اطلاعیه‌ی سریع" : "آگهی کامل"], ["مراسم‌ها", fa(Object.keys(f.picked || {}).length)]];
+      card.innerHTML = '<div class="ad-row"><span class="ad-thumb is-lg' + (isBiz ? " is-logo" : "") + '" style="background-image:url(\'' + esc(photo) + '\')"></span>' +
+        '<div class="ad-row-main"><div class="ad-row-title">' + esc(isBiz ? biz.name : (ad.deceased_name || f.name)) + "</div>" +
+        '<div class="ad-row-sub">' + (isBiz ? "کسب‌وکار" : "آگهی سوگ") + " · " + esc((isBiz ? biz.city : (ad.city || f.city)) || "شهر نامشخص") +
+        " · " + faDate(sub.created_at) + " " + faTime(sub.created_at) + "</div>" + pill("pending") + "</div></div>" +
+        '<dl class="ad-dl">' + rows.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1] || "—") + "</dd>"; }).join("") + "</dl>" +
+        (isBiz && biz.description ? '<p class="ad-msg">' + esc(biz.description) + "</p>" : "") +
+        (!isBiz && (f.quick_note || f.brief) ? '<p class="ad-msg">' + esc(f.quick_note || f.brief) + "</p>" : "");
+      var acts = el("div", "ad-form-actions");
+      var title = isBiz ? biz.name : (ad.deceased_name || f.name);
+      acts.appendChild(actBtn("رد", "is-danger", function () {
+        confirmBox("«" + title + "» رد شود؟ برای کاربران منتشر نمی‌شود.", "رد", function () {
+          DB.update("submissions", "id=eq." + sub.id, { status: "rejected", reviewed_at: new Date().toISOString() })
+            .then(function () { logAct("«" + title + "» رد شد"); return loadDB(); }).then(refresh).catch(dbFail);
+        });
+      }));
+      acts.appendChild(actBtn("تأیید و انتشار", "is-primary", function () {
+        var pubId = String((isBiz ? biz.id : ad.id) || ((isBiz ? "b" : "s") + sub.id));
+        var data = Object.assign({}, isBiz ? biz : ad);
+        delete data.id; delete data.pending; delete data.is_mine; delete data.mine;
+        if (!isBiz && !data.city_slug && data.city) data.city_slug = slugFor(data.city);
+        DB.upsert(isBiz ? "businesses" : "listings", { id: pubId, data: data, status: "published" })
+          .then(function () {
+            return DB.update("submissions", "id=eq." + sub.id, { status: "approved", published_id: pubId, reviewed_at: new Date().toISOString() });
+          })
+          .then(function () { logAct("«" + title + "» تأیید و منتشر شد"); return loadDB(); })
+          .then(refresh).catch(dbFail);
+      }));
+      card.appendChild(acts);
+      list.appendChild(card);
+    });
+  }
+
+  function pendingLocal() {
     var list = el("div", "ad-list");
     main.appendChild(el("p", "ad-intro", "آگهی‌هایی که از فرم «ثبت سوگ» فرستاده شده‌اند، پیش از انتشار اینجا بررسی می‌شوند."));
     main.appendChild(list);
@@ -610,7 +807,7 @@
       card.appendChild(acts);
       list.appendChild(card);
     });
-  };
+  }
 
   /* ---- همدردی‌ها ---- */
   VIEWS.condolences = function () {
@@ -626,11 +823,18 @@
         var row = el("article", "ad-row is-stack");
         row.innerHTML = '<div class="ad-row-title">' + esc(c.name) +
           (c.kind === "org" ? (c.verified ? ' <span class="ad-pill is-ok">اداری · تأییدشده</span>' : ' <span class="ad-pill is-warn">اداری · تأییدنشده</span>') : "") +
-          (c.local ? ' <span class="ad-pill is-info">این دستگاه</span>' : "") + "</div>" +
+          (c.local ? ' <span class="ad-pill is-info">این دستگاه</span>' : "") + (c.live ? ' <span class="ad-pill is-info">کاربر</span>' : "") + "</div>" +
+          (c.kind === "org" && c.melli ? '<div class="ad-row-sub">کد ملی مسئول ثبت: ' + esc(fa(c.melli)) + "</div>" : "") +
           '<div class="ad-row-sub">برای ' + esc(c.listing) + (c.date ? " · " + esc(c.date) : "") + "</div>" +
           '<p class="ad-msg">' + esc(c.message) + "</p>";
         var acts = el("div", "ad-row-acts");
-        var setC = function (patch, msg) { S.condolences[c.key] = Object.assign(S.condolences[c.key] || {}, patch); save(msg); refresh(); };
+        var setC = function (patch, msg) {
+          if (c.live) {
+            DB.update("condolences", "id=eq." + c.dbId, patch).then(function () { logAct(msg); return loadDB(); }).then(refresh).catch(dbFail);
+            return;
+          }
+          S.condolences[c.key] = Object.assign(S.condolences[c.key] || {}, patch); save(msg); refresh();
+        };
         if (c.kind === "org" && c.status !== "deleted") acts.appendChild(actBtn(c.verified ? "لغو تأیید" : "تأیید اداره", c.verified ? "" : "is-ok", function () {
           setC({ verified: !c.verified }, (c.verified ? "تأیید همدردی «" : "همدردی «") + c.name + (c.verified ? "» لغو شد" : "» تأیید شد"));
         }));
@@ -730,7 +934,7 @@
         var isBiz = r.kind === "business";
         var row = el("article", "ad-row is-stack");
         row.innerHTML = '<div class="ad-row-title">' + esc(r.type || "گزارش") + " " + pill(r._status) + "</div>" +
-          '<div class="ad-row-sub">' + (isBiz ? "کسب‌وکار: " : "آگهی: ") + esc(r.listing || r.name || "—") + " · " + faDate(r.at) + " " + faTime(r.at) + "</div>" +
+          '<div class="ad-row-sub">' + (isBiz ? "کسب‌وکار: " : r.kind === "condolence" ? "همدردی در آگهی: " : "آگهی: ") + esc(r.listing || r.name || "—") + " · " + faDate(r.at) + " " + faTime(r.at) + "</div>" +
           (r.note ? '<p class="ad-msg">' + esc(r.note) + "</p>" : "");
         var acts = el("div", "ad-row-acts");
         if (r.id != null) {
@@ -738,12 +942,26 @@
           v.href = (isBiz ? "business-detail.html?id=" : "listing.html?id=") + encodeURIComponent(r.id); v.target = "_blank";
           acts.appendChild(v);
         }
+        if (r.photo) {
+          var ph = el("a", "ad-btn is-sm", "تصویر"); ph.href = r.photo; ph.target = "_blank"; ph.rel = "noopener";
+          acts.appendChild(ph);
+        }
         acts.appendChild(actBtn(r._status === "open" ? "رسیدگی شد" : "بازکردن دوباره", r._status === "open" ? "is-ok" : "", function () {
+          if (DB) {
+            DB.update("reports", "id=eq." + r._id, { status: r._status === "open" ? "done" : "open" })
+              .then(function () { logAct(r._status === "open" ? "گزارش «" + (r.type || "") + "» رسیدگی شد" : "گزارش دوباره باز شد"); return loadDB(); })
+              .then(refresh).catch(dbFail);
+            return;
+          }
           S.reports[r._key] = r._status === "open" ? "done" : "open";
           save(r._status === "open" ? "گزارش «" + (r.type || "") + "» رسیدگی شد" : "گزارش دوباره باز شد"); refresh();
         }));
         acts.appendChild(actBtn("حذف", "is-danger", function () {
           confirmBox("این گزارش برای همیشه حذف شود؟", "حذف", function () {
+            if (DB) {
+              DB.remove("reports", "id=eq." + r._id).then(function () { logAct("یک گزارش حذف شد"); return loadDB(); }).then(refresh).catch(dbFail);
+              return;
+            }
             lsSet("sog:reports", lsGet("sog:reports", []).filter(function (x, i) { return String(x.at || i) !== r._key; }));
             delete S.reports[r._key]; save("یک گزارش حذف شد"); refresh();
           });
@@ -760,6 +978,7 @@
 
   /* ---- پشتیبانی ---- */
   VIEWS.support = function () {
+    if (DB) return supportDB();
     var msgs = chat();
     S.chatSeen = msgs.length; A.write(S);
     main.appendChild(el("p", "ad-intro", "گفت‌وگوی صفحه‌ی «پشتیبانی» سایت. پاسخ شما در همان صفحه برای کاربر نمایش داده می‌شود."));
@@ -815,12 +1034,71 @@
     }
   };
 
+  /* با Supabase: فهرست گفت‌وگوها، سپس گفت‌وگوی انتخاب‌شده */
+  var openThread = null;
+  function supportDB() {
+    var ts = threads();
+    if (openThread && !ts.some(function (t) { return t.id === openThread; })) openThread = null;
+    if (!openThread) {
+      main.appendChild(el("p", "ad-intro", "گفت‌وگوهای صفحه‌ی «پشتیبانی» سایت. پاسخ شما در همان صفحه برای کاربر نمایش داده می‌شود."));
+      var list = el("div", "ad-list");
+      main.appendChild(list);
+      if (!ts.length) return empty(list, "هنوز پیامی نرسیده است.");
+      ts.forEach(function (t) {
+        var row = el("button", "ad-row ad-thread");
+        row.type = "button";
+        row.innerHTML = '<span class="ad-avatar">' + esc((t.name || "؟").charAt(0)) + "</span>" +
+          '<div class="ad-row-main"><div class="ad-row-title">' + esc(t.name || "کاربر بی‌نام") +
+          (t.waiting ? ' <span class="ad-pill is-warn">منتظر پاسخ</span>' : "") + "</div>" +
+          '<div class="ad-row-sub">' + (t.phone ? '<span dir="ltr">' + esc(fa(t.phone)) + "</span> · " : "") +
+          esc((t.last.body || "پیام صوتی").slice(0, 60)) + " · " + faDate(t.last.created_at) + " " + faTime(t.last.created_at) + "</div></div>";
+        row.addEventListener("click", function () { openThread = t.id; refresh(); });
+        list.appendChild(row);
+      });
+      return;
+    }
+    var t = ts.filter(function (x) { return x.id === openThread; })[0];
+    var back = actBtn("بازگشت به گفت‌وگوها", "", function () { openThread = null; refresh(); });
+    back.classList.add("ad-chat-clear");
+    back.style.margin = "0 0 12px";
+    main.appendChild(back);
+    main.appendChild(el("p", "ad-intro", esc(t.name || "کاربر بی‌نام") + (t.phone ? ' · <a dir="ltr" href="tel:' + esc(en(t.phone)) + '">' + esc(fa(t.phone)) + "</a>" : "")));
+    var box = el("section", "ad-chat");
+    var log = el("div", "ad-chat-log");
+    var lastDay = "";
+    t.msgs.forEach(function (x) {
+      var day = faDate(x.created_at);
+      if (day !== lastDay) { log.appendChild(el("div", "ad-chat-day", esc(day))); lastDay = day; }
+      var b = el("div", "ad-bubble " + (x.sender === "user" ? "is-user" : "is-admin"));
+      if (x.audio_url) { var a = el("audio"); a.controls = true; a.src = x.audio_url; a.preload = "none"; b.appendChild(a); }
+      if (x.body) b.appendChild(el("p", null, esc(x.body)));
+      b.appendChild(el("time", null, faTime(x.created_at)));
+      log.appendChild(b);
+    });
+    var form = el("form", "ad-chat-bar");
+    var inp = el("input", "ad-input"); inp.placeholder = "پاسخ پشتیبانی…"; inp.required = true;
+    var send = el("button", "ad-btn is-primary", svg(IC.send, 18)); send.type = "submit"; send.setAttribute("aria-label", "ارسال");
+    form.appendChild(inp); form.appendChild(send);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var txt = inp.value.trim(); if (!txt) return;
+      send.disabled = true;
+      DB.insert("support_messages", { thread_id: t.id, sender: "support", body: txt })
+        .then(function () { logAct("به پیام پشتیبانی پاسخ داده شد"); return loadDB(); })
+        .then(function () { refresh(); var i2 = main.querySelector(".ad-chat-bar input"); if (i2) i2.focus(); })
+        .catch(function (er) { send.disabled = false; dbFail(er); });
+    });
+    box.appendChild(log); box.appendChild(form);
+    main.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+  }
+
   /* ---- کاربران ---- */
   VIEWS.users = function () {
     var U = users();
     ui.render = function (list, q, f) {
       var items = users().filter(function (u) {
-        if (f === "verified" ? !u.verified : f === "blocked" ? u._status !== "blocked" : false) return false;
+        if (f === "verified" && !u.verified) return false;
         return !q || norm([u.name, en(u.phone), u.phone, u.city].join(" ")).indexOf(q) !== -1;
       });
       if (!items.length) return empty(list, "کاربری پیدا نشد.");
@@ -831,23 +1109,20 @@
           (u.verified ? ' <span class="ad-pill is-ok">تأیید هویت</span>' : "") + (u._status === "blocked" ? " " + pill("blocked") : "") +
           (u.local ? ' <span class="ad-pill is-info">این دستگاه</span>' : "") + "</div>" +
           '<div class="ad-row-sub"><span dir="ltr">' + esc(u.phone) + "</span>" + (u.city ? " · " + esc(u.city) : "") +
-          " · " + fa(u.listings || 0) + " آگهی · " + fa(u.condolences || 0) + " همدردی · عضویت " + esc(u.joined || "") + "</div></div>";
+          " · " + fa(u.listings || 0) + " آگهی" + (DB ? " · " + fa(u.businesses || 0) + " کسب‌وکار · " + fa(u.chats || 0) + " گفت‌وگو" : " · " + fa(u.condolences || 0) + " همدردی") +
+          (u.melli ? " · کد ملی " + esc(fa(u.melli)) : "") + (u.joined ? " · " + esc(u.joined) : "") + "</div></div>";
         var acts = el("div", "ad-row-acts");
-        var tel = el("a", "ad-btn is-sm", "تماس"); tel.href = "tel:" + en(u.phone);
-        acts.appendChild(tel);
-        acts.appendChild(actBtn(u._status === "blocked" ? "رفع مسدودی" : "مسدود", u._status === "blocked" ? "is-ok" : "is-danger", function () {
-          var to = u._status === "blocked" ? "active" : "blocked";
-          var run = function () { S.users[u.id] = { status: to }; save("کاربر «" + u.name + (to === "blocked" ? "» مسدود شد" : "» رفع مسدودی شد")); refresh(); };
-          if (to === "blocked") confirmBox("کاربر «" + u.name + "» مسدود شود؟", "مسدود", run); else run();
-        }));
+        if (u.phone) {
+          var tel = el("a", "ad-btn is-sm", "تماس"); tel.href = "tel:" + en(u.phone);
+          acts.appendChild(tel);
+        }
         row.appendChild(acts);
         list.appendChild(row);
       });
     };
     toolbar("users", "جستجوی نام، تلفن یا شهر…", [
       { v: "all", l: "همه", n: U.length },
-      { v: "verified", l: "تأیید هویت‌شده", n: U.filter(function (u) { return u.verified; }).length },
-      { v: "blocked", l: "مسدود", n: U.filter(function (u) { return u._status === "blocked"; }).length }
+      { v: "verified", l: "تأیید هویت‌شده", n: U.filter(function (u) { return u.verified; }).length }
     ])();
   };
 
@@ -942,6 +1217,15 @@
     main.appendChild(card);
 
     var sec = el("section", "ad-card");
+    if (DB) {
+      sec.appendChild(el("h2", "ad-card-title", "حساب مدیر"));
+      sec.appendChild(el("p", "ad-muted", "وارد شده با " + esc(DB.auth.email() || "حساب Supabase") +
+        ". تغییر رمز و افزودن مدیر از Supabase → Authentication انجام می‌شود (و ایمیل مدیر جدید در جدول admins)."));
+      var so = el("div", "ad-form-actions is-wrap");
+      so.appendChild(actBtn("خروج از حساب", "is-danger", signOut));
+      sec.appendChild(so);
+      main.appendChild(sec);
+    } else {
     sec.appendChild(el("h2", "ad-card-title", "رمز مدیریت"));
     var pf = el("form", "ad-form");
     pf.innerHTML = '<label class="ad-field"><span>رمز فعلی</span><input class="ad-input" type="password" name="cur" required autocomplete="current-password"></label>' +
@@ -955,10 +1239,12 @@
     });
     sec.appendChild(pf);
     main.appendChild(sec);
+    }
 
     var data = el("section", "ad-card");
     data.appendChild(el("h2", "ad-card-title", "پشتیبان‌گیری از تصمیم‌های مدیر"));
-    data.appendChild(el("p", "ad-muted", "همه‌ی تغییرات پنل در همین مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا نسخه‌ی وردپرس، خروجی بگیرید."));
+    data.appendChild(el("p", "ad-muted", DB ? "تصمیم‌ها و تنظیمات پنل در Supabase ذخیره می‌شوند. فایل پشتیبان برای نگه‌داری یا انتقال به نسخه‌ی وردپرس است."
+      : "همه‌ی تغییرات پنل در همین مرورگر ذخیره می‌شود. برای انتقال به دستگاه دیگر یا نسخه‌ی وردپرس، خروجی بگیرید."));
     var r = el("div", "ad-form-actions is-wrap");
     r.appendChild(actBtn("دریافت فایل پشتیبان", "", function () {
       var copy = JSON.parse(JSON.stringify(S)); delete copy.settings.adminPass;
@@ -1003,5 +1289,14 @@
     if (e.key === A.KEY || e.key === "sog:chat" || e.key === "sog:reports" || e.key === "sog:draftListing") refresh();
   });
 
-  if (loggedIn()) boot(); else loginScreen();
+  loggedIn().then(function (ok) { if (ok) boot(); else loginScreen(); });
+
+  /* با Supabase: هر ۴۵ ثانیه موارد تازه (آگهی، گزارش، پیام) خوانده می‌شود */
+  if (DB) setInterval(function () {
+    if (!main || document.hidden) return;
+    loadDB().then(function () {
+      paintNav();
+      if (view === "dash") refresh();
+    });
+  }, 45000);
 })();

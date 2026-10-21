@@ -232,3 +232,12 @@ select.ad-input { appearance: none; -webkit-appearance: none; }
   opacity: 0; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); text-align: center;
 }
 .ad-toast.is-in { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---- گفت‌وگوها و به‌روزرسانی (حالت Supabase) ---- */
+.ad-thread { width: 100%; background: none; border: none; border-top: 1px solid #2a2a2a; color: var(--text); text-align: start; }
+.ad-list > .ad-thread:first-child { border-top: none; }
+.ad-thread:active { background: #232323; }
+.ad-reload { margin-inline-start: auto; }
+.ad-reload.is-spin svg { animation: ad-spin .8s linear infinite; }
+@keyframes ad-spin { to { transform: rotate(360deg); } }
+.ad-intro a { color: var(--accent); }

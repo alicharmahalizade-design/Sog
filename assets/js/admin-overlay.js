@@ -1,12 +1,15 @@
-/* تصمیم‌های پنل مدیریت (مخفی/حذف/ویرایش/تأیید) روی داده‌های سایت.
-   تا وقتی بک‌اند وردپرس وصل نشده، تصمیم‌ها در localStorage («sog:admin») نگه داشته می‌شوند
-   و این اسکریپت هنگام خواندن data/*.json آن‌ها را روی داده اعمال می‌کند؛
-   پس صفحه‌های سایت بدون تغییر در کد خودشان، نتیجه‌ی کار مدیر را نشان می‌دهند.
-   در نسخه‌ی وردپرس این فایل حذف می‌شود و همین کارها را REST API انجام می‌دهد. */
+/* تصمیم‌های پنل مدیریت (مخفی/حذف/ویرایش/تأیید) و محتوای منتشرشده روی داده‌های سایت.
+   • با Supabase (sog-config.js پر باشد): تصمیم‌ها از جدول site_state و آگهی/کسب‌وکارهای
+     تأییدشده از جدول‌های listings و businesses خوانده می‌شوند؛ برای همه‌ی بازدیدکننده‌ها یکسان.
+   • بدون Supabase: مثل قبل در localStorage («sog:admin») همین مرورگر.
+   این اسکریپت هنگام خواندن data/*.json همه را روی داده اعمال می‌کند؛ پس صفحه‌های سایت
+   بدون تغییر در کد خودشان، نتیجه‌ی کار مدیر را نشان می‌دهند. */
 (function (global) {
   "use strict";
 
   var KEY = "sog:admin";
+  var CACHE = "sog:adminCache";     /* آخرین نسخه‌ی خوانده‌شده از Supabase، برای نمایش سریع */
+  var DB = !!(global.SogDB && global.SogDB.enabled) ? global.SogDB : null;
 
   var DEFAULT_SETTINGS = {
     needsTitle: "نیازمندی‌های مراسمات",
@@ -20,9 +23,10 @@
     return { listings: {}, newListings: [], condolences: {}, businesses: {},
              cities: { added: [], hidden: [] }, users: {}, reports: {}, settings: {}, log: [] };
   }
+  var remote = null;
+  function parse(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function read() {
-    var s;
-    try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) { s = null; }
+    var s = DB ? (remote ? JSON.parse(JSON.stringify(remote)) : parse(CACHE)) : parse(KEY);
     var b = blank();
     if (!s || typeof s !== "object") return b;
     Object.keys(b).forEach(function (k) { if (s[k] == null) s[k] = b[k]; });
@@ -30,8 +34,41 @@
     if (!s.cities.hidden) s.cities.hidden = [];
     return s;
   }
+  /* ذخیره؛ همیشه Promise برمی‌گرداند (با Supabase فقط مدیرِ واردشده اجازه‌ی نوشتن دارد) */
   function write(s) {
-    try { localStorage.setItem(KEY, JSON.stringify(s)); return true; } catch (e) { return false; }
+    if (DB) {
+      return DB.update("site_state", "id=eq.1", { state: s, updated_at: new Date().toISOString() }).then(function () {
+        remote = JSON.parse(JSON.stringify(s));
+        try { localStorage.setItem(CACHE, JSON.stringify(s)); } catch (e) {}
+        return true;
+      });
+    }
+    try { localStorage.setItem(KEY, JSON.stringify(s)); return Promise.resolve(true); }
+    catch (e) { return Promise.reject(new Error("حافظه‌ی مرورگر پر است")); }
+  }
+
+  /* تصمیم‌های مدیر از Supabase (یک‌بار برای هر صفحه) */
+  var stateReady = !DB ? Promise.resolve() :
+    DB.select("site_state", "select=state&id=eq.1").then(function (rows) {
+      remote = (rows && rows[0] && rows[0].state) || {};
+      try { localStorage.setItem(CACHE, JSON.stringify(remote)); } catch (e) {}
+    }).catch(function () { /* شبکه نبود: نسخه‌ی ذخیره‌شده‌ی قبلی */ });
+  function reload() {
+    if (!DB) return Promise.resolve(read());
+    return DB.select("site_state", "select=state&id=eq.1").then(function (rows) {
+      remote = (rows && rows[0] && rows[0].state) || {};
+      try { localStorage.setItem(CACHE, JSON.stringify(remote)); } catch (e) {}
+      return read();
+    });
+  }
+
+  /* آگهی‌ها و کسب‌وکارهای تأییدشده در Supabase (هم‌شکل فایل‌های JSON) */
+  var dbBizIds = {};
+  function dbRows(table) {
+    if (!DB) return Promise.resolve([]);
+    return DB.select(table, "select=id,data,created_at&status=eq.published&order=created_at.desc&limit=1000")
+      .then(function (rows) { return (rows || []).map(function (r) { return Object.assign({}, r.data, { id: r.id }); }); })
+      .catch(function () { return []; });
   }
 
   function condKey(listingId, cd) { return listingId + "|" + (cd.name || "") + "|" + String(cd.date || ""); }
@@ -107,11 +144,27 @@
       var url = typeof input === "string" ? input : (input && input.url) || "";
       var m = /data\/(listings|details|businesses|cities)\.json(\?|$)/.exec(url);
       if (!m) return rawFetch(input, init);
-      return rawFetch(input, init).then(function (r) {
+      var kind = m[1];
+      var extra = kind === "listings" ? dbRows("listings") : kind === "businesses" ? dbRows("businesses") : Promise.resolve([]);
+      return Promise.all([rawFetch(input, init), extra, stateReady]).then(function (res) {
+        var r = res[0], rows = res[1];
         if (!r.ok) return r;
         return r.json().then(function (json) {
           var out = json;
-          try { out = APPLY[m[1]](json, read()); } catch (e) {}
+          try {
+            if (kind === "listings" && rows.length) {
+              /* نسخه‌ی تأییدشده جای نسخه‌ی «در انتظار» همین دستگاه را می‌گیرد */
+              var store = global.SogStore;
+              rows.forEach(function (it) { if (store && store.getMyAd && store.getMyAd(it.id) && store.removeMyAd) store.removeMyAd(it.id); });
+              json.listings = rows.concat(json.listings || []);
+            }
+            if (kind === "businesses") {
+              dbBizIds = {};
+              rows.forEach(function (b) { dbBizIds[b.id] = 1; });
+              json.businesses = rows.concat(json.businesses || []);
+            }
+            out = APPLY[kind](json, read());
+          } catch (e) {}
           return new Response(JSON.stringify(out), { status: 200, headers: { "Content-Type": "application/json" } });
         });
       });
@@ -123,7 +176,11 @@
   var page = (location.pathname.split("/").pop() || "").toLowerCase();
   if (global.SogBizStore && !global.SOG_ADMIN_RAW && (page === "business.html" || page === "business-detail.html")) {
     var bs = global.SogBizStore, rawAll = bs.all;
-    bs.all = function () { return applyBusinesses({ businesses: rawAll() }, read()).businesses; };
+    /* بعد از تأیید، نسخه‌ی منتشرشده از Supabase می‌آید و نسخه‌ی محلی تکرار نمی‌شود */
+    bs.all = function () {
+      var mine = rawAll().filter(function (b) { return !dbBizIds[b.id]; });
+      return applyBusinesses({ businesses: mine }, read()).businesses;
+    };
     bs.merge = function (list) { return bs.all().concat(list || []); };
     bs.get = function (id) { return bs.all().filter(function (b) { return String(b.id) === String(id); })[0] || null; };
   }
@@ -140,13 +197,18 @@
       "text-align:center;padding:9px 14px;line-height:1.8";
     frame.insertBefore(bar, frame.firstChild);
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showNotice);
-  else showNotice();
+  stateReady.then(function () {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showNotice);
+    else showNotice();
+  });
 
   global.SogAdmin = {
     KEY: KEY,
     read: read,
     write: write,
+    reload: reload,
+    ready: stateReady,
+    db: DB,
     blank: blank,
     condKey: condKey,
     rawFetch: rawFetch,

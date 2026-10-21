@@ -167,7 +167,44 @@
   }
 
   /* ---------- ارسال به پشتیبان ---------- */
+  /* ---------- Supabase ---------- */
+  var DB = window.SogDB && SogDB.enabled ? SogDB : null;
+  /* شناسه‌ی تصادفیِ گفت‌وگوی این دستگاه؛ فقط با آن پیام‌های همین گفت‌وگو خوانده می‌شود */
+  function threadId() {
+    var t = "";
+    try { t = localStorage.getItem("sog:chatThread") || ""; } catch (e) {}
+    if (t.length < 20) {
+      var a = new Uint8Array(18);
+      (window.crypto || window.msCrypto).getRandomValues(a);
+      t = "t" + Array.prototype.map.call(a, function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+      try { localStorage.setItem("sog:chatThread", t); } catch (e) {}
+    }
+    return t;
+  }
+  function lastServerId() {
+    var n = 0;
+    msgs.forEach(function (m) { if (m.sid && m.sid > n) n = m.sid; });
+    return n;
+  }
+
   function send(m) {
+    if (DB) {
+      var user = (window.SogStore && SogStore.getUser()) || {};
+      var up = m.audio ? DB.upload(m.audio, "support").catch(function () { return null; }) : Promise.resolve(null);
+      up.then(function (audioUrl) {
+        return DB.insert("support_messages", {
+          thread_id: threadId(), sender: "user",
+          body: m.text || (m.transcript ? "🎤 " + m.transcript : (m.audio ? "🎤 پیام صوتی" : "")),
+          audio_url: audioUrl, user_name: user.name || null, user_phone: user.phone || null
+        });
+      }).then(function () {
+        m.sent = true; write(msgs); paint();
+        statusEl.textContent = "";
+      }).catch(function () {
+        statusEl.textContent = "پیام ارسال نشد؛ اتصال اینترنت را بررسی کنید";
+      });
+      return;
+    }
     var url = api();
     if (!url) { statusEl.textContent = "پیام شما ثبت شد؛ پشتیبان پس از اتصال سرویس پاسخ می‌دهد"; return; }
     var user = (window.SogStore && SogStore.getUser()) || {};
@@ -185,6 +222,26 @@
 
   /* پاسخ‌های پشتیبان: هر ۱۰ ثانیه از سرویس خوانده می‌شوند */
   function poll() {
+    if (DB) {
+      DB.rpc("get_thread", { p_thread: threadId(), p_after: lastServerId() }).then(function (rows) {
+        var changed = false;
+        (rows || []).forEach(function (x) {
+          if (msgs.some(function (m) { return m.sid === x.id; })) return;
+          if (x.sender !== "support") {
+            /* پیام خودِ کاربر: فقط شناسه‌ی سرور را برای ادامه‌ی خواندن نگه می‌داریم */
+            var own = msgs.filter(function (m) { return m.from === "me" && m.sent && !m.sid; })[0];
+            if (own) { own.sid = x.id; changed = true; }
+            return;
+          }
+          var d = new Date(x.created_at);
+          msgs.push({ id: "s" + x.id, sid: x.id, from: "support", text: x.body || "", audio: x.audio_url || "",
+                      at: toFa(d.getHours()) + ":" + toFa(("0" + d.getMinutes()).slice(-2)), day: todayFa() });
+          changed = true;
+        });
+        if (changed) { write(msgs); paint(); }
+      }).catch(function () {});
+      return;
+    }
     var url = api();
     if (!url) return;
     var since = msgs.length ? msgs[msgs.length - 1].id : "";

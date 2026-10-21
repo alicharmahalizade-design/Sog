@@ -308,6 +308,29 @@
     return ok;
   }
 
+  /* ارسال به Supabase برای بررسی؛ فایل‌های IndexedDB بارگذاری و با آدرس عمومی جایگزین می‌شوند */
+  function sendForReview(biz) {
+    if (!(window.SogDB && SogDB.enabled)) return Promise.resolve();
+    function pub(ref) {
+      if (typeof ref !== "string" || ref.indexOf("idb:") !== 0) return Promise.resolve(ref);
+      return SogBizStore.mediaURL(ref).then(function (u) {
+        if (!u) return "";
+        return fetch(u).then(function (r) { return r.blob(); }).then(function (bl) { return SogDB.upload(bl, "businesses"); });
+      });
+    }
+    var copy = JSON.parse(JSON.stringify(biz));
+    return Promise.all([
+      pub(copy.logo), pub(copy.cover),
+      Promise.all((copy.gallery || []).map(pub)),
+      Promise.all((copy.audio || []).map(function (a) { return pub(a.src).then(function (u) { return { title: a.title, src: u }; }); }))
+    ]).then(function (r) {
+      copy.logo = r[0] || "assets/img/logo.png"; copy.cover = r[1] || "";
+      copy.gallery = r[2].filter(Boolean); copy.audio = r[3].filter(function (a) { return a.src; });
+      copy.mine = false; copy.pending = false;
+      return SogDB.insert("submissions", { kind: "business", payload: { biz: copy } });
+    });
+  }
+
   /* فایل تازه را ذخیره و ارجاعش را برمی‌گرداند */
   function store(it) { return it.blob ? SogBizStore.putMedia(it.blob) : Promise.resolve(it.ref); }
 
@@ -350,9 +373,18 @@
       if (biz.logo === "assets/img/logo.png" && editing && editing.logo && !media.logo) removed.push(editing.logo);
       if (!SogBizStore.upsert(biz)) throw new Error("quota");
       removed.forEach(SogBizStore.delMedia);
-      document.getElementById("brView").href = "business-detail.html?id=" + encodeURIComponent(biz.id);
-      document.getElementById("brSuccess").classList.add("show");
+      /* با Supabase: نسخه‌ای با فایل‌های بارگذاری‌شده برای بررسی مدیر فرستاده می‌شود */
+      return sendForReview(biz).then(function () {
+        document.getElementById("brView").href = "business-detail.html?id=" + encodeURIComponent(biz.id);
+        document.getElementById("brSuccess").classList.add("show");
+      }, function (err) {
+        console.error(err);
+        btn.disabled = false; btn.textContent = editing ? "ذخیره‌ی تغییرات" : "ثبت کسب‌وکار";
+        toast("روی این دستگاه ذخیره شد ولی برای بررسی ارسال نشد؛ اتصال اینترنت را بررسی کنید و دوباره بزنید.");
+        throw null;
+      });
     }).catch(function (err) {
+      if (err === null) return;
       console.error(err);
       btn.disabled = false; btn.textContent = editing ? "ذخیره‌ی تغییرات" : "ثبت کسب‌وکار";
       toast("ذخیره نشد؛ حافظه‌ی مرورگر پر است. تعداد یا حجم فایل‌ها را کم کنید.");

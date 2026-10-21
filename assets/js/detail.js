@@ -61,8 +61,27 @@
 
   /* همدردی‌ها: ۱۲ تای اول، سپس با هر «دیدن همدردی بیشتر» ۴۰ تای دیگر */
   /* اعداد از تنظیمات پنل مدیریت خوانده می‌شوند (پیش‌فرض ۱۲ و ۴۰) */
-  var ADMIN_SET = window.SogAdmin ? SogAdmin.settings() : {};
-  var COND_FIRST = +ADMIN_SET.condFirst || 12, COND_STEP = +ADMIN_SET.condStep || 40;
+  function adminSet() { return window.SogAdmin ? SogAdmin.settings() : {}; }
+  var DB = window.SogDB && SogDB.enabled ? SogDB : null;
+
+  /* همدردی‌های ثبت‌شده در Supabase برای این آگهی، هم‌شکل داده‌ی JSON */
+  function dbCondolences() {
+    if (!DB) return Promise.resolve([]);
+    return DB.select("condolences", "select=id,name,message,kind,verified,created_at&listing_id=eq." +
+      encodeURIComponent(id) + "&status=eq.published&order=created_at.desc&limit=2000")
+      .then(function (rows) {
+        return (rows || []).map(function (r) {
+          return { db_id: r.id, name: r.name, message: r.message, kind: r.kind, verified: r.verified,
+                   date: isoToJalali(r.created_at), logo: r.kind === "org" ? "assets/img/org-1.svg" : "assets/img/portrait-1.svg" };
+        });
+      }).catch(function () { return []; });
+  }
+  function isoToJalali(iso) {
+    try {
+      var p = new Date(iso).toLocaleDateString("fa-IR-u-ca-persian", { year: "numeric", month: "2-digit", day: "2-digit" });
+      return p.replace(/\u200f/g, "");
+    } catch (e) { return ""; }
+  }
 
   /* ---------- بارگذاری ---------- */
   var deceasedCity = null;
@@ -71,7 +90,8 @@
   Promise.all([
     fetch("data/details.json").then(function (r) { return r.json(); }),
     fetch("data/listings.json").then(function (r) { return r.json(); }).catch(function () { return { listings: [] }; }),
-    new Promise(function (r) { setTimeout(r, 450); })
+    new Promise(function (r) { setTimeout(r, 450); }),
+    dbCondolences()
   ]).then(function (res) {
     var details = res[0] || {};
     var listings = (res[1] && res[1].listings) || [];
@@ -82,6 +102,10 @@
     if (lst) { deceasedCity = lst.city; }
     var d = details[id];
     if (!d) d = fallbackFromListing(listings, id);
+    /* همدردی‌های واقعی کاربران (جدیدترین اول)، به‌جز همدردی خودِ همین دستگاه که جدا نشان داده می‌شود */
+    var mineC = SogStore.getMyCondolence(id);
+    var live = (res[3] || []).filter(function (c) { return !(mineC && mineC.db_id && mineC.db_id === c.db_id); });
+    if (live.length) d.condolences = live.concat(d.condolences || []);
     render(d);
   }).catch(function (e) {
     root.innerHTML = '<p style="color:#c66;text-align:center;padding:40px">خطا در بارگذاری جزئیات.</p>';
@@ -654,6 +678,18 @@
         });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
+      if (DB) {
+        var photo = fd.get("photo");
+        var up = photo && photo.size ? DB.upload(photo, "reports").catch(function () { return null; }) : Promise.resolve(null);
+        up.then(function (url) {
+          return DB.insert("reports", {
+            kind: cd ? "condolence" : "listing",
+            target_id: d && d.id != null ? String(d.id) : String(id),
+            target_name: (d && d.deceased_name || "") + (cd ? " — همدردی «" + (cd.name || "") + "»" : ""),
+            type: String(fd.get("type") || ""), note: String(fd.get("note") || "").slice(0, 3000), photo_url: url
+          });
+        }).catch(function (er) { console.error(er); });
+      }
       form.replaceWith(el("div", "report-done",
         '<div class="ok-ico">' + SogIcon("check", 30) + '</div>' +
         '<p>' + (cd ? "گزارش شما ثبت و برای ثبت‌کننده‌ی این همدردی ارسال شد." : "گزارش شما ثبت و برای پشتیبانی سوگ و ثبت‌کننده‌ی آگهی ارسال شد.") + ' با تشکر از همراهی‌تان.</p>'));
@@ -1453,9 +1489,12 @@
     var del = el("button", "mine-btn danger", "حذف"); del.type = "button";
     edit.addEventListener("click", function () { openCondolenceSheet(d, entry); });
     del.addEventListener("click", function () {
-      SogStore.setMyCondolence(id, null);
-      toast("همدردی شما حذف شد.");
-      render(d);
+      var gone = function () { SogStore.setMyCondolence(id, null); toast("همدردی شما حذف شد."); render(d); };
+      if (DB && entry.db_id && entry.token) {
+        del.disabled = true;
+        DB.rpc("delete_condolence", { p_id: entry.db_id, p_token: entry.token }).then(gone)
+          .catch(function () { del.disabled = false; toast("حذف نشد؛ اتصال اینترنت را بررسی کنید."); });
+      } else gone();
     });
     tools.appendChild(edit); tools.appendChild(del);
     msg.appendChild(tools);
@@ -1567,16 +1606,40 @@
         }
       }
       var t = SogUtil.todayJalali();
-      SogStore.setMyCondolence(id, {
-        name: fd.get("name"),
-        message: fd.get("message"),
+      var entry = {
+        name: String(fd.get("name") || "").trim(),
+        message: String(fd.get("message") || "").trim(),
         kind: kind,
-        melli: kind === "org" ? String(fd.get("melli") || "") : "",
+        melli: kind === "org" ? toEnNum(String(fd.get("melli") || "")).replace(/\D/g, "") : "",
         date: faNum(t.y) + "/" + faNum(t.m < 10 ? "0" + t.m : t.m) + "/" + faNum(t.d < 10 ? "0" + t.d : t.d)
+      };
+      var finish = function () {
+        SogStore.setMyCondolence(id, entry);
+        done();
+        toast(editing ? "همدردی شما ویرایش شد." : "همدردی شما ثبت شد.");
+        render(d);
+      };
+      if (!DB) { finish(); return; }
+
+      /* با Supabase: برای همه نمایش داده می‌شود؛ رمز ویرایش فقط روی همین دستگاه می‌ماند */
+      var sendBtn = form.querySelector('button[type="submit"]');
+      sendBtn.disabled = true;
+      var args = { p_name: entry.name, p_message: entry.message, p_kind: kind, p_melli: entry.melli || null };
+      var call = editing && editing.db_id && editing.token
+        ? DB.rpc("edit_condolence", Object.assign({ p_id: editing.db_id, p_token: editing.token }, args)).then(function (ok) {
+            if (!ok) throw new Error("not found");
+            entry.db_id = editing.db_id; entry.token = editing.token;
+          })
+        : DB.rpc("add_condolence", Object.assign({ p_listing: String(id) }, args)).then(function (rows) {
+            var r = rows && rows[0];
+            if (!r) throw new Error("no id");
+            entry.db_id = r.id; entry.token = r.owner_token;
+          });
+      call.then(finish).catch(function (err) {
+        console.error(err);
+        sendBtn.disabled = false;
+        toast("ثبت نشد؛ اتصال اینترنت را بررسی کنید و دوباره بفرستید.");
       });
-      done();
-      toast(editing ? "همدردی شما ویرایش شد." : "همدردی شما ثبت شد.");
-      render(d);
     });
   }
 
@@ -1655,6 +1718,8 @@
     /* فهرست در یک کادر، مثل کادر «فعالیت‌های من» در پروفایل */
     var box = el("div", "cond-box");
     var shown = 0;
+    var st = adminSet();
+    var COND_FIRST = +st.condFirst || 12, COND_STEP = +st.condStep || 40;
     function showMore(n) {
       list.slice(shown, shown + n).forEach(function (cd) { box.appendChild(condolenceItem(cd, d, isOwner)); });
       shown = Math.min(list.length, shown + n);
@@ -2338,8 +2403,9 @@
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
   function needsBanner() {
-    var a = el("a", "needs-banner", "<b>" + esc(ADMIN_SET.needsTitle || "نیازمندی‌های مراسمات") + "</b><small>" +
-      esc(ADMIN_SET.needsSub || "چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط") + "</small>");
+    var st = adminSet();
+    var a = el("a", "needs-banner", "<b>" + esc(st.needsTitle || "نیازمندی‌های مراسمات") + "</b><small>" +
+      esc(st.needsSub || "چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط") + "</small>");
     a.href = "business.html";
     return a;
   }

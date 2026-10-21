@@ -210,6 +210,12 @@
         });
         localStorage.setItem("sog:reports", JSON.stringify(box));
       } catch (err) {}
+      if (window.SogDB && SogDB.enabled) {
+        SogDB.insert("reports", {
+          kind: "business", target_id: String(b.id), target_name: b.name || "",
+          type: String(fd.get("type") || ""), note: String(fd.get("note") || "").slice(0, 3000)
+        }).catch(function (er) { console.error(er); });
+      }
       done();
       toast("گزارش شما ثبت و برای پشتیبانی سوگ و صاحب کسب‌وکار ارسال شد.");
     });
