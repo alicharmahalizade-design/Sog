@@ -839,8 +839,9 @@
   display: flex; align-items: center; gap: 8px;
   /* شیشه‌ی تیره‌ی مات: محتوای زیر نوار محو دیده می‌شود؛ گوشه‌های پایین گرد */
   border-radius: 0 0 24px 24px;
-  background: rgba(24,24,24,.42);
-  backdrop-filter: blur(16px) saturate(1.6); -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  /* فقط blur (ترکیب با saturate در برخی مرورگرها افکت را خاموش می‌کرد)؛ ملایم: ۸ پیکسل */
+  background: rgba(24,24,24,.5);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,.08); border-top: none;
   box-shadow: 0 8px 24px rgba(0,0,0,.55);
   transform: translate(-50%, -100%); opacity: 0; pointer-events: none;
