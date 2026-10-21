@@ -1,0 +1,12 @@
+{
+  "users": [
+    { "id": "u1", "name": "روح‌الله عابدینی", "phone": "۰۹۱۶۷۰۰۲۲۷۳", "city": "اهواز", "verified": true,  "listings": 2, "condolences": 5, "joined": "۱۴۰۵/۰۲/۱۱" },
+    { "id": "u2", "name": "سعید فرشچیان",   "phone": "۰۹۱۳۱۲۳۴۵۶۷", "city": "اصفهان", "verified": true,  "listings": 1, "condolences": 0, "joined": "۱۴۰۵/۰۵/۲۸" },
+    { "id": "u3", "name": "مریم احمدی",      "phone": "۰۹۱۲۴۴۴۵۵۶۶", "city": "تهران",  "verified": false, "listings": 0, "condolences": 3, "joined": "۱۴۰۵/۰۶/۰۲" },
+    { "id": "u4", "name": "علی رضایی",       "phone": "۰۹۱۷۲۲۲۳۳۴۴", "city": "شیراز",  "verified": true,  "listings": 1, "condolences": 1, "joined": "۱۴۰۵/۰۳/۱۹" },
+    { "id": "u5", "name": "زهرا کریمی",      "phone": "۰۹۱۵۸۸۸۹۹۰۰", "city": "مشهد",   "verified": false, "listings": 0, "condolences": 7, "joined": "۱۴۰۵/۰۶/۱۵" },
+    { "id": "u6", "name": "حسین بختیاری",    "phone": "۰۹۱۳۶۶۶۷۷۸۸", "city": "شهرکرد", "verified": true,  "listings": 3, "condolences": 2, "joined": "۱۴۰۴/۱۱/۰۴" },
+    { "id": "u7", "name": "فاطمه موسوی",     "phone": "۰۹۱۶۳۳۳۴۴۵۵", "city": "بهبهان", "verified": false, "listings": 0, "condolences": 1, "joined": "۱۴۰۵/۰۷/۰۱" },
+    { "id": "u8", "name": "شهرداری اصفهان",  "phone": "۰۳۱۳۲۲۲۰۰۰۰", "city": "اصفهان", "verified": true,  "listings": 0, "condolences": 4, "joined": "۱۴۰۵/۰۱/۲۰", "org": true }
+  ]
+}

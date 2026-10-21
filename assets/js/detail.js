@@ -55,7 +55,9 @@
   var LATER = { candle: true, guestbook: true, notes: true };
 
   /* همدردی‌ها: ۱۲ تای اول، سپس با هر «دیدن همدردی بیشتر» ۴۰ تای دیگر */
-  var COND_FIRST = 12, COND_STEP = 40;
+  /* اعداد از تنظیمات پنل مدیریت خوانده می‌شوند (پیش‌فرض ۱۲ و ۴۰) */
+  var ADMIN_SET = window.SogAdmin ? SogAdmin.settings() : {};
+  var COND_FIRST = +ADMIN_SET.condFirst || 12, COND_STEP = +ADMIN_SET.condStep || 40;
 
   /* ---------- بارگذاری ---------- */
   var deceasedCity = null;
@@ -2029,7 +2031,8 @@
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
   function needsBanner() {
-    var a = el("a", "needs-banner", "<b>نیازمندی‌های مراسمات</b><small>چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط</small>");
+    var a = el("a", "needs-banner", "<b>" + esc(ADMIN_SET.needsTitle || "نیازمندی‌های مراسمات") + "</b><small>" +
+      esc(ADMIN_SET.needsSub || "چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط") + "</small>");
     a.href = "business.html";
     return a;
   }
