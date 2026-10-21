@@ -211,6 +211,55 @@
     return f;
   }
 
+  /* ---------- انتخاب موزیک از قطعه‌های آماده (data/music.json) با پیش‌شنود ---------- */
+  var MUSIC = null, preview = null, previewBtn = null;
+  function stopPreview() {
+    if (preview) { preview.pause(); preview = null; }
+    if (previewBtn) { previewBtn.classList.remove("is-playing"); previewBtn.innerHTML = SogIcon("play", 18); previewBtn = null; }
+  }
+  function musicPicker() {
+    var box = el("div", "music-list");
+    var paint = function () {
+      box.innerHTML = "";
+      var tracks = MUSIC || [];
+      /* داده‌ی قدیمی (نام فایل بارگذاری‌شده) معتبر نیست؛ پیش‌فرض قطعه‌ی اول */
+      var known = tracks.some(function (t) { return t.src === data.music; }) || data.music === "none";
+      if (!known) data.music = tracks.length ? tracks[0].src : null;
+      tracks.concat([{ id: "none", name: "بدون موزیک", mood: "صفحه‌ی آگهی بی‌صدا باز می‌شود", src: "none" }]).forEach(function (t) {
+        var row = el("div", "music-row" + (data.music === t.src ? " is-on" : ""));
+        var play = el("button", "music-play", t.src === "none" ? SogIcon("soundOff", 18) : SogIcon("play", 18));
+        play.type = "button";
+        if (t.src === "none") play.disabled = true;
+        play.setAttribute("aria-label", "پخش " + t.name);
+        play.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var same = previewBtn === play;
+          stopPreview();
+          if (same) return;
+          preview = new Audio(t.src); preview.volume = 0.8;
+          preview.play().catch(function () {});
+          preview.addEventListener("ended", stopPreview);
+          previewBtn = play; play.classList.add("is-playing"); play.innerHTML = SogIcon("pause", 18);
+        });
+        var info = el("div", "music-info", "<b>" + esc(t.name) + "</b><small>" + esc(t.mood) + "</small>");
+        var pick = el("span", "music-radio");
+        row.appendChild(play); row.appendChild(info); row.appendChild(pick);
+        row.addEventListener("click", function () {
+          data.music = t.src;
+          Array.prototype.forEach.call(box.children, function (n) { n.classList.toggle("is-on", n === row); });
+        });
+        box.appendChild(row);
+      });
+    };
+    if (MUSIC) paint();
+    else {
+      box.appendChild(el("p", "field-hint", "در حال بارگذاری…"));
+      fetch("data/music.json").then(function (r) { return r.json(); }).then(function (j) { MUSIC = j.tracks || []; paint(); })
+        .catch(function () { box.innerHTML = '<p class="field-hint">فهرست موزیک بارگذاری نشد.</p>'; });
+    }
+    return box;
+  }
+
   /* شهر یا روستا: انتخاب از تقسیمات کشوری (place-picker.js).
      data.city همیشه نام شهر (یا شهرستانِ روستا) است تا فیلتر شهرها در صفحه‌ی اصلی کار کند. */
   function placeInput() {
@@ -666,20 +715,8 @@
       p.appendChild(field("اینستاگرام درگذشته", false,
         textInput("bio_instagram", "نشانی یا شناسه‌ی اینستاگرام (اختیاری)"),
         "اگر صفحه‌ی اینستاگرام داشتند، اینجا بنویسید تا در زندگی‌نامه نمایش داده شود."));
-      var music = el("div");
-      music.appendChild(el("p", "field-hint", "فایل موزیک مورد نظر خود را وارد کنید"));
-      var mbtn = el("label", "pick-btn", "انتخاب فایل موزیک");
-      var minp = document.createElement("input");
-      minp.type = "file"; minp.accept = "audio/*"; minp.hidden = true;
-      var mname = el("p", "music-name", data.music ? esc(data.music) : "");
-      minp.addEventListener("change", function () {
-        var f = minp.files && minp.files[0];
-        data.music = f ? f.name : null;
-        mname.textContent = f ? f.name : "";
-      });
-      mbtn.appendChild(minp);
-      music.appendChild(mbtn); music.appendChild(mname);
-      p.appendChild(field("موزیک", false, music));
+      p.appendChild(field("موزیک صفحه‌ی آگهی", false, musicPicker(),
+        "قطعه‌ها را گوش دهید و یکی را انتخاب کنید؛ با باز شدن صفحه‌ی آگهی آرام پخش می‌شود."));
       return p;
     }});
 
@@ -908,6 +945,7 @@
   }
 
   function show(i) {
+    stopPreview();
     current = Math.max(0, Math.min(steps.length - 1, i));
     panels.innerHTML = "";
     var node = steps[current].build();
@@ -1013,6 +1051,7 @@
       location: data.place && window.SogPlacePicker ? SogPlacePicker.label(data.place) : (data.city || ""),
       tayefe: data.father_tayefe || "",
       il: data.father_il || "",
+      music: data.music || "",
       father: data.father || "",
       mother: data.mother || "",
       is_mine: true,

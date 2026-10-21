@@ -1,0 +1,9 @@
+{
+  "tracks": [
+    { "id": "track-1", "name": "مویه",   "mood": "پیانو و زه‌ها، سوگوارانه",        "src": "assets/audio/track-1.mp3" },
+    { "id": "track-2", "name": "آرامش",  "mood": "پد گرم و پیانوی کم‌حرف",           "src": "assets/audio/track-2.mp3" },
+    { "id": "track-3", "name": "یاد",    "mood": "آرپژهای آرام پیانو",              "src": "assets/audio/track-3.mp3" },
+    { "id": "track-4", "name": "سکوت",   "mood": "صدای ممتد و زنگ‌های آرام، مراقبه‌ای", "src": "assets/audio/track-4.mp3" },
+    { "id": "track-5", "name": "دلتنگی", "mood": "زه‌های آرام با اوج‌گیری ملایم",     "src": "assets/audio/track-5.mp3" }
+  ]
+}

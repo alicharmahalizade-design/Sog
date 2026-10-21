@@ -180,6 +180,8 @@
 
     return {
       id: l.id,
+      audio: l.music && l.music !== "none" ? l.music : null,
+      has_audio: l.music === "none" ? false : undefined,
       deceased_name: l.deceased_name,
       subtitle: city,
       photos: [l.photo],
@@ -552,7 +554,9 @@
      برای هر آگهی یکی از تراک‌ها انتخاب می‌شود؛ انتخاب بر اساس شناسه‌ی آگهی است
      تا هر آگهی همیشه موزیک خودش را داشته باشد. با افزودن فایل به این فهرست،
      تنوع موزیک‌ها بیشتر می‌شود. */
-  var TRACKS = ["assets/audio/track-1.mp3"];
+  /* قطعه‌های آماده (data/music.json)؛ آگهی بدون انتخاب، یکی را بر اساس شناسه‌اش می‌گیرد */
+  var TRACKS = ["assets/audio/track-1.mp3", "assets/audio/track-2.mp3", "assets/audio/track-3.mp3",
+                "assets/audio/track-4.mp3", "assets/audio/track-5.mp3"];
   var audioEl = null;
 
   function trackFor(d) {
