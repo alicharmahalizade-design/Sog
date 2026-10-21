@@ -3,7 +3,29 @@
    در فهرست و صفحه‌ی تکی نمایش داده می‌شوند. در نسخه‌ی وردپرس به CPT «کسب‌وکار» ارسال می‌شوند. */
 (function (g) {
   var KEY = "sog:myBusinesses";
-  function all() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
+  /* اشتراک: ماه اول رایگان، سپس تمدید ماهانه */
+  var PLAN = { trialDays: 30, monthDays: 30, price: 300000, priceLabel: "۳۰۰ هزار تومان" };
+  var DAY_MS = 86400000;
+  /* کسب‌وکارهای قدیمی‌تر که هنوز تاریخ اعتبار ندارند: یک ماه از روز ثبت */
+  function withPlan(b) {
+    if (b && b.mine && !b.paid_until) b.paid_until = (b.created_at || Date.now()) + PLAN.trialDays * DAY_MS;
+    return b;
+  }
+  function all() { try { return JSON.parse(localStorage.getItem(KEY) || "[]").map(withPlan); } catch (e) { return []; } }
+  /* وضعیت اشتراک؛ کسب‌وکارهای نمونه‌ی سایت (بدون paid_until) همیشه فعال‌اند */
+  function plan(b, until) {
+    until = until || (b && b.paid_until);
+    if (!until) return { active: true, none: true };
+    var left = Math.ceil((until - Date.now()) / DAY_MS);
+    var trial = !b.renewed_at && until <= (b.created_at || 0) + (PLAN.trialDays + 1) * DAY_MS;
+    return { active: left > 0, until: until, daysLeft: Math.max(0, left), trial: trial };
+  }
+  function faDate(ms) {
+    var d = new Date(ms), j = g.SogUtil ? g.SogUtil.gregorianToJalali(d.getFullYear(), d.getMonth() + 1, d.getDate()) : null;
+    if (!j) return d.toLocaleDateString("fa-IR");
+    var M = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+    return String(j.d).replace(/\d/g, function (x) { return "۰۱۲۳۴۵۶۷۸۹"[x]; }) + " " + M[j.m - 1];
+  }
   function save(list) {
     try { localStorage.setItem(KEY, JSON.stringify(list)); return true; }
     catch (e) { return false; }   /* معمولاً پر شدن حافظه به‌خاطر تصاویر */
@@ -80,6 +102,7 @@
     });
   }
   g.SogBizStore = {
+    PLAN: PLAN, plan: plan, faDate: faDate, DAY_MS: DAY_MS,
     storyImage: storyImage,
     putMedia: putMedia, mediaURL: mediaURL, delMedia: delMedia, resolve: resolve,
     resolveAll: function (list) { return Promise.all((list || []).map(resolve)); },

@@ -82,6 +82,13 @@
   var CATS = [], CITIES = [];
 
   function build() {
+    if (!editing) {
+      var P = SogBizStore.PLAN;
+      form.appendChild(el("div", "br-plan",
+        '<span class="br-plan-badge">ماه اول رایگان</span>' +
+        '<b>یک ماه نمایش رایگان برای همه‌ی کسب‌وکارها</b>' +
+        '<p>بعد از ماه اول، برای ماندن در فهرست و استوری‌ها، ماهانه <strong>' + P.priceLabel + '</strong> تمدید می‌شود. بدون تمدید، کسب‌وکار فقط از دید دیگران پنهان می‌شود و اطلاعاتش می‌ماند.</p>'));
+    }
     var s1 = section("اطلاعات اصلی");
     s1.appendChild(field("نام کسب‌وکار", input("name", "مثال: تشریفات آرامش"), { req: true }));
     var cat = el("select"); cat.name = "category";
@@ -357,6 +364,8 @@
       var biz = {
         id: editing ? editing.id : "u" + Date.now().toString(36),
         mine: true, pending: true, created_at: editing ? editing.created_at : Date.now(),
+        paid_until: editing && editing.paid_until ? editing.paid_until : Date.now() + SogBizStore.PLAN.trialDays * SogBizStore.DAY_MS,
+        renewed_at: editing ? editing.renewed_at || null : null,
         name: v("name"), manager: v("manager"),
         category_slug: cat.slug, category_name: cat.name,
         city: city.name, city_slug: city.slug,
@@ -376,6 +385,8 @@
       /* با Supabase: نسخه‌ای با فایل‌های بارگذاری‌شده برای بررسی مدیر فرستاده می‌شود */
       return sendForReview(biz).then(function () {
         document.getElementById("brView").href = "business-detail.html?id=" + encodeURIComponent(biz.id);
+        if (!editing) document.getElementById("brPlanNote").textContent =
+          "ماه اول رایگان است (تا " + SogBizStore.faDate(biz.paid_until) + ")؛ برای ادامه‌ی نمایش، ماهانه " + SogBizStore.PLAN.priceLabel + " تمدید می‌شود.";
         document.getElementById("brSuccess").classList.add("show");
       }, function (err) {
         console.error(err);
@@ -399,7 +410,9 @@
     if (box.hidden) return;
     box.innerHTML = "";
     box.appendChild(el("h2", "br-sec-title", "کسب‌وکارهای من"));
+    var adm = adminEdits();
     list.forEach(function (b) {
+      var item = el("div", "br-mine-item");
       var row = el("div", "br-mine-row");
       var lg = el("span", "br-mine-logo");
       SogBizStore.mediaURL(b.logo).then(function (u) { lg.style.backgroundImage = 'url("' + u + '")'; });
@@ -423,9 +436,75 @@
       });
       st.appendChild(sf);
       row.appendChild(lg); row.appendChild(info); row.appendChild(st); row.appendChild(ed); row.appendChild(del);
-      box.appendChild(row);
+      item.appendChild(row);
+      item.appendChild(planStrip(b, Math.max(b.paid_until || 0, adm[b.id] || 0)));
+      box.appendChild(item);
     });
     box.appendChild(el("p", "br-sec-sub br-new", "یا یک کسب‌وکار جدید ثبت کنید:"));
+    syncPlans(list);
+  }
+  /* با Supabase: تمدیدی که مدیر روی نسخه‌ی منتشرشده ثبت کرده به همین دستگاه هم می‌رسد */
+  var synced = false;
+  function syncPlans(list) {
+    if (synced || !(window.SogDB && SogDB.enabled) || !list.length) return;
+    synced = true;
+    var ids = list.map(function (b) { return '"' + String(b.id).replace(/"/g, "") + '"'; }).join(",");
+    SogDB.select("businesses", "select=id,data&id=in.(" + ids + ")").then(function (rows) {
+      var changed = false;
+      (rows || []).forEach(function (r) {
+        var b = SogBizStore.get(r.id), u = r.data && Number(r.data.paid_until);
+        if (b && u && u > (b.paid_until || 0)) {
+          b.paid_until = u; b.renewed_at = r.data.renewed_at || Date.now();
+          SogBizStore.upsert(b); changed = true;
+        }
+      });
+      if (changed) paintMine();
+    }).catch(function () {});
+  }
+
+  /* تمدیدهایی که مدیر ثبت کرده (پنل مدیریت → کسب‌وکارها → تمدید) */
+  function adminEdits() {
+    var out = {};
+    ["sog:admin", "sog:adminCache"].forEach(function (k) {
+      var st = null; try { st = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+      var bz = (st && st.businesses) || {};
+      Object.keys(bz).forEach(function (id) {
+        var u = bz[id] && bz[id].edits && bz[id].edits.paid_until;
+        if (u) out[id] = Math.max(out[id] || 0, u);
+      });
+    });
+    return out;
+  }
+  /* نوار وضعیت اشتراک زیر هر کسب‌وکار */
+  function planStrip(b, until) {
+    var P = SogBizStore.PLAN, info = SogBizStore.plan(b, until);
+    var strip = el("div", "br-plan-strip" + (info.active ? info.daysLeft <= 5 ? " is-soon" : "" : " is-off"));
+    var pct = info.active ? Math.min(100, Math.round(info.daysLeft / P.monthDays * 100)) : 0;
+    var label = !info.active ? "اشتراک تمام شده · برای دیگران پنهان است"
+      : (info.trial ? "ماه اول رایگان" : "اشتراک ماهانه") + " · " + faNum(info.daysLeft) + " روز مانده (تا " + SogBizStore.faDate(info.until) + ")";
+    strip.innerHTML = '<div class="br-plan-txt"><span>' + esc(label) + '</span><i style="--p:' + pct + '%"></i></div>';
+    var rn = el("button", "br-plan-renew", info.active ? "تمدید" : "تمدید اشتراک"); rn.type = "button";
+    rn.addEventListener("click", function () { renewSheet(b, info); });
+    strip.appendChild(rn);
+    return strip;
+  }
+  function renewSheet(b, info) {
+    var P = SogBizStore.PLAN;
+    var ov = el("div", "br-renew");
+    var next = Math.max(Date.now(), info.until || 0) + P.monthDays * SogBizStore.DAY_MS;
+    ov.innerHTML = '<div class="br-renew-card" role="dialog" aria-modal="true">' +
+      '<span class="br-renew-handle"></span>' +
+      '<h3>تمدید «' + esc(b.name) + '»</h3>' +
+      '<div class="br-renew-plan"><div><b>اشتراک یک‌ماهه</b><small>نمایش در فهرست، استوری، سفارش سریع</small></div><strong>' + P.priceLabel + '</strong></div>' +
+      '<p class="br-renew-row"><span>اعتبار فعلی</span><b>' + (info.active ? "تا " + SogBizStore.faDate(info.until) : "تمام شده") + "</b></p>" +
+      '<p class="br-renew-row"><span>بعد از تمدید</span><b>تا ' + SogBizStore.faDate(next) + "</b></p>" +
+      '<p class="br-renew-note">پرداخت آنلاین به‌زودی فعال می‌شود. فعلاً برای تمدید به پشتیبانی پیام بدهید؛ پس از پرداخت، مدیر اشتراک را تمدید می‌کند.</p>' +
+      '<div class="br-renew-acts"><button type="button" class="br-renew-x">بستن</button><a class="br-renew-go" href="support.html">پیام به پشتیبانی برای تمدید</a></div></div>';
+    document.body.appendChild(ov);
+    requestAnimationFrame(function () { ov.classList.add("is-in"); });
+    function done() { ov.classList.remove("is-in"); setTimeout(function () { ov.remove(); }, 220); }
+    ov.addEventListener("click", function (e) { if (e.target === ov) done(); });
+    ov.querySelector(".br-renew-x").addEventListener("click", done);
   }
 
   Promise.all([

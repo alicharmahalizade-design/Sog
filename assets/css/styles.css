@@ -982,3 +982,22 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 
 /* فیلدها و دکمه‌ها هم همان فونت و اعداد فارسی */
 input, textarea, select, button { font-feature-settings: "ss01"; }
+
+/* ===== اکولایزر کوچک برای موزیکِ در حال پخش ===== */
+.sog-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; width: 18px; justify-content: center; }
+.sog-eq i {
+  display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor;
+  transform-origin: bottom; animation: sogEq 1s ease-in-out infinite;
+}
+.sog-eq i:nth-child(1) { animation-duration: .9s; animation-delay: -.2s; }
+.sog-eq i:nth-child(2) { animation-duration: .7s; animation-delay: -.5s; }
+.sog-eq i:nth-child(3) { animation-duration: 1.1s; animation-delay: -.1s; }
+.sog-eq i:nth-child(4) { animation-duration: .8s; animation-delay: -.35s; }
+.sog-eq.is-paused i { animation-play-state: paused; }
+@keyframes sogEq {
+  0%, 100% { transform: scaleY(.25); }
+  30% { transform: scaleY(1); }
+  60% { transform: scaleY(.45); }
+  80% { transform: scaleY(.8); }
+}
+@media (prefers-reduced-motion: reduce) { .sog-eq i { animation-duration: 2.4s !important; } }

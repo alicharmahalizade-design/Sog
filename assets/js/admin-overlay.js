@@ -112,6 +112,7 @@
   }
 
   function applyBusinesses(json, s) {
+    var now = Date.now();
     json.businesses = (json.businesses || []).filter(function (b) {
       var o = s.businesses[b.id];
       return !(o && (o.status === "hidden" || o.status === "deleted"));
@@ -121,6 +122,9 @@
       var x = o.edits ? Object.assign({}, b, o.edits) : b;
       if (o.verified != null) x.verified = o.verified;
       return x;
+    }).filter(function (b) {
+      /* اشتراک تمام‌شده: از فهرست عمومی و استوری‌ها بیرون می‌رود (اطلاعات می‌ماند) */
+      return !b.paid_until || Number(b.paid_until) > now;
     });
     return json;
   }

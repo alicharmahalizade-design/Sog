@@ -239,7 +239,8 @@
           preview = new Audio(t.src); preview.volume = 0.8;
           preview.play().catch(function () {});
           preview.addEventListener("ended", stopPreview);
-          previewBtn = play; play.classList.add("is-playing"); play.innerHTML = SogIcon("pause", 18);
+          previewBtn = play; play.classList.add("is-playing"); play.innerHTML = '<span class="sog-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+          play.setAttribute("aria-label", "توقف " + t.name);
         });
         var info = el("div", "music-info", "<b>" + esc(t.name) + "</b><small>" + esc(t.mood) + "</small>");
         var pick = el("span", "music-radio");

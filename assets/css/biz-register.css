@@ -64,7 +64,7 @@
 /* کسب‌وکارهای من */
 .br-mine { margin: 0 16px 16px; background: #111; border-radius: 18px; padding: 16px 14px 6px; }
 .br-mine-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #222; }
-.br-mine-row:first-of-type { border-top: none; }
+.br-mine-item:first-of-type .br-mine-row { border-top: none; }
 .br-mine-logo { flex: 0 0 44px; height: 44px; border-radius: 12px; background: #222 center/cover no-repeat; }
 .br-mine-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; color: var(--text); text-decoration: none; }
 .br-mine-info b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -79,3 +79,74 @@
 .br .up-inner[hidden] { display: none; }
 .br-audio .sp { margin-bottom: 0; }
 .br-mine-btn.story { color: var(--accent); border-color: rgba(217,154,91,.5); }
+
+/* ===== اشتراک: ماه اول رایگان، سپس ماهانه ===== */
+.br-plan {
+  margin: 0 0 16px; padding: 16px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(217,154,91,.18), rgba(217,154,91,.06));
+  border: 1px solid rgba(217,154,91,.35);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.br-plan-badge {
+  align-self: flex-start; height: 24px; padding: 0 8px; border-radius: 8px;
+  display: inline-flex; align-items: center; font-size: 11px; font-weight: 700;
+  background: var(--accent); color: #1a1206;
+}
+.br-plan b { font-size: 15px; line-height: 24px; color: var(--text); }
+.br-plan p { margin: 0; font-size: 12.5px; line-height: 22px; color: var(--text-dim); }
+.br-plan strong { color: var(--accent); }
+.br-plan-note { color: var(--accent) !important; font-weight: 700; }
+
+.br-plan-strip {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 12px;
+  padding: 8px 8px 8px 8px; padding-inline-start: 12px; border-radius: 12px; background: #1a1a1a;
+}
+.br-plan-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.br-plan-txt span { font-size: 11.5px; line-height: 16px; color: var(--text-dim); }
+.br-plan-txt i {
+  display: block; height: 4px; border-radius: 2px; background: #2c2c2c; position: relative; overflow: hidden;
+}
+.br-plan-txt i::after {
+  content: ""; position: absolute; inset-block: 0; right: 0; width: var(--p, 0%);
+  border-radius: 2px; background: #6ec07f;
+}
+.br-plan-strip.is-soon .br-plan-txt i::after { background: var(--accent); }
+.br-plan-strip.is-soon .br-plan-txt span { color: var(--accent); }
+.br-plan-strip.is-off { background: rgba(224,96,96,.1); }
+.br-plan-strip.is-off .br-plan-txt span { color: #e88; }
+.br-plan-renew {
+  flex: 0 0 auto; height: 32px; padding: 0 12px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--accent); color: #1a1206; font: inherit; font-size: 12px; font-weight: 700;
+}
+
+.br-renew {
+  position: fixed; inset: 0; z-index: 120; background: rgba(0,0,0,.65);
+  display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .22s;
+}
+.br-renew.is-in { opacity: 1; }
+.br-renew-card {
+  width: 100%; max-width: 480px; background: #161616; border-radius: 20px 20px 0 0;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  transform: translateY(24px); transition: transform .22s;
+}
+.br-renew.is-in .br-renew-card { transform: none; }
+.br-renew-handle { display: block; width: 40px; height: 4px; border-radius: 2px; background: #444; margin: 0 auto 12px; }
+.br-renew-card h3 { margin: 0 0 12px; font-size: 16px; line-height: 24px; color: var(--text); }
+.br-renew-plan {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
+  border: 1px solid var(--accent); background: rgba(217,154,91,.1);
+}
+.br-renew-plan div { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.br-renew-plan b { font-size: 14px; color: var(--text); }
+.br-renew-plan small { font-size: 11px; color: var(--text-mute); }
+.br-renew-plan strong { font-size: 15px; color: var(--accent); white-space: nowrap; }
+.br-renew-row { display: flex; justify-content: space-between; margin: 0; padding: 8px 4px; font-size: 13px; color: var(--text-dim); border-bottom: 1px solid #222; }
+.br-renew-row b { color: var(--text); }
+.br-renew-note { margin: 12px 0; font-size: 12px; line-height: 20px; color: var(--text-mute); }
+.br-renew-acts { display: grid; grid-template-columns: 1fr 3fr; gap: 8px; }
+.br-renew-acts button, .br-renew-acts a {
+  height: 48px; border-radius: 12px; display: grid; place-items: center; border: none;
+  font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.br-renew-x { background: #2a2a2a; color: var(--text-dim); }
+.br-renew-go { background: var(--accent); color: #1a1206; }

@@ -532,12 +532,12 @@
     return b;
   }
 
-  function confirmBox(text, okLabel, fn) {
+  function confirmBox(text, okLabel, fn, cls) {
     var m = modal("تأیید");
     m.body.appendChild(el("p", "ad-confirm-text", esc(text)));
     var row = el("div", "ad-form-actions");
     row.appendChild(actBtn("انصراف", "", m.close));
-    row.appendChild(actBtn(okLabel || "بله", "is-danger", function () { m.close(); fn(); }));
+    row.appendChild(actBtn(okLabel || "بله", cls || "is-danger", function () { m.close(); fn(); }));
     m.body.appendChild(row);
   }
 
@@ -981,6 +981,33 @@
       refresh();
     });
   }
+  /* اشتراک کسب‌وکار: ماه اول رایگان، سپس تمدید ماهانه (پس از دریافت پرداخت، مدیر تمدید می‌کند) */
+  function planPill(b) {
+    if (!b.paid_until || !window.SogBizStore) return "";
+    var p = SogBizStore.plan(b);
+    if (!p.active) return ' <span class="ad-pill is-bad">اشتراک تمام شده</span>';
+    return ' <span class="ad-pill is-' + (p.daysLeft <= 5 ? "warn" : "info") + '">' + (p.trial ? "ماه رایگان" : "اشتراک") + " تا " + SogBizStore.faDate(p.until) + "</span>";
+  }
+  function renewBiz(b) {
+    var P = SogBizStore.PLAN;
+    var until = Math.max(Date.now(), Number(b.paid_until) || 0) + P.monthDays * SogBizStore.DAY_MS;
+    confirmBox("اشتراک «" + b.name + "» تا " + SogBizStore.faDate(until) + " تمدید شود؟ (" + P.priceLabel + ")", "تمدید", function () {
+      var msg = "اشتراک «" + b.name + "» تا " + SogBizStore.faDate(until) + " تمدید شد";
+      var patch = { paid_until: until, renewed_at: Date.now() };
+      if (DB && b._live) {
+        var data = {};
+        Object.keys(b).forEach(function (k) { if (k.charAt(0) !== "_" && k !== "id") data[k] = b[k]; });
+        Object.assign(data, patch);
+        DB.update("businesses", "id=eq." + encodeURIComponent(b.id), { data: data })
+          .then(function () { logAct(msg); return loadDB(); }).then(refresh).catch(dbFail);
+        return;
+      }
+      var o = S.businesses[b.id] || {};
+      o.edits = Object.assign(o.edits || {}, patch);
+      S.businesses[b.id] = o;
+      save(msg); refresh();
+    }, "is-primary");
+  }
   VIEWS.businesses = function () {
     var B = allBusinesses();
     var n = function (st) { return B.filter(function (x) { return x._status === st; }).length; };
@@ -995,7 +1022,7 @@
         row.innerHTML = '<span class="ad-thumb is-logo" style="background-image:url(\'' + esc(b.logo) + '\')"></span>' +
           '<div class="ad-row-main"><div class="ad-row-title">' + esc(b.name) +
           (b.verified ? ' <span class="ad-pill is-ok">تأییدشده</span>' : "") + (b.featured ? ' <span class="ad-pill is-info">ویژه</span>' : "") +
-          (b._user ? ' <span class="ad-pill is-warn">ثبت کاربر</span>' : "") + (b._auto ? ' <span class="ad-pill is-bad">پنهان با گزارش</span>' : "") + "</div>" +
+          (b._user ? ' <span class="ad-pill is-warn">ثبت کاربر</span>' : "") + (b._auto ? ' <span class="ad-pill is-bad">پنهان با گزارش</span>' : "") + planPill(b) + "</div>" +
           '<div class="ad-row-sub">' + esc(b.category_name) + " · " + esc(b.city) + " · " + esc(b.phone || "") + "</div></div>";
         var acts = el("div", "ad-row-acts");
         var setB = function (patch, msg) {
@@ -1012,6 +1039,7 @@
             setB({ verified: !b.verified }, "کسب‌وکار «" + b.name + (b.verified ? "» از حالت تأیید خارج شد" : "» تأیید شد"));
           }));
         }
+        if (b.paid_until && b._status !== "deleted") acts.appendChild(actBtn("تمدید یک ماه", "is-ok", function () { renewBiz(b); }));
         if (b._status === "published") acts.appendChild(actBtn("مخفی", "", function () { setB({ status: "hidden" }, "کسب‌وکار «" + b.name + "» مخفی شد"); }));
         if (b._status !== "published") acts.appendChild(actBtn(b._status === "deleted" ? "بازگردانی" : "انتشار", "is-ok", function () { setB({ status: "published" }, "کسب‌وکار «" + b.name + "» منتشر شد"); }));
         if (b._status !== "deleted") acts.appendChild(actBtn("حذف", "is-danger", function () {

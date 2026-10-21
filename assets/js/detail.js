@@ -591,7 +591,8 @@
     }
 
     function paint() {
-      btn.innerHTML = wanted ? ICON.sound : ICON.soundOff;
+      /* در حال پخش: اکولایزر متحرک به‌جای آیکن بلندگو */
+      btn.innerHTML = wanted ? '<span class="sog-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>' : ICON.soundOff;
       btn.classList.toggle("is-active", wanted);
       btn.setAttribute("aria-label", wanted ? "قطع صدا" : "پخش صدا");
     }
@@ -600,7 +601,7 @@
       wanted = !wanted;
       paint();
       if (!audioEl) return;
-      if (wanted) { audioEl.play().then(function () { fadeTo(TARGET); }).catch(function () {}); }
+      if (wanted) { audioEl.play().then(function () { fadeTo(TARGET); }).catch(function () { wanted = false; paint(); }); }
       else { fadeTo(0); setTimeout(function () { if (audioEl && !wanted) audioEl.pause(); }, 800); }
     });
 
@@ -609,6 +610,8 @@
       if (!audioEl) return;
       if (document.hidden) audioEl.pause();
       else if (wanted) audioEl.play().catch(function () {});
+      var eq = btn.querySelector(".sog-eq");
+      if (eq) eq.classList.toggle("is-paused", document.hidden);
     });
     window.addEventListener("pagehide", function () { if (audioEl) audioEl.pause(); });
 

@@ -79,8 +79,16 @@ drop policy if exists "listings: admin writes" on public.listings;
 create policy "listings: admin writes" on public.listings
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 drop policy if exists "businesses: public reads published" on public.businesses;
+-- اشتراک: ماه اول رایگان، سپس تمدید ماهانه. data.paid_until (میلی‌ثانیه) که بگذرد،
+-- کسب‌وکار برای عموم دیده نمی‌شود تا مدیر تمدیدش کند. کسب‌وکار بدون paid_until همیشه فعال است.
 create policy "businesses: public reads published" on public.businesses
-  for select to anon, authenticated using (status = 'published' or public.is_admin());
+  for select to anon, authenticated using (
+    public.is_admin() or (
+      status = 'published' and
+      case when jsonb_typeof(data->'paid_until') = 'number'
+           then (data->>'paid_until')::numeric > extract(epoch from now()) * 1000
+           else true end
+    ));
 drop policy if exists "businesses: admin writes" on public.businesses;
 create policy "businesses: admin writes" on public.businesses
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
