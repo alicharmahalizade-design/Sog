@@ -1620,7 +1620,7 @@
   }
   var DONOR_BADGE = '<span class="donor-badge" title="به نیت درگذشته خیرات کرده است">' +
     '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.3 5 6.6 5c2 0 3.3 1.1 4.1 2.3h2.6C14.1 6.1 15.4 5 17.4 5c3.3 0 5.5 3.3 4.1 6.7C19.5 16.4 12 21 12 21z" fill="currentColor"/></svg>' +
-    "خیرات کرده</span>";
+    "نیکوکار</span>";
 
   function myCondolenceItem(d, entry) {
     var item = el("div", "condolence-item is-mine is-open");
