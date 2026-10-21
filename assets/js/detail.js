@@ -1984,7 +1984,7 @@
   /* ---------- اشتراک‌گذاری کارت زیبا (تصویر) ---------- */
   function fitText(ctx, text, maxW, baseSize) {
     var size = baseSize;
-    do { ctx.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    do { ctx.font = "700 " + size + "px IRANSansX, Tahoma"; size -= 2; }
     while (ctx.measureText(text).width > maxW && size > 30);
     return ctx.font;
   }
@@ -2013,7 +2013,7 @@
   function drawCeremonyBadge(x, label, cx, cy) {
     /* اندازه‌ی متن کم می‌شود تا کادر از عرض کارت بیرون نزند */
     var size = 40, maxW = x.canvas.width - 260;
-    do { x.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    do { x.font = "700 " + size + "px IRANSansX, Tahoma"; size -= 2; }
     while (x.measureText(label).width > maxW && size > 26);
     var w = x.measureText(label).width + 76, h = 78, r = 20;
     var left = cx - w / 2, top = cy - h / 2;
@@ -2061,7 +2061,7 @@
     x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80);
     x.direction = "rtl"; x.textAlign = "center";
     // برند
-    x.fillStyle = "#d99a5b"; x.font = "700 46px Vazirmatn, Tahoma"; x.fillText("سوگ", W / 2, 150);
+    x.fillStyle = "#d99a5b"; x.font = "700 46px IRANSansX, Tahoma"; x.fillText("سوگ", W / 2, 150);
     // تصویر متوفی (به‌جای شمع)
     drawPortrait(x, portrait, W / 2, 420, 190);
     // کادر نوع مراسم (به‌جای «به یادِ»)
@@ -2069,23 +2069,23 @@
     // نام
     x.fillStyle = "#f4f4f4"; fitText(x, d.deceased_name, W - 200, 82); x.fillText(d.deceased_name, W / 2, 800);
     // زیرعنوان
-    if (d.subtitle) { x.fillStyle = "#bdbdbd"; x.font = "400 40px Vazirmatn, Tahoma"; x.fillText(d.subtitle, W / 2, 866); }
+    if (d.subtitle) { x.fillStyle = "#bdbdbd"; x.font = "400 40px IRANSansX, Tahoma"; x.fillText(d.subtitle, W / 2, 866); }
     // خط
     x.strokeStyle = "#333"; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 160, 920); x.lineTo(W / 2 + 160, 920); x.stroke();
     // تاریخ‌ها
-    x.fillStyle = "#d9d9d9"; x.font = "400 44px Vazirmatn, Tahoma";
+    x.fillStyle = "#d9d9d9"; x.font = "400 44px IRANSansX, Tahoma";
     var line = "";
     if (d.birth && d.birth.date) line += d.birth.date;
     if (d.death && d.death.date) line += (line ? "  —  " : "") + d.death.date;
     if (line) x.fillText(line, W / 2, 988);
     // شهر
     var city = (d.death && d.death.place) || deceasedCity || "";
-    if (city) { x.fillStyle = "#9a9a9a"; x.font = "400 38px Vazirmatn, Tahoma"; x.fillText(city, W / 2, 1050); }
+    if (city) { x.fillStyle = "#9a9a9a"; x.font = "400 38px IRANSansX, Tahoma"; x.fillText(city, W / 2, 1050); }
     // طایفه‌ی پدری و مادری (زیر شهر)
     var tribes = tribesLine(d);
-    if (tribes) { x.fillStyle = "#8c7a5e"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText(tribes, W / 2, 1110); }
+    if (tribes) { x.fillStyle = "#8c7a5e"; x.font = "400 34px IRANSansX, Tahoma"; x.fillText(tribes, W / 2, 1110); }
     // پاورقی
-    x.fillStyle = "#7a6a4f"; x.font = "400 34px Vazirmatn, Tahoma"; x.fillText("مشاهده‌ی آگهی و مراسم‌ها در سایت سوگ", W / 2, H - 110);
+    x.fillStyle = "#7a6a4f"; x.font = "400 34px IRANSansX, Tahoma"; x.fillText("مشاهده‌ی آگهی و مراسم‌ها در سایت سوگ", W / 2, H - 110);
     return x.canvas;
   }
 
@@ -2159,7 +2159,7 @@
 
     var size = 42, lineH, gap, textH;
     while (true) {
-      x.font = "400 " + size + "px Vazirmatn, Tahoma";
+      x.font = "400 " + size + "px IRANSansX, Tahoma";
       lineH = Math.round(size * 1.75);
       gap = lineH;   /* خط خالی = یک سطر فاصله */
       textH = paras.reduce(function (sum, t) {
@@ -2187,7 +2187,7 @@
 
     /* برچسب «سپاسگزاری» داخل کادر گرد نارنجیِ تیره */
     x.textAlign = "right";
-    x.font = "700 36px Vazirmatn, Tahoma";
+    x.font = "700 36px IRANSansX, Tahoma";
     var bw = x.measureText("سپاسگزاری").width + 56, bh = 64, bTop = phTop + 30;
     roundPath(x, right - bw, bTop, bw, bh, 14);
     x.fillStyle = "#33241a"; x.fill();
@@ -2197,14 +2197,14 @@
     /* «شادروان» در خط اول و نام در خط دوم */
     x.fillStyle = "#f4f4f4";
     var nameSize = 50;
-    do { x.font = "700 " + nameSize + "px Vazirmatn, Tahoma"; nameSize -= 2; }
+    do { x.font = "700 " + nameSize + "px IRANSansX, Tahoma"; nameSize -= 2; }
     while (x.measureText(d.deceased_name).width > innerW - PH - 40 && nameSize > 30);
     x.fillText("شادروان", right - 12, bTop + bh + 76);
     x.fillText(d.deceased_name, right - 12, bTop + bh + 76 + Math.round(nameSize * 1.5));
 
     /* ۳) متن */
     x.fillStyle = "#dcdcdc";
-    x.font = "400 " + size + "px Vazirmatn, Tahoma";
+    x.font = "400 " + size + "px IRANSansX, Tahoma";
     var y = phTop + PH + HEAD_GAP + lineH;
     /* متن وسط‌چین، با همان شکستن خط‌هایی که خانواده نوشته است */
     x.textAlign = "center";
@@ -2218,7 +2218,7 @@
     var sign = [ack && ack.signature, ack && ack.date].filter(Boolean).join("     ");
     if (sign) {
       x.textAlign = "center";
-      x.fillStyle = "#e6e6e6"; x.font = "400 36px Vazirmatn, Tahoma";
+      x.fillStyle = "#e6e6e6"; x.font = "400 36px IRANSansX, Tahoma";
       x.fillText(sign, CX + CW / 2, signY);
     }
 
@@ -2239,7 +2239,7 @@
 
     /* متن وسط نوار و فلش دقیقاً کنارش، تا روی هم نیفتند */
     var label = "اطلاعات بیشتر در سایت سوگ";
-    x.font = "700 38px Vazirmatn, Tahoma";
+    x.font = "700 38px IRANSansX, Tahoma";
     var tw = x.measureText(label).width;
     var cxLabel = CX + CW / 2 + 40;
     x.textAlign = "center";
@@ -2345,7 +2345,7 @@
   function drawOutlinePill(x, label, cx, cy, opt) {
     opt = opt || {};
     var size = opt.size || 42, maxW = (opt.maxW || x.canvas.width - 300);
-    do { x.font = "700 " + size + "px Vazirmatn, Tahoma"; size -= 2; }
+    do { x.font = "700 " + size + "px IRANSansX, Tahoma"; size -= 2; }
     while (x.measureText(label).width > maxW && size > 24);
     var w = x.measureText(label).width + (opt.padX || 80), h = opt.h || 86, r = h / 2;
     roundPath(x, cx - w / 2, cy - h / 2, w, h, r);
@@ -2404,7 +2404,7 @@
 
     /* شرح کوتاه */
     if (d.subtitle) {
-      x.fillStyle = "#9a9a9a"; x.font = "400 42px Vazirmatn, Tahoma";
+      x.fillStyle = "#9a9a9a"; x.font = "400 42px IRANSansX, Tahoma";
       x.fillText(d.subtitle, W / 2, y + 86);
       y += 86;
     }
@@ -2418,7 +2418,7 @@
     roundPath(x, barL, barT, barW, barH, 32);
     x.fillStyle = "#1a1a1a"; x.fill();
     x.strokeStyle = "rgba(255,255,255,.10)"; x.lineWidth = 2; x.stroke();
-    x.fillStyle = "#ffffff"; x.font = "700 44px Vazirmatn, Tahoma";
+    x.fillStyle = "#ffffff"; x.font = "700 44px IRANSansX, Tahoma";
     x.textBaseline = "middle";
     x.fillText("اطلاعات بیشتر در سایت سوگ", W / 2 + 34, barT + barH / 2 + 2);
     x.textBaseline = "alphabetic";
@@ -2487,8 +2487,8 @@
     };
     if (document.fonts && document.fonts.load) {
       Promise.all([
-        document.fonts.load("700 92px Vazirmatn"),
-        document.fonts.load("400 44px Vazirmatn")
+        document.fonts.load("700 92px IRANSansX"),
+        document.fonts.load("400 44px IRANSansX")
       ]).then(run).catch(run);
     } else run();
   }
@@ -2511,7 +2511,7 @@
       });
     };
     if (document.fonts && document.fonts.load) {
-      Promise.all([document.fonts.load("700 82px Vazirmatn"), document.fonts.load("400 44px Vazirmatn")]).then(run).catch(run);
+      Promise.all([document.fonts.load("700 82px IRANSansX"), document.fonts.load("400 44px IRANSansX")]).then(run).catch(run);
     } else run();
   }
 

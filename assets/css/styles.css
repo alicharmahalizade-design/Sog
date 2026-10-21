@@ -1,18 +1,22 @@
-/* ===== فونت وزیرمتن ===== */
+/* ===== فونت ایران‌سنس X (نسخه‌ی متغیر: همه‌ی وزن‌ها در یک فایل) =====
+   مرورگرهای قدیمی که فونت متغیر را نمی‌شناسند، نسخه‌ی ثابت معمولی و ضخیم را می‌گیرند. */
 @font-face {
-  font-family: "Vazirmatn";
-  src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2");
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: "IRANSansX";
+  src: url("../fonts/IRANSansX-Regular.woff") format("woff");
+  font-weight: 100 600; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: "Vazirmatn";
-  src: url("../fonts/Vazirmatn-Medium.woff2") format("woff2");
-  font-weight: 500; font-style: normal; font-display: swap;
+  font-family: "IRANSansX";
+  src: url("../fonts/IRANSansX-Bold.woff") format("woff");
+  font-weight: 700 1000; font-style: normal; font-display: swap;
 }
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("../fonts/Vazirmatn-Bold.woff2") format("woff2");
-  font-weight: 700; font-style: normal; font-display: swap;
+@supports (font-variation-settings: normal) {
+  @font-face {
+    font-family: "IRANSansX";
+    src: url("../fonts/IRANSansXVF.woff2") format("woff2-variations"),
+         url("../fonts/IRANSansXVF.woff2") format("woff2");
+    font-weight: 100 1000; font-style: normal; font-display: swap;
+  }
 }
 
 /* ===== متغیرهای تم ===== */
@@ -32,7 +36,7 @@
   --frame-w: 480px;
   --radius: 16px;
   --header-h: 62px;
-  font-family: "Vazirmatn", Tahoma, system-ui, sans-serif;
+  font-family: "IRANSansX", Tahoma, system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -40,7 +44,9 @@ html, body { margin: 0; padding: 0; }
 body {
   background: #000;
   color: var(--text);
-  font-family: "Vazirmatn", Tahoma, sans-serif;
+  font-family: "IRANSansX", Tahoma, sans-serif;
+  /* ss01: همه‌ی اعداد (حتی انگلیسی) فارسی نمایش داده شوند */
+  font-feature-settings: "ss01";
   line-height: 1.6;
   overscroll-behavior-y: none;
 }
@@ -973,3 +979,6 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 }
 .arc-chip b { font-weight: 500; color: var(--text-dim); }
 .arc-chip i { width: 1px; height: 12px; background: currentColor; opacity: .4; }
+
+/* فیلدها و دکمه‌ها هم همان فونت و اعداد فارسی */
+input, textarea, select, button { font-feature-settings: "ss01"; }

@@ -65,7 +65,7 @@ index.html
 assets/css/styles.css
 assets/js/app.js          منطق اصلی
 assets/js/storage.js      localStorage
-assets/fonts/             وزیرمتن (Vazirmatn)
+assets/fonts/             ایران‌سنس X (نسخه‌ی متغیر + پشتیبان معمولی/ضخیم)
 assets/img/               لوگو، آیکون‌ها، شمع، پرتره‌های نمونه
 data/listings.json        آگهی‌ها
 data/cities.json          شهرها
@@ -74,7 +74,7 @@ service-worker.js         کش آفلاین
 ```
 
 ---
-_فونت: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL 1.1)_
+_فونت: ایران‌سنس X پرو (فونت‌ایران) — استفاده روی وب نیازمند مجوز وب‌فونت است._
 
 ## داده‌ی شهرها و روستاها
 `data/places/` از تقسیمات کشوری مرکز آمار ایران (مرداد ۱۳۹۹) ساخته شده است؛ منبع: [ahmadazizi/iran-cities](https://github.com/ahmadazizi/iran-cities) (مجوز MIT). مکان‌های غیرمسکونی (شرکت، مرغداری، معدن، ایستگاه، تلمبه و…) حذف شده‌اند.
