@@ -228,12 +228,16 @@ option { direction: rtl; text-align: right; }
   border: none;                      /* بدون استروک */
   border-radius: var(--radius);
   overflow: hidden;
-  min-height: 147px;
+  /* اندازه‌ها روی شبکه‌ی ۴ پیکسلی: کارت ۱۲۰ = ۱۶ بالا + برچسب ۲۷ + ۸ + نام ۲۶ + ۸ + تاریخ ۱۸ + ۱۶ پایین (+۱ گرد کردن) */
+  --card-h: 120px;
+  --card-pad-y: 16px;
+  --card-gap: 8px;
+  min-height: var(--card-h);
 }
 .listing-card .listing-name { line-height: 1.35; }
 .listing-card .listing-meta { line-height: 1.4; }
 .listing-photo {
-  flex: 0 0 132px;
+  flex: 0 0 var(--card-h, 120px);   /* عکس مربع، هم‌اندازه‌ی ارتفاع کارت */
   align-self: stretch;
   background: #0a0a0a center/cover no-repeat;
 }
@@ -241,8 +245,8 @@ option { direction: rtl; text-align: right; }
   flex: 1 1 auto;
   /* فاصله‌ی بالا و پایین برابر و محتوا وسطِ کادر، مثل طرح */
   /* بلوک محتوا دقیقاً وسط ارتفاع کارت؛ فاصله‌ی بالا = پایین و فاصله‌ی بین سطرها برابر */
-  padding: 14px 16px;
-  display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  padding: var(--card-pad-y, 16px) 16px;
+  display: flex; flex-direction: column; justify-content: center; gap: var(--card-gap, 8px);
   min-width: 0;
 }
 .listing-top {
