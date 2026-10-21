@@ -1560,6 +1560,11 @@
         form.querySelector('input[name="melli"]').value = editing.melli || "";
       }
     }
+    /* نام از حساب کاربری پر می‌شود و قابل ویرایش است */
+    var profileName = "";
+    try { profileName = String(((window.SogStore && SogStore.getUser && SogStore.getUser()) || {}).name || "").trim(); } catch (e) {}
+    var nameIn = form.querySelector('input[name="name"]');
+    if (!editing && profileName) nameIn.value = profileName;
 
     /* ادارات و شرکت‌ها: ثبت با تأیید کد ملی */
     var kind = editing && editing.kind === "org" ? "org" : "person";
@@ -1570,6 +1575,9 @@
         b.classList.add("is-active");
         form.querySelector(".org-only").hidden = kind !== "org";
         form.querySelector('input[name="name"]').placeholder = kind === "org" ? "نام اداره یا شرکت" : "نام و نام خانوادگی";
+        /* نام شخص برای اداره معنی ندارد؛ با برگشت به «شخصی» دوباره پر می‌شود */
+        if (kind === "org" && profileName && nameIn.value.trim() === profileName) nameIn.value = "";
+        if (kind === "person" && profileName && !nameIn.value.trim()) nameIn.value = profileName;
       });
     });
 
