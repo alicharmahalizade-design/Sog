@@ -93,7 +93,26 @@
     }
   });
 
+  /* بخش‌های باز و محل اسکرول پس از هر به‌روزرسانی حفظ می‌شوند (مثلاً حذف یک ذخیره‌شده) */
+  var OPEN_ROWS = [];
   function render() {
+    var y = window.pageYOffset;
+    if (root.children.length) {
+      OPEN_ROWS = Array.prototype.map.call(root.querySelectorAll(".acc-item.is-open .ar-label"), function (n) { return n.textContent; });
+    }
+    renderPage();
+    if (OPEN_ROWS.length) {
+      Array.prototype.forEach.call(root.querySelectorAll(".acc-item"), function (it) {
+        var lbl = it.querySelector(".ar-label");
+        if (lbl && OPEN_ROWS.indexOf(lbl.textContent) !== -1) {
+          it.classList.add("is-open");
+          var h = it.querySelector(".acc-row"); if (h) h.setAttribute("aria-expanded", "true");
+        }
+      });
+      window.scrollTo(0, y);
+    }
+  }
+  function renderPage() {
     root.innerHTML = "";
     var user = SogStore.getUser();
     root.appendChild(profileCard(user));
