@@ -441,41 +441,15 @@
     return wrap;
   }
 
-  /* تصاویر زندگی‌نامه + انتخاب چیدمان نمایش */
-  var BIO_LAYOUTS = [
-    { key: "one",  name: "یک ستونه",
-      ico: '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>' },
-    { key: "two",  name: "دو ستونه",
-      ico: '<rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/>' },
-    { key: "two-one", name: "دو ستونه بالا، یک ستونه پایین",
-      ico: '<rect x="3" y="4" width="8" height="8" rx="2"/><rect x="13" y="4" width="8" height="8" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/>' },
-    { key: "grid", name: "شبکه‌ی دو در دو",
-      ico: '<rect x="3" y="4" width="8" height="7" rx="2"/><rect x="13" y="4" width="8" height="7" rx="2"/><rect x="3" y="13" width="8" height="7" rx="2"/><rect x="13" y="13" width="8" height="7" rx="2"/>' }
-  ];
-
+  /* تصاویر زندگی‌نامه — چیدمان ثابت و یکسان برای همه (یک ستونه) */
   function bioPhotosField() {
     var box = el("div", "bio-field");
 
-    /* انتخاب چیدمان */
-    var lay = el("div", "layout-picker");
-    BIO_LAYOUTS.forEach(function (L) {
-      var b = el("button", "layout-opt" + (data.bio_layout === L.key ? " is-active" : ""));
-      b.type = "button";
-      b.innerHTML = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6">' + L.ico + '</svg>' +
-                    '<span>' + esc(L.name) + '</span>';
-      b.addEventListener("click", function () {
-        data.bio_layout = L.key;
-        Array.prototype.forEach.call(lay.children, function (n) { n.classList.remove("is-active"); });
-        b.classList.add("is-active");
-        paint();
-      });
-      lay.appendChild(b);
-    });
-
-    /* پیش‌نمایش تصاویر با همان چیدمان */
+    /* پیش‌نمایش تصاویر */
     var preview = el("div", "bio-preview");
     function paint() {
-      preview.className = "bio-preview lay-" + data.bio_layout;
+      data.bio_layout = "one";
+      preview.className = "bio-preview lay-one";
       preview.innerHTML = "";
       data.bio_photos.forEach(function (src, i) {
         var cell = el("div", "bp-cell");
@@ -508,8 +482,6 @@
     });
     add.appendChild(inp);
 
-    box.appendChild(el("p", "field-hint", "چیدمان نمایش تصاویر را انتخاب کنید:"));
-    box.appendChild(lay);
     box.appendChild(preview);
     box.appendChild(add);
     paint();
