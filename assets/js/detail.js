@@ -237,8 +237,8 @@
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
-    root.appendChild(reportError(d));
     root.appendChild(charityCard(d));
+    root.appendChild(reportError(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
