@@ -5,7 +5,7 @@
   "use strict";
 
   var DATA = { listings: [], cities: [] };
-  var state = { sel: [], city: "all", query: "", year: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false, tayefe: null, il: null };
+  var state = { sel: [], city: "all", query: "", year: null, month: null, ceremony: null, sort: "newest", followOnly: false, savedOnly: false, tayefe: null, il: null };
   var PARAMS = new URLSearchParams(location.search);
   if (PARAMS.get("view") === "saved") state.savedOnly = true;
   // ورود از لینک «طایفه» / «ایل» در صفحه‌ی آگهی
@@ -1112,6 +1112,7 @@
       yc.appendChild(el("span", "year-label", toFa(y)));
       yc.addEventListener("click", function () {
         state.year = (state.year === y ? null : y);
+        state.month = null;
         state.sel = []; state.city = "all";
         renderCities();
         renderFeed();
@@ -1157,11 +1158,111 @@
     return b;
   }
 
+  /* ---------- آرشیو سوگ‌های سال‌های گذشته ---------- */
+  var MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  /* ماه از تاریخ مراسم آگهی (۱ تا ۱۲) */
+  function monthOf(item) {
+    var p = toEn(item.event_date_jalali || "").split("/");
+    var m = parseInt(p[1], 10);
+    return m >= 1 && m <= 12 ? m : null;
+  }
+  function archiveItems() {
+    return DATA.listings.filter(function (it) { return it.death_year != null && !isCurrent(it); });
+  }
+  function stripButton(label, cls, on, disabled, onClick) {
+    var b = el("button", cls + (on ? " is-on" : ""), label);
+    b.type = "button";
+    if (disabled) { b.disabled = true; b.classList.add("is-empty"); }
+    else b.addEventListener("click", onClick);
+    return b;
+  }
+  function renderArchive(feed) {
+    var all = archiveItems();
+    var byYear = {};
+    all.forEach(function (it) { byYear[it.death_year] = (byYear[it.death_year] || 0) + 1; });
+    var years = Object.keys(byYear).map(Number);
+    var top = Math.max.apply(null, years.concat([state.year])), bottom = Math.min.apply(null, years.concat([state.year]));
+
+    var head = el("div", "arc-head");
+    var title = el("div", "arc-title");
+    title.appendChild(el("h2", null, "سوگ‌های سال‌های گذشته"));
+    var close = el("button", "arc-close", "بستن"); close.type = "button";
+    close.addEventListener("click", function () { state.year = null; state.month = null; renderFeed(); window.scrollTo({ top: 0 }); });
+    title.appendChild(close);
+    head.appendChild(title);
+
+    /* سال‌ها: پیوسته از جدیدترین تا قدیمی‌ترین؛ سال بی‌آگهی کم‌رنگ و غیرفعال */
+    var ys = el("div", "arc-years");
+    for (var y = top; y >= bottom; y--) (function (yy) {
+      ys.appendChild(stripButton(toFa(yy), "arc-year", yy === state.year, !byYear[yy], function () {
+        state.year = yy; state.month = null; renderFeed();
+      }));
+    })(y);
+    head.appendChild(ys);
+
+    var inYear = all.filter(function (it) { return it.death_year === state.year; });
+    var byMonth = {};
+    inYear.forEach(function (it) { var m = monthOf(it); if (m) byMonth[m] = (byMonth[m] || 0) + 1; });
+    var ms = el("div", "arc-months");
+    ms.appendChild(stripButton("همه", "arc-month", state.month == null, false, function () { state.month = null; renderFeed(); }));
+    MONTHS.forEach(function (name, i) {
+      var m = i + 1;
+      ms.appendChild(stripButton(name, "arc-month", state.month === m, !byMonth[m], function () {
+        state.month = state.month === m ? null : m; renderFeed();
+      }));
+    });
+    head.appendChild(ms);
+    feed.appendChild(head);
+
+    var list = inYear.filter(function (it) { return state.month == null || monthOf(it) === state.month; });
+    list = sortItems(list);
+    feed.appendChild(el("p", "arc-count", toFa(list.length) + " آگهی" +
+      (state.month ? " در " + MONTHS[state.month - 1] : "") + " " + toFa(state.year)));
+    if (!list.length) { feed.appendChild(el("p", "arc-empty", "آگهی‌ای در این بازه نیست.")); return; }
+    var box = el("div", "arc-list");
+    list.forEach(function (it) { box.appendChild(archiveCard(it)); });
+    feed.appendChild(box);
+
+    /* سال و ماه انتخاب‌شده در نوارها دیده شود */
+    requestAnimationFrame(function () {
+      [ys.querySelector(".is-on"), ms.querySelector(".is-on")].forEach(function (n) {
+        if (n) n.scrollIntoView({ block: "nearest", inline: "center" });
+      });
+    });
+  }
+  /* کارت فشرده‌ی آرشیو: عکس مربع ۸۸، نام و دو برچسب «طایفه» و «پدر» */
+  function archiveCard(it) {
+    var a = el("a", "arc-card");
+    a.href = "listing.html?id=" + encodeURIComponent(it.id);
+    var ph = el("span", "arc-photo");
+    if (it.photo) ph.style.backgroundImage = 'url("' + it.photo + '")';
+    a.appendChild(ph);
+    var body = el("span", "arc-body");
+    body.appendChild(el("span", "arc-name", esc(it.deceased_name || "")));
+    var chips = el("span", "arc-chips");
+    var pairs = [["طایفه", it.tayefe], ["پدر", it.father]];
+    if (!it.tayefe && !it.father) pairs = [["شهر", it.city], ["تاریخ", it.event_date_jalali]];
+    pairs.forEach(function (p) {
+      if (!p[1]) return;
+      chips.appendChild(el("span", "arc-chip", '<b>' + p[0] + '</b><i></i>' + esc(p[1])));
+    });
+    body.appendChild(chips);
+    a.appendChild(body);
+    return a;
+  }
+
   /* ---------- رندر فید ---------- */
   function renderFeed() {
     var feed = document.getElementById("feed");
     var empty = document.getElementById("emptyState");
     feed.innerHTML = "";
+
+    /* نمای آرشیو وقتی سالی از «سوگ‌های سال‌های گذشته» انتخاب شده و فیلتر دیگری فعال نیست */
+    if (state.year != null && !state.query && !state.sel.length && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il) {
+      empty.hidden = true;
+      renderArchive(feed);
+      return;
+    }
 
     var banner = filterBanner();
     if (banner) feed.appendChild(banner);

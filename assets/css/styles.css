@@ -926,3 +926,50 @@ option { direction: rtl; text-align: right; }
 /* دو دکمه‌ی کنار هم: دکمه‌ی اصلی (نارنجی) سه‌چهارم، دکمه‌ی انصراف یک‌چهارم */
 body .report-actions .btn-primary, body .crop-actions .btn-primary, body .ack-edit-actions .btn-primary { flex: 3 1 0; min-width: 0; }
 body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-actions .btn-ghost { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
+
+/* ===== آرشیو سوگ‌های سال‌های گذشته =====
+   شبکه‌ی ۴ پیکسلی: سال ۳۶، ماه ۲۸، کارت ۸۸ (عکس مربع ۸۸)، برچسب ۲۴، فاصله‌ها ۸ و ۱۲ */
+.arc-head { margin: 0 -14px; padding: 0 14px; }
+.arc-title { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+.arc-title h2 { margin: 0; font-size: 17px; font-weight: 700; color: var(--accent); }
+.arc-close {
+  height: 28px; padding: 0 12px; border-radius: 8px; border: 1px solid #2c2c2c;
+  background: var(--surface-2); color: var(--text-dim); font-size: 12px; font-weight: 700;
+}
+.arc-years, .arc-months {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -14px; padding: 0 14px;
+}
+.arc-years::-webkit-scrollbar, .arc-months::-webkit-scrollbar { display: none; }
+.arc-years { margin-bottom: 12px; }
+.arc-months { margin-bottom: 16px; }
+.arc-year, .arc-month {
+  flex: 0 0 auto; border: 1px solid #2c2c2c; background: var(--card);
+  color: var(--text); font-weight: 700; display: grid; place-items: center;
+}
+.arc-year { min-width: 76px; height: 36px; padding: 0 12px; border-radius: 8px; font-size: 18px; }
+.arc-month { min-width: 72px; height: 28px; padding: 0 12px; border-radius: 6px; font-size: 12px; color: var(--text-dim); }
+.arc-year.is-on, .arc-month.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.arc-year.is-empty, .arc-month.is-empty { opacity: .35; cursor: default; }
+.arc-count { margin: 0 0 8px; font-size: 12px; color: var(--text-mute); }
+.arc-empty { text-align: center; color: var(--text-mute); font-size: 13px; padding: 32px 0; margin: 0; }
+.arc-list { display: flex; flex-direction: column; gap: 8px; }
+.arc-card {
+  display: flex; align-items: stretch; height: 88px;
+  background: var(--card); border-radius: 12px; overflow: hidden;
+  text-decoration: none; color: var(--text);
+}
+.arc-photo { flex: 0 0 88px; background: #0a0a0a url("../img/portrait-1.svg") center/cover no-repeat; }
+.arc-body {
+  flex: 1 1 auto; min-width: 0; padding: 12px 16px;
+  display: flex; flex-direction: column; justify-content: center; gap: 8px;
+}
+.arc-name { font-size: 17px; font-weight: 700; line-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arc-chips { display: flex; gap: 8px; overflow: hidden; }
+.arc-chip {
+  flex: 0 1 auto; min-width: 0; height: 24px; padding: 0 8px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft); color: var(--accent); font-size: 12px; white-space: nowrap; overflow: hidden;
+}
+.arc-chip b { font-weight: 500; color: var(--text-dim); }
+.arc-chip i { width: 1px; height: 12px; background: currentColor; opacity: .4; }
