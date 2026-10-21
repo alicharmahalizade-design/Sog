@@ -876,7 +876,7 @@ option { direction: rtl; text-align: right; }
 }
 
 /* دو کاشیِ هم‌اندازه: اطلاع‌رسانی و استوری */
-.notice-sheet .nt-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.notice-sheet .nt-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0; }
 .notice-sheet .nt-tile {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   background: #161616; border: none; border-radius: 20px; padding: 10px 8px 14px; cursor: pointer;
@@ -1001,3 +1001,42 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
   80% { transform: scaleY(.8); }
 }
 @media (prefers-reduced-motion: reduce) { .sog-eq i { animation-duration: 2.4s !important; } }
+
+/* ===== پیش‌نمایش استوری ===== */
+.story-modal {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 96;
+  max-width: var(--frame-w); margin: 0 auto;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height: 96vh; overflow-y: auto; text-align: center;
+  transform: translateY(100%); transition: transform .25s ease;
+}
+.story-modal.is-in { transform: translateY(0); }
+.story-close {
+  position: absolute; top: 12px; inset-inline-end: 12px;   /* گوشه‌ی چپ در راست‌چین */
+  background: none; border: none; color: var(--text-dim); padding: 4px;
+}
+.story-img {
+  width: auto; max-width: 100%; max-height: 74vh;      /* پیش‌نمایش بزرگ‌تر */
+  margin: 22px auto 8px; border-radius: 14px; border: 1px solid var(--card-border);
+}
+.story-hint { font-size: 12px; color: var(--text-mute); margin: 0 0 14px; }
+.story-actions { display: flex; gap: 10px; }
+.story-actions .btn-primary, .story-actions .btn-ghost {
+  border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700;
+  text-decoration: none; display: grid; place-items: center;
+}
+/* «استوری» دو سوم و «ذخیره‌ی تصویر» یک سوم عرض */
+.story-actions .btn-ghost { flex: 2 1 0; }
+.story-actions .btn-primary { flex: 1 1 0; }
+/* «استوری» دکمه‌ی اصلی و رنگی است؛ «ذخیره‌ی تصویر» طلاییِ ملایم */
+.story-actions .btn-primary {
+  background: #2a2016; border: 1px solid var(--accent); color: var(--accent);
+}
+.story-actions .btn-ghost {
+  background: linear-gradient(180deg, #e9c88a, var(--accent));
+  border: 1px solid var(--accent); color: #1c1206;
+  box-shadow: 0 4px 12px rgba(217,154,91,.28);
+}
+.sheet-backdrop.story-back { z-index: 95; }

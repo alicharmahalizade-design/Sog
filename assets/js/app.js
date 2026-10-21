@@ -906,6 +906,11 @@
     return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
   }
 
+  /* لینک اشتراکِ سوگ فوری: صفحه‌ی اصلی با همین پاپ‌آپ باز */
+  function noticeUrl(id) {
+    return location.origin + location.pathname.replace(/[^/]*$/, "") + "index.html?notice=" + encodeURIComponent(id);
+  }
+
   /* ---------- کادر اطلاعیه‌ی سوگ ----------
      کلیک روی کارتِ ثبت سریع، به‌جای صفحه‌ی تکی، همین کادر را باز می‌کند و
      دقیقاً همان چیزی را نشان می‌دهد که هنگام ثبت پر شده است. */
@@ -916,6 +921,7 @@
     sheet.setAttribute("aria-modal", "true");
 
     function done() {
+      document.removeEventListener("keydown", onKey);
       sheet.classList.remove("is-in"); back.classList.remove("is-in");
       setTimeout(function () { sheet.remove(); back.remove(); document.body.style.overflow = ""; }, 200);
     }
@@ -951,30 +957,22 @@
       bell.addEventListener("click", paintPhone);
       tiles.appendChild(bell);
 
-      /* استوری: همان تصویر استوری صفحه‌ی آگهی ساخته و نمایش داده می‌شود */
+      /* استوری / اشتراک: تصویر استوری همین‌جا ساخته می‌شود (سوگ فوری صفحه‌ی تکی ندارد) */
       var story = el("button", "nt-tile");
       story.type = "button";
-      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری</span>";
+      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری / اشتراک</span>";
       story.addEventListener("click", function () {
-        location.href = "listing.html?id=" + encodeURIComponent(item.id) + "&story=1";
+        done();
+        SogStoryMaker.open({
+          deceased_name: item.deceased_name, photo: item.photo,
+          family: { father: { name: item.father || "", tayefe: item.tayefe || "" } }
+        }, {
+          label: "اطلاعیه درگذشت", shareLabel: "استوری / اشتراک",
+          text: "اطلاعیه درگذشت " + item.deceased_name + " — سایت سوگ",
+          url: noticeUrl(item.id)
+        });
       });
       tiles.appendChild(story);
-
-      var share = el("button", "nt-tile");
-      share.type = "button";
-      share.innerHTML = '<span class="nt-ic">' + SogIcon("share", 22) + "</span><span>اشتراک لینک</span>";
-      share.addEventListener("click", function () {
-        var url = location.origin + location.pathname.replace(/[^/]*$/, "") + "listing.html?id=" + item.id;
-        if (navigator.share) navigator.share({ title: item.deceased_name, url: url }).catch(function () {});
-        else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("لینک کپی شد."); });
-      });
-      tiles.appendChild(share);
-
-      var cta = sheet.querySelector(".nt-cta");
-      var close = el("button", "nt-close", SogIcon("logout", 20) + "<span>بستن</span>");
-      close.type = "button";
-      close.addEventListener("click", done);
-      cta.appendChild(close);
     }
 
     function paintPhone() {
@@ -1008,6 +1006,22 @@
 
     paintInfo();
     back.addEventListener("click", done);
+    /* بستن: لمس بیرون، کشیدن به پایین یا Esc (دکمه‌ی جداگانه ندارد) */
+    var y0 = null;
+    sheet.addEventListener("touchstart", function (e) { y0 = sheet.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+    sheet.addEventListener("touchmove", function (e) {
+      if (y0 == null) return;
+      var dy = e.touches[0].clientY - y0;
+      if (dy > 0) sheet.style.transform = "translateY(" + dy + "px)";
+    }, { passive: true });
+    sheet.addEventListener("touchend", function (e) {
+      if (y0 == null) return;
+      var dy = e.changedTouches[0].clientY - y0; y0 = null;
+      sheet.style.transform = "";
+      if (dy > 90) done();
+    });
+    function onKey(e) { if (e.key === "Escape") done(); }
+    document.addEventListener("keydown", onKey);
     document.body.appendChild(back); document.body.appendChild(sheet);
     document.body.style.overflow = "hidden";
     requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
@@ -1426,7 +1440,12 @@
     renderCities();
     renderToolbar();
     /* اولین ورود: صفحه‌ی انتخاب استان و شهر */
-    if (!SogStore.isCityPicked()) setTimeout(function () { openProvincePicker(); }, 300);
+    /* لینک اشتراکِ سوگ فوری (index.html?notice=…): مستقیم پاپ‌آپ همان اطلاعیه */
+    var nid = PARAMS.get("notice");
+    var nItem = nid && DATA.listings.filter(function (x) { return String(x.id) === String(nid); })[0];
+    if (nid) history.replaceState(null, "", location.pathname);
+    if (nItem) setTimeout(function () { SogStore.markSeen(nItem.id); openNoticeSheet(nItem); }, 200);
+    else if (!SogStore.isCityPicked()) setTimeout(function () { openProvincePicker(); }, 300);
     renderFeed();
     bindSearch();
     bindVoice();
