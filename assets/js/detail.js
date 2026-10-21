@@ -367,7 +367,7 @@
     var mine = myDonations().filter(function (x) { return String(x.listing) === String(id); });
     card.innerHTML =
       '<span class="cc-ico">' + SogIcon("condole", 24) + "</span>" +
-      '<span class="cc-text"><b>خیرات به نیت ' + esc(d.deceased_name) + "</b>" +
+      '<span class="cc-text"><b>به نیت ' + esc(d.deceased_name) + "</b>" +
       "<small>" + (mine.length ? "شما " + faNum(mine.length) + " بار خیرات کرده‌اید · باز هم" : "کودکان سرطانی، کمیته امداد، هلال احمر، زندانیان، بهزیستی") + "</small></span>" +
       '<span class="cc-go">خیرات</span>';
     card.addEventListener("click", function () { loadCharities().then(function () { openCharitySheet(d); }); });
