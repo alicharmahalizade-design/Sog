@@ -951,15 +951,24 @@
       bell.addEventListener("click", paintPhone);
       tiles.appendChild(bell);
 
+      /* استوری: همان تصویر استوری صفحه‌ی آگهی ساخته و نمایش داده می‌شود */
       var story = el("button", "nt-tile");
       story.type = "button";
-      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری / اشتراک</span>";
+      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری</span>";
       story.addEventListener("click", function () {
+        location.href = "listing.html?id=" + encodeURIComponent(item.id) + "&story=1";
+      });
+      tiles.appendChild(story);
+
+      var share = el("button", "nt-tile");
+      share.type = "button";
+      share.innerHTML = '<span class="nt-ic">' + SogIcon("share", 22) + "</span><span>اشتراک لینک</span>";
+      share.addEventListener("click", function () {
         var url = location.origin + location.pathname.replace(/[^/]*$/, "") + "listing.html?id=" + item.id;
         if (navigator.share) navigator.share({ title: item.deceased_name, url: url }).catch(function () {});
         else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("لینک کپی شد."); });
       });
-      tiles.appendChild(story);
+      tiles.appendChild(share);
 
       var cta = sheet.querySelector(".nt-cta");
       var close = el("button", "nt-close", SogIcon("logout", 20) + "<span>بستن</span>");

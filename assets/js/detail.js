@@ -228,6 +228,12 @@
 
     root.appendChild(hero(d));
     stickyBar(d);
+    /* از اطلاعیه‌ی سوگ فوری با «استوری» آمده‌ایم: پنجره‌ی استوری خودکار باز شود */
+    if (new URLSearchParams(location.search).get("story") === "1" && !render._story) {
+      render._story = true;
+      setTimeout(function () { openStory(d); }, 300);
+      try { history.replaceState(null, "", location.pathname + "?id=" + encodeURIComponent(id)); } catch (e) {}
+    }
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
@@ -1937,6 +1943,9 @@
 
   /* برچسب نوع مراسم از روی مراسم‌های آگهی */
   function ceremonyLabel(d) {
+    /* اطلاعیه‌ی سوگ فوری هنوز مراسمی ندارد */
+    var lst = ALL_LISTINGS.filter(function (x) { return String(x.id) === String(d.id != null ? d.id : id); })[0];
+    if (lst && (lst.is_notice || !(lst.ceremony_labels && lst.ceremony_labels.length))) return "اطلاعیه درگذشت";
     var names = (d.ceremonies || []).map(function (c) { return c.title; }).filter(Boolean);
     if (d.chehelom && d.chehelom.title) names.push(d.chehelom.title);
     var uniq = [];

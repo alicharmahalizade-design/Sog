@@ -870,7 +870,7 @@ option { direction: rtl; text-align: right; }
 }
 
 /* دو کاشیِ هم‌اندازه: اطلاع‌رسانی و استوری */
-.notice-sheet .nt-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.notice-sheet .nt-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
 .notice-sheet .nt-tile {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   background: #161616; border: none; border-radius: 20px; padding: 10px 8px 14px; cursor: pointer;
