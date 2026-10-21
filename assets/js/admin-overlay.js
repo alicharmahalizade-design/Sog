@@ -14,8 +14,7 @@
   var DEFAULT_SETTINGS = {
     needsTitle: "نیازمندی‌های مراسمات",
     needsSub: "چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط",
-    condFirst: 12,
-    condStep: 40,
+    condPages: "5,7,12,15",
     reportHideAt: 3,
     notice: ""
   };

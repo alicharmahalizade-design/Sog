@@ -67,14 +67,22 @@
   /* همدردی‌های ثبت‌شده در Supabase برای این آگهی، هم‌شکل داده‌ی JSON */
   function dbCondolences() {
     if (!DB) return Promise.resolve([]);
-    return DB.select("condolences", "select=id,name,message,kind,verified,created_at&listing_id=eq." +
+    return DB.select("condolences", "select=id,name,message,kind,avatar_url,verified,created_at&listing_id=eq." +
       encodeURIComponent(id) + "&status=eq.published&order=created_at.desc&limit=2000")
       .then(function (rows) {
         return (rows || []).map(function (r) {
           return { db_id: r.id, name: r.name, message: r.message, kind: r.kind, verified: r.verified,
-                   date: isoToJalali(r.created_at), logo: r.kind === "org" ? "assets/img/org-1.svg" : "assets/img/portrait-1.svg" };
+                   date: isoToJalali(r.created_at),
+                   logo: r.avatar_url || (r.kind === "org" ? "assets/img/org-1.svg" : "assets/img/portrait-1.svg") };
         });
       }).catch(function () { return []; });
+  }
+  /* عکس پروفایل کاربرِ واردشده (از صفحه‌ی حساب کاربری) */
+  function myAvatar() {
+    try {
+      var uid = window.SogStore && SogStore.getActiveId ? SogStore.getActiveId() : "";
+      return localStorage.getItem("sog:avatar:" + (uid || "guest")) || localStorage.getItem("sog:avatar") || "";
+    } catch (e) { return ""; }
   }
   function isoToJalali(iso) {
     try {
@@ -1478,8 +1486,9 @@
   function myCondolenceItem(d, entry) {
     var item = el("div", "condolence-item is-mine is-open");
     var head = el("div", "cond-head");
-    head.innerHTML = '<span class="cond-logo mine-avatar">' +
-      '' + SogIcon("user", 22) + '</span>' +
+    var av = myAvatar();
+    head.innerHTML = (av ? '<img class="cond-logo" src="' + esc(av) + '" alt="">'
+      : '<span class="cond-logo mine-avatar">' + SogIcon("user", 22) + '</span>') +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
       '<span class="mine-badge">شما</span>';
     var body = el("div", "cond-body");
@@ -1631,7 +1640,16 @@
       var sendBtn = form.querySelector('button[type="submit"]');
       sendBtn.disabled = true;
       var args = { p_name: entry.name, p_message: entry.message, p_kind: kind, p_melli: entry.melli || null };
-      var call = editing && editing.db_id && editing.token
+      /* عکس پروفایل یک‌بار بارگذاری می‌شود تا برای همه کنار همدردی دیده شود */
+      var av = myAvatar();
+      var avUp = !av ? Promise.resolve(null)
+        : /^https:/.test(av) ? Promise.resolve(av)
+        : (editing && editing.avatar_src === av && editing.avatar_url) ? Promise.resolve(editing.avatar_url)
+        : DB.upload(av, "avatars").catch(function () { return null; });
+      var call = avUp.then(function (avUrl) {
+        args.p_avatar = avUrl;
+        entry.avatar_src = av; entry.avatar_url = avUrl;
+        return editing && editing.db_id && editing.token
         ? DB.rpc("edit_condolence", Object.assign({ p_id: editing.db_id, p_token: editing.token }, args)).then(function (ok) {
             if (!ok) throw new Error("not found");
             entry.db_id = editing.db_id; entry.token = editing.token;
@@ -1641,6 +1659,7 @@
             if (!r) throw new Error("no id");
             entry.db_id = r.id; entry.token = r.owner_token;
           });
+      });
       call.then(finish).catch(function (err) {
         console.error(err);
         sendBtn.disabled = false;
@@ -1725,18 +1744,25 @@
     var box = el("div", "cond-box");
     var shown = 0;
     var st = adminSet();
-    var COND_FIRST = +st.condFirst || 12, COND_STEP = +st.condStep || 40;
+    /* اول ۵ تا، سپس با هر «همدردی‌های بیشتر» ۷، بعد ۱۲، و از آن به بعد ۱۵ تا ۱۵ تا (از تنظیمات پنل) */
+    var PAGES = String(st.condPages || "5,7,12,15").replace(/[۰-۹]/g, function (x) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(x); })
+      .split(/[^0-9]+/).map(Number).filter(function (n) { return n > 0; });
+    if (!PAGES.length) PAGES = [5, 7, 12, 15];
+    var clicks = 0;
     function showMore(n) {
       list.slice(shown, shown + n).forEach(function (cd) { box.appendChild(condolenceItem(cd, d, isOwner)); });
       shown = Math.min(list.length, shown + n);
       if (shown >= list.length && more.parentNode) more.remove();
     }
-    var more = el("button", "cond-more", "<span>دیدن همدردی بیشتر</span>" + ICON.chevron);
+    var more = el("button", "cond-more", "<span>همدردی‌های بیشتر</span>" + ICON.chevron);
     more.type = "button";
-    more.addEventListener("click", function () { showMore(COND_STEP); });
+    more.addEventListener("click", function () {
+      clicks++;
+      showMore(PAGES[Math.min(clicks, PAGES.length - 1)]);
+    });
     if (list.length) inner.appendChild(box);
-    if (list.length > COND_FIRST) inner.appendChild(more);
-    showMore(COND_FIRST);
+    if (list.length > PAGES[0]) inner.appendChild(more);
+    showMore(PAGES[0]);
 
     var actions = el("div", "cond-actions");
     var reg = el("div", "cond-action");

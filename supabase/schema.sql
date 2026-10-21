@@ -94,15 +94,17 @@ create table if not exists public.condolences (
   message     text not null check (char_length(message) between 1 and 3000),
   kind        text not null default 'person' check (kind in ('person', 'org')),
   org_melli   text,
+  avatar_url  text,
   verified    boolean not null default false,
   status      text not null default 'published' check (status in ('published', 'hidden', 'deleted')),
   owner_token uuid not null default gen_random_uuid(),
   created_at  timestamptz not null default now()
 );
+alter table public.condolences add column if not exists avatar_url text;
 create index if not exists condolences_listing_idx on public.condolences (listing_id, created_at);
 alter table public.condolences enable row level security;
 revoke all on public.condolences from anon, authenticated;
-grant select (id, listing_id, name, message, kind, verified, status, created_at) on public.condolences to anon;
+grant select (id, listing_id, name, message, kind, avatar_url, verified, status, created_at) on public.condolences to anon;
 grant select, update, delete on public.condolences to authenticated;
 drop policy if exists "condolences: public reads published" on public.condolences;
 create policy "condolences: public reads published" on public.condolences
@@ -115,21 +117,26 @@ create policy "condolences: admin deletes" on public.condolences
   for delete to authenticated using (public.is_admin());
 
 -- ثبت همدردی؛ رمز ویرایش فقط به خودِ نویسنده برگردانده می‌شود
+drop function if exists public.add_condolence(text, text, text, text, text);
+drop function if exists public.edit_condolence(bigint, uuid, text, text, text, text);
 create or replace function public.add_condolence(p_listing text, p_name text, p_message text,
-                                                 p_kind text default 'person', p_melli text default null)
+                                                 p_kind text default 'person', p_melli text default null,
+                                                 p_avatar text default null)
 returns table (id bigint, owner_token uuid)
 language plpgsql security definer set search_path = public as $$
 begin
   if p_kind not in ('person', 'org') then raise exception 'bad kind'; end if;
   if p_kind = 'org' and (p_melli is null or p_melli !~ '^[0-9]{10}$') then raise exception 'melli required'; end if;
   return query
-    insert into public.condolences (listing_id, name, message, kind, org_melli)
-    values (left(p_listing, 80), trim(p_name), trim(p_message), p_kind, case when p_kind = 'org' then p_melli end)
+    insert into public.condolences (listing_id, name, message, kind, org_melli, avatar_url)
+    values (left(p_listing, 80), trim(p_name), trim(p_message), p_kind, case when p_kind = 'org' then p_melli end,
+            case when p_avatar ~ '^https://' then left(p_avatar, 500) end)
     returning condolences.id, condolences.owner_token;
 end $$;
 
 create or replace function public.edit_condolence(p_id bigint, p_token uuid, p_name text, p_message text,
-                                                  p_kind text default 'person', p_melli text default null)
+                                                  p_kind text default 'person', p_melli text default null,
+                                                  p_avatar text default null)
 returns boolean
 language plpgsql security definer set search_path = public as $$
 begin
@@ -137,6 +144,7 @@ begin
   if p_kind = 'org' and (p_melli is null or p_melli !~ '^[0-9]{10}$') then raise exception 'melli required'; end if;
   update public.condolences
      set name = trim(p_name), message = trim(p_message), kind = p_kind,
+         avatar_url = case when p_avatar ~ '^https://' then left(p_avatar, 500) else avatar_url end,
          org_melli = case when p_kind = 'org' then p_melli end,
          verified = case when p_kind = 'org' and kind = 'org' and org_melli = p_melli then verified else false end
    where condolences.id = p_id and owner_token = p_token and status <> 'deleted';
@@ -151,11 +159,11 @@ begin
    where condolences.id = p_id and owner_token = p_token;
   return found;
 end $$;
-revoke all on function public.add_condolence(text, text, text, text, text) from public;
-revoke all on function public.edit_condolence(bigint, uuid, text, text, text, text) from public;
+revoke all on function public.add_condolence(text, text, text, text, text, text) from public;
+revoke all on function public.edit_condolence(bigint, uuid, text, text, text, text, text) from public;
 revoke all on function public.delete_condolence(bigint, uuid) from public;
-grant execute on function public.add_condolence(text, text, text, text, text) to anon, authenticated;
-grant execute on function public.edit_condolence(bigint, uuid, text, text, text, text) to anon, authenticated;
+grant execute on function public.add_condolence(text, text, text, text, text, text) to anon, authenticated;
+grant execute on function public.edit_condolence(bigint, uuid, text, text, text, text, text) to anon, authenticated;
 grant execute on function public.delete_condolence(bigint, uuid) to anon, authenticated;
 
 -- ---------- گزارش‌های خطا ----------
