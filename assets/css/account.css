@@ -330,3 +330,7 @@ button.acc-sub { width: 100%; border: none; font-family: inherit; text-align: st
   background: transparent; color: var(--text-dim); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
 }
 .acc-sub-btn.is-danger { color: #e07070; border-color: rgba(224,112,112,.4); }
+.acc-clean {
+  width: 100%; height: 40px; border-radius: 12px; border: 1px dashed rgba(224,112,112,.5);
+  background: rgba(224,112,112,.08); color: #e07070; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}

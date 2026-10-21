@@ -134,14 +134,28 @@
       return { title: c.name, sub: bits.join(" • "), photo: c.photo, href: "listing.html?id=" + c.id };
     }, "هنوز در آگهی‌ای همدردی ثبت نکرده‌اید."));
 
-    box.appendChild(accRow("آگهی‌های من", myListingItems(), function (it) {
+    var mine = myListingItems();
+    var orphans = mine.filter(function (it) { return it._orphan; });
+    var myRow = accRow("آگهی‌های من", mine, function (it) {
       var canEdit = it._rawId && SogStore.getMyAdForm && SogStore.getMyAdForm(it._rawId);
       var acts = [];
       if (canEdit) acts.push({ label: "ویرایش", fn: function () { location.href = "register.html?edit=" + encodeURIComponent(it._rawId); } });
       acts.push({ label: "حذف", danger: true, fn: function () { removeMyListing(it); } });
       return { title: it.deceased_name, sub: it.city, photo: it.photo,
         href: it.id ? "listing.html?id=" + it.id : null, actions: acts };
-    }, "هنوز آگهی ثبت نکرده‌اید."));
+    }, "هنوز آگهی ثبت نکرده‌اید.");
+    if (orphans.length) {
+      var clean = el("button", "acc-clean", "حذف همه‌ی آگهی‌های ناقص (" + faNum(orphans.length) + ")");
+      clean.type = "button";
+      clean.addEventListener("click", function () {
+        if (!confirm(faNum(orphans.length) + " آگهی ناقص حذف شود؟ آگهی‌های کامل دست نمی‌خورند.")) return;
+        orphans.forEach(function (it) { SogStore.forgetMyAd(it._rawId); });
+        render();
+        toast(faNum(orphans.length) + " آگهی ناقص حذف شد.");
+      });
+      myRow.querySelector(".acc-body").insertBefore(clean, myRow.querySelector(".acc-body").firstChild);
+    }
+    box.appendChild(myRow);
 
     box.appendChild(accRow("سفارش‌های من", myOrders(), function (o) {
       return { title: o.business, sub: (o.service || "") + (o.date ? " • " + o.date : ""), photo: o.logo,
@@ -225,7 +239,8 @@
       var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
       /* آگهی‌هایی که روی همین دستگاه ثبت شده‌اند هنوز در فهرست سرور نیستند */
       if (!item && SogStore.getMyAd) item = SogStore.getMyAd(rawId);
-      item = item ? Object.assign({}, item) : { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
+      /* «ناقص»: نه روی سرور هست نه اطلاعاتش روی این دستگاه */
+      item = item ? Object.assign({}, item) : { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "", _orphan: true };
       item._rawId = rawId;
       return item;
     });
