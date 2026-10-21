@@ -819,3 +819,31 @@
 .mine-btn svg { width: 14px; height: 14px; vertical-align: -2px; }
 .cond-report { display: inline-flex; align-items: center; gap: 6px; color: #b65a5a; border-color: rgba(182,90,90,.55); background: transparent; padding: 6px 14px; }
 .cond-date { margin-inline-start: auto; font-size: 12.5px; color: var(--text-mute); }
+
+/* ===== نوار ثابت بالای صفحه‌ی آگهی (پس از اسکرول) — ارتفاع ۵۶ روی شبکه‌ی ۴ پیکسلی ===== */
+.detail-bar {
+  position: fixed; top: 0; left: 50%; z-index: 60;
+  width: 100%; max-width: var(--frame-w);
+  height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 12px 0;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(10,10,10,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #222;
+  transform: translate(-50%, -100%); opacity: 0; pointer-events: none;
+  transition: transform .22s ease, opacity .22s ease;
+}
+.detail-bar.is-in { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.detail-bar .db-info {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px;
+  background: none; border: none; color: var(--text); text-align: start; padding: 0; font-family: inherit; cursor: pointer;
+}
+.detail-bar .db-photo {
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+  background: #222 center top/cover no-repeat; border: 1px solid rgba(217,154,91,.5);
+}
+.detail-bar .db-text { min-width: 0; display: flex; flex-direction: column; }
+.detail-bar .db-text b { font-size: 15px; line-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.detail-bar .db-text small { font-size: 12px; line-height: 16px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.detail-bar .db-back {
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center; background: #1e1e1e; border: 1px solid #2c2c2c; color: #fff;
+}

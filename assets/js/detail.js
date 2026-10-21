@@ -227,6 +227,7 @@
     document.title = d.deceased_name + " | سوگ";
 
     root.appendChild(hero(d));
+    stickyBar(d);
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
@@ -309,6 +310,33 @@
     wrap.appendChild(el("h1", "detail-name", esc(d.deceased_name)));
     if (d.subtitle) wrap.appendChild(el("p", "detail-subtitle", esc(d.subtitle)));
     return wrap;
+  }
+
+  /* ---------- نوار ثابت بالا: وقتی نام درگذشته از دید خارج شد ظاهر می‌شود ---------- */
+  function stickyBar(d) {
+    var old = document.querySelector(".detail-bar"); if (old) old.remove();
+    var bar = el("div", "detail-bar");
+    bar.setAttribute("aria-hidden", "true");
+    var back = el("button", "db-back", ICON.back); back.type = "button"; back.setAttribute("aria-label", "بازگشت");
+    back.addEventListener("click", function () { if (history.length > 1) history.back(); else location.href = "index.html"; });
+    var photo = (d.photos && d.photos[0]) || "assets/img/portrait-1.svg";
+    var yr = function (o) { var m = /([۰-۹0-9]{4})/.exec((o && o.date) || ""); return m ? m[1] : ""; };
+    var years = [yr(d.birth), yr(d.death)].filter(Boolean).join(" – ");
+    var sub = [years, d.subtitle].filter(Boolean)[0] || "";
+    var info = el("button", "db-info",
+      '<span class="db-photo" style="background-image:url(\'' + esc(photo) + '\')"></span>' +
+      '<span class="db-text"><b>' + esc(d.deceased_name) + "</b>" + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span>");
+    info.type = "button";
+    info.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    bar.appendChild(info); bar.appendChild(back);
+    document.body.appendChild(bar);
+    var target = root.querySelector(".detail-name");
+    if (!target || !("IntersectionObserver" in window)) return;
+    new IntersectionObserver(function (es) {
+      var show = !es[0].isIntersecting && es[0].boundingClientRect.top < 0;
+      bar.classList.toggle("is-in", show);
+      bar.setAttribute("aria-hidden", show ? "false" : "true");
+    }).observe(target);
   }
 
   /* ---------- جعبه اطلاعات ---------- */
