@@ -250,3 +250,4 @@ select.ad-input { appearance: none; -webkit-appearance: none; }
 .ad-modal .ad-form-actions { justify-content: stretch; }
 .ad-modal .ad-form-actions > .ad-btn { flex: 1 1 0; padding-inline: 8px; }
 .ad-modal .ad-form-actions > .ad-btn.is-primary, .ad-modal .ad-form-actions > .ad-btn.is-danger { flex: 3 1 0; }
+.ad-list-title { margin: 18px 4px 10px; }

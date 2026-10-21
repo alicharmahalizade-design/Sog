@@ -1046,6 +1046,7 @@
 
       var mine = JSON.parse(localStorage.getItem("sog:myListings")) || [];
       newId = savedId = "draft-" + Date.now();
+      if (store && store.newOwnerToken) store.newOwnerToken(newId);
       mine.push(newId);
       localStorage.setItem("sog:myListings", JSON.stringify(mine));
 
@@ -1070,7 +1071,8 @@
       if (sendBtn) sendBtn.disabled = true;
       toast("در حال ارسال آگهی…");
       var ad = buildAd(newId || ("draft-" + Date.now()));
-      SogDB.uploadAll({ form: data, ad: ad }, "listings").then(function (payload) {
+      var ownerToken = window.SogStore && SogStore.ownerToken ? SogStore.ownerToken(ad.id) : "";
+      SogDB.uploadAll({ form: data, ad: ad, owner_token: ownerToken }, "listings").then(function (payload) {
         payload.ad.pending = false; payload.ad.is_mine = false;
         return SogDB.insert("submissions", { kind: "listing", payload: payload });
       }).then(function () {

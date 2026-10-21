@@ -21,7 +21,7 @@
 
   function blank() {
     return { listings: {}, newListings: [], condolences: {}, businesses: {},
-             cities: { added: [], hidden: [] }, users: {}, reports: {}, settings: {}, log: [] };
+             cities: { added: [], hidden: [] }, users: {}, reports: {}, settings: {}, log: [], messages: [] };
   }
   var remote = null;
   function parse(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }

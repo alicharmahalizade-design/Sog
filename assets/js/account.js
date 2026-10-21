@@ -11,9 +11,62 @@
 
 
 
-  fetch("data/listings.json").then(function (r) { return r.json(); }).then(function (d) {
-    LISTINGS = d.listings || [];
-  }).catch(function () {}).then(function () {
+  /* ---------- صندوق پیام و گزارش‌های آگهی‌های من ---------- */
+  var INBOX = [], MYREPORTS = [];
+  var DB = window.SogDB && SogDB.enabled ? SogDB : null;
+  function owned() { return SogStore.ownedItems ? SogStore.ownedItems() : []; }
+  function ownedIds() {
+    var ids = owned().map(function (x) { return String(x.id); });
+    myListings().forEach(function (id) { if (ids.indexOf(String(id)) === -1) ids.push(String(id)); });
+    return ids;
+  }
+  function loadInbox() {
+    if (DB) {
+      var items = owned();
+      return Promise.all([
+        DB.rpc("my_inbox", { p_items: items }).catch(function () { return []; }),
+        items.length ? DB.rpc("my_listing_reports", { p_items: items }).catch(function () { return []; }) : []
+      ]).then(function (r) {
+        INBOX = (r[0] || []).map(function (m) { return { id: "db" + m.id, title: m.title, body: m.body, kind: m.kind, at: m.created_at, listing: m.target_listing }; });
+        MYREPORTS = (r[1] || []).map(function (x) { return { id: x.target_id, name: x.target_name, kind: x.kind, type: x.type, note: x.note, at: x.created_at, status: x.status }; });
+      });
+    }
+    /* بدون Supabase: پیام‌های پنل و گزارش‌های همین مرورگر */
+    var st = window.SogAdmin ? SogAdmin.read() : { messages: [] };
+    var mine = ownedIds();
+    INBOX = (st.messages || []).filter(function (m) { return !m.target || mine.indexOf(String(m.target)) !== -1; })
+      .map(function (m) { return { id: m.id, title: m.title, body: m.body, kind: m.kind, at: m.at, listing: m.target }; });
+    var reps = [];
+    try { reps = JSON.parse(localStorage.getItem("sog:reports")) || []; } catch (e) {}
+    MYREPORTS = reps.filter(function (x) { return x.kind !== "business" && mine.indexOf(String(x.id)) !== -1; })
+      .reverse().map(function (x) { return { id: x.id, name: x.listing, kind: x.condolence ? "condolence" : "listing", type: x.type, note: x.note, at: x.at }; });
+    return Promise.resolve();
+  }
+  function readIds() { try { return JSON.parse(localStorage.getItem("sog:inboxRead")) || []; } catch (e) { return []; } }
+  function markRead(id) {
+    var r = readIds(); if (r.indexOf(id) === -1) { r.push(id); try { localStorage.setItem("sog:inboxRead", JSON.stringify(r)); } catch (e) {} }
+  }
+  function faDate(ts) { try { return new Date(ts).toLocaleDateString("fa-IR"); } catch (e) { return ""; } }
+  function openMessage(m) {
+    markRead(m.id);
+    var box = el("div");
+    box.appendChild(el("div", "login-title", esc(m.title)));
+    box.appendChild(el("p", "login-hint", esc(faDate(m.at)) + (m.kind === "admin" ? " · پیام مدیریت" : " · خبر")));
+    if (m.body) box.appendChild(el("p", "inbox-body", esc(m.body).replace(/\n/g, "<br>")));
+    if (m.listing) {
+      var a = el("a", "login-btn inbox-go", "مشاهده‌ی آگهی"); a.href = "listing.html?id=" + encodeURIComponent(m.listing);
+      box.appendChild(a);
+    }
+    var ok = el("button", "login-back", "بستن"); ok.type = "button";
+    ok.addEventListener("click", function () { closeSheet(); render(); });
+    box.appendChild(ok);
+    openSheet(box);
+  }
+
+  Promise.all([
+    fetch("data/listings.json").then(function (r) { return r.json(); }).then(function (d) { LISTINGS = d.listings || []; }).catch(function () {}),
+    loadInbox().catch(function () {})
+  ]).then(function () {
     render();
     /* اگر از نوار پایینِ صفحه‌ی دیگری با نگه‌داشتن آمده‌ایم، فهرست حساب‌ها باز شود */
     if (location.hash === "#accounts") {
@@ -36,6 +89,19 @@
   /* ---------- فعالیت‌های من: چهار ردیف آکاردئونی با شمارنده ---------- */
   function activityList() {
     var box = el("div", "acc-menu");
+
+    var read = readIds();
+    var unread = INBOX.filter(function (m) { return read.indexOf(m.id) === -1; }).length;
+    box.appendChild(accRow("صندوق پیام", INBOX, function (m) {
+      var isNew = read.indexOf(m.id) === -1;
+      return { title: (isNew ? "● " : "") + m.title, sub: faDate(m.at) + (m.body ? " • " + m.body.slice(0, 50) : ""),
+        icon: m.kind === "admin" ? "bell" : "sms", onClick: function () { openMessage(m); } };
+    }, "پیامی ندارید.", unread));
+
+    box.appendChild(accRow("گزارش‌های آگهی‌های من", MYREPORTS, function (r) {
+      return { title: r.name || "آگهی", sub: (r.kind === "condolence" ? "همدردی: " : "") + (r.type || "گزارش خطا") +
+        (r.note ? " — " + r.note : "") + " • " + faDate(r.at), icon: "report", href: "listing.html?id=" + encodeURIComponent(r.id) };
+    }, "برای آگهی‌های شما گزارش خطایی ثبت نشده است."));
 
     box.appendChild(accRow("ذخیره‌شده‌ها", savedItems(), function (it) {
       return { title: it.deceased_name, sub: it.city, photo: it.photo, href: "listing.html?id=" + it.id,
@@ -64,13 +130,13 @@
   }
 
   /* یک ردیف آکاردئونی با شمارنده و فهرست بازشو */
-  function accRow(label, items, mapItem, emptyText) {
+  function accRow(label, items, mapItem, emptyText, badge) {
     var wrap = el("div", "acc-item");
 
     var head = el("button", "acc-row"); head.type = "button";
     head.setAttribute("aria-expanded", "false");
     head.innerHTML = '<span class="ar-label">' + esc(label) + '</span>' +
-      '<span class="ar-count">' + faNum(items.length) + '</span>' +
+      '<span class="ar-count' + (badge ? " is-new" : "") + '">' + faNum(badge || items.length) + '</span>' +
       '<span class="ar-chev">' + SogIcon("chevron", 20) + '</span>';
 
     var body = el("div", "acc-body");
@@ -80,11 +146,13 @@
     } else {
       items.forEach(function (raw) {
         var it = mapItem(raw);
-        var row = it.href ? el("a", "acc-sub") : el("div", "acc-sub");
+        var row = it.href ? el("a", "acc-sub") : el(it.onClick ? "button" : "div", "acc-sub");
         if (it.href) row.href = it.href;
+        if (it.onClick) { row.type = "button"; row.addEventListener("click", it.onClick); }
 
-        var ph = el("span", "acc-sub-photo");
+        var ph = el("span", "acc-sub-photo" + (it.icon ? " is-icon" : ""));
         if (it.photo) ph.style.backgroundImage = 'url("' + it.photo + '")';
+        else if (it.icon && window.SogIcon) ph.innerHTML = SogIcon(it.icon, 18);
         row.appendChild(ph);
 
         var info = el("span", "acc-sub-info");

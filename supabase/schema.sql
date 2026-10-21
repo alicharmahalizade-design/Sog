@@ -278,6 +278,73 @@ $$;
 revoke all on function public.get_thread(text, bigint) from public;
 grant execute on function public.get_thread(text, bigint) to anon, authenticated;
 
+-- ---------- مالکیت آگهی (برای صندوق پیام و گزارش‌های آگهی‌های من) ----------
+-- ثبت‌کننده هنگام ثبت یک رمز تصادفی می‌سازد که فقط روی دستگاه خودش می‌ماند؛
+-- مدیر هنگام تأیید یا رد، رمز را به شناسه‌ی آگهی وصل می‌کند.
+create table if not exists public.listing_owners (
+  listing_id text primary key,
+  token      uuid not null,
+  created_at timestamptz not null default now()
+);
+alter table public.listing_owners enable row level security;
+revoke all on public.listing_owners from anon;
+drop policy if exists "listing_owners: admin manages" on public.listing_owners;
+create policy "listing_owners: admin manages" on public.listing_owners
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- ---------- پیام‌های مدیریتی و خبری ----------
+-- target_listing خالی = برای همه؛ وگرنه فقط برای ثبت‌کننده‌ی همان آگهی
+create table if not exists public.messages (
+  id             bigint generated always as identity primary key,
+  title          text not null check (char_length(title) between 1 and 200),
+  body           text not null default '' check (char_length(body) <= 4000),
+  kind           text not null default 'news' check (kind in ('news', 'admin')),
+  target_listing text,
+  created_at     timestamptz not null default now()
+);
+alter table public.messages enable row level security;
+revoke all on public.messages from anon;
+drop policy if exists "messages: admin manages" on public.messages;
+create policy "messages: admin manages" on public.messages
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- p_items: [{"id": "<شناسه‌ی آگهی>", "token": "<رمز مالکیت>"}, ...]
+create or replace function public.my_inbox(p_items jsonb default '[]'::jsonb)
+returns table (id bigint, title text, body text, kind text, target_listing text, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  with mine as (
+    select o.listing_id
+      from public.listing_owners o
+      join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
+        on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
+  )
+  select m.id, m.title, m.body, m.kind, m.target_listing, m.created_at
+    from public.messages m
+   where m.target_listing is null or m.target_listing in (select listing_id from mine)
+   order by m.id desc
+   limit 200;
+$$;
+
+create or replace function public.my_listing_reports(p_items jsonb default '[]'::jsonb)
+returns table (id bigint, kind text, target_id text, target_name text, type text, note text, status text, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  with mine as (
+    select o.listing_id
+      from public.listing_owners o
+      join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
+        on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
+  )
+  select r.id, r.kind, r.target_id, r.target_name, r.type, r.note, r.status, r.created_at
+    from public.reports r
+   where r.kind in ('listing', 'condolence') and r.target_id in (select listing_id from mine)
+   order by r.id desc
+   limit 300;
+$$;
+revoke all on function public.my_inbox(jsonb) from public;
+revoke all on function public.my_listing_reports(jsonb) from public;
+grant execute on function public.my_inbox(jsonb) to anon, authenticated;
+grant execute on function public.my_listing_reports(jsonb) to anon, authenticated;
+
 -- ---------- تصمیم‌ها و تنظیمات مدیر (یک ردیف) ----------
 create table if not exists public.site_state (
   id         int primary key default 1 check (id = 1),

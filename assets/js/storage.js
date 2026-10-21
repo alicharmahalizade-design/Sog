@@ -212,6 +212,24 @@
     /* ----- آگهی‌های ثبت‌شده روی همین دستگاه -----
        بدون بک‌اند، آگهی تازه جایی برای انتشار ندارد؛ تا آن زمان روی همین
        دستگاه نگه داشته و در فهرست‌ها نشان داده می‌شود. */
+    /* رمز مالکیت هر آگهی ثبت‌شده روی این دستگاه (برای صندوق پیام و گزارش‌های آگهی‌های من) */
+    newOwnerToken: function (id) {
+      var m = readMap("sog:ownerTokens");
+      var t = "";
+      try { t = crypto.randomUUID(); } catch (e) {
+        t = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+          var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+        });
+      }
+      m[id] = t; writeMap("sog:ownerTokens", m);
+      return t;
+    },
+    ownerToken: function (id) { return readMap("sog:ownerTokens")[id] || ""; },
+    /* [{id, token}] همه‌ی آگهی‌هایی که این دستگاه ثبت کرده */
+    ownedItems: function () {
+      var m = readMap("sog:ownerTokens");
+      return Object.keys(m).map(function (k) { return { id: k, token: m[k] }; });
+    },
     getMyAds: function () { try { return JSON.parse(localStorage.getItem(MYADS_KEY)) || []; } catch (e) { return []; } },
     addMyAd: function (ad) {
       var all = Store.getMyAds();

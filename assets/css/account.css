@@ -316,3 +316,10 @@
   -webkit-user-select: none; user-select: none;
   touch-action: manipulation;
 }
+
+/* صندوق پیام و گزارش‌های آگهی‌های من */
+.acc-sub-photo.is-icon { display: grid; place-items: center; color: var(--accent); background: rgba(217,154,91,.14); }
+button.acc-sub { width: 100%; border: none; font-family: inherit; text-align: start; cursor: pointer; }
+.ar-count.is-new { background: var(--badge); color: #fff; }
+.inbox-body { font-size: 14px; line-height: 2; color: var(--text); margin: 0 0 16px; overflow-wrap: anywhere; }
+.inbox-go { display: block; text-align: center; text-decoration: none; }

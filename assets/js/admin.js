@@ -65,7 +65,7 @@
 
   /* ---------- وضعیت ---------- */
   var D = { listings: [], details: {}, businesses: [], categories: [], cities: [], users: [], provinces: {},
-            db: { listings: [], businesses: [], subs: [], conds: [], reports: [], msgs: [] } };
+            db: { listings: [], businesses: [], subs: [], conds: [], reports: [], msgs: [], inbox: [] } };
   var S = A.read();
   var BASE = clone(S);          /* نسخه‌ای که S از آن ساخته شده؛ برای ذخیره‌ی فقط تغییرات */
   var view = "dash";
@@ -126,9 +126,10 @@
       q("submissions", "select=*&order=created_at.desc&limit=1000"),
       q("condolences", "select=id,listing_id,name,message,kind,org_melli,verified,status,created_at&order=created_at.desc&limit=3000"),
       q("reports", "select=*&order=created_at.desc&limit=1000"),
-      q("support_messages", "select=*&order=id.asc&limit=5000")
+      q("support_messages", "select=*&order=id.asc&limit=5000"),
+      q("messages", "select=*&order=id.desc&limit=500")
     ]).then(function (r) {
-      D.db = { listings: r[0], businesses: r[1], subs: r[2], conds: r[3], reports: r[4], msgs: r[5] };
+      D.db = { listings: r[0], businesses: r[1], subs: r[2], conds: r[3], reports: r[4], msgs: r[5], inbox: r[6] };
     });
   }
   function reloadAll() { return Promise.all([loadDB(), DB ? A.reload().then(function (st) { S = st; BASE = clone(st); }) : null]); }
@@ -399,6 +400,7 @@
     { key: "businesses", label: "کسب‌وکارها", icon: IC.biz },
     { key: "reports", label: "گزارش‌های خطا", icon: IC.report },
     { key: "support", label: "پشتیبانی", icon: IC.chat },
+    { key: "messages", label: "پیام‌ها و اخبار", icon: "M4 6h16v12H4zM4 7l8 6 8-6" },
     { key: "users", label: "کاربران", icon: IC.users },
     { key: "cities", label: "شهرها", icon: IC.city },
     { key: "settings", label: "تنظیمات", icon: IC.settings }
@@ -794,6 +796,14 @@
     pendingLocal();
   };
 
+  /* اتصال آگهی به ثبت‌کننده‌اش و فرستادن پیام به صندوق او */
+  function notifyOwner(token, listingId, title, body) {
+    if (!token) return Promise.resolve();
+    return DB.upsert("listing_owners", { listing_id: String(listingId), token: token })
+      .then(function () { return DB.insert("messages", { title: title, body: body, kind: "admin", target_listing: String(listingId) }); })
+      .catch(function (e) { console.error("notify", e); });
+  }
+
   /* با Supabase: آگهی‌ها و کسب‌وکارهای فرستاده‌شده از همه‌ی کاربران */
   function pendingDB() {
     main.appendChild(el("p", "ad-intro", "آگهی‌ها و کسب‌وکارهایی که کاربران از فرم‌های «ثبت سوگ» و «ثبت کسب‌وکار» فرستاده‌اند. پس از تأیید برای همه منتشر می‌شوند."));
@@ -826,6 +836,11 @@
       acts.appendChild(actBtn("رد", "is-danger", function () {
         confirmBox("«" + title + "» رد شود؟ برای کاربران منتشر نمی‌شود.", "رد", function () {
           DB.update("submissions", "id=eq." + sub.id, { status: "rejected", reviewed_at: new Date().toISOString() })
+            .then(function () {
+              if (isBiz) return;
+              return notifyOwner(P.owner_token, String(ad.id || "s" + sub.id), "آگهی «" + title + "» منتشر نشد",
+                "آگهی شما پس از بررسی منتشر نشد. برای اطلاع از دلیل یا اصلاح آن، از «پشتیبانی» با ما در تماس باشید.");
+            })
             .then(function () { logAct("«" + title + "» رد شد"); return loadDB(); }).then(refresh).catch(dbFail);
         });
       }));
@@ -837,6 +852,11 @@
         DB.upsert(isBiz ? "businesses" : "listings", { id: pubId, data: data, status: "published" })
           .then(function () {
             return DB.update("submissions", "id=eq." + sub.id, { status: "approved", published_id: pubId, reviewed_at: new Date().toISOString() });
+          })
+          .then(function () {
+            if (isBiz) return;
+            return notifyOwner(P.owner_token, pubId, "آگهی «" + title + "» منتشر شد",
+              "آگهی شما بررسی و برای همه منتشر شد. از «آگهی‌های من» می‌توانید آن را ببینید.");
           })
           .then(function () { logAct("«" + title + "» تأیید و منتشر شد"); return loadDB(); })
           .then(refresh).catch(dbFail);
@@ -1205,6 +1225,79 @@
     main.appendChild(box);
     log.scrollTop = log.scrollHeight;
   }
+
+  /* ---- پیام‌ها و اخبار (صندوق پیام کاربران) ---- */
+  function sentMessages() {
+    if (DB) return D.db.inbox.map(function (m) { return { id: m.id, title: m.title, body: m.body, kind: m.kind, target: m.target_listing, at: m.created_at }; });
+    return (S.messages || []).slice().sort(function (a, b) { return b.at - a.at; });
+  }
+  function ownedListings() {
+    var names = {};
+    allListings().forEach(function (l) { names[l.id] = l.deceased_name; });
+    if (!DB) return allListings().map(function (l) { return [String(l.id), l.deceased_name]; });
+    var out = [], seen = {};
+    D.db.subs.forEach(function (x) {
+      if (x.kind !== "listing" || !x.payload || !x.payload.owner_token) return;
+      var id = String(x.published_id || (x.payload.ad && x.payload.ad.id) || "");
+      if (!id || seen[id]) return;
+      seen[id] = 1;
+      out.push([id, names[id] || (x.payload.ad && x.payload.ad.deceased_name) || id]);
+    });
+    return out;
+  }
+  VIEWS.messages = function () {
+    main.appendChild(el("p", "ad-intro", "پیام‌ها در «صندوق پیام» صفحه‌ی حساب کاربری نمایش داده می‌شوند: برای همه، یا فقط برای ثبت‌کننده‌ی یک آگهی."));
+    var card = el("section", "ad-card");
+    card.appendChild(el("h2", "ad-card-title", "پیام تازه"));
+    var f = el("form", "ad-form");
+    var opts = [["", "همه‌ی کاربران (خبر)"]].concat(ownedListings().map(function (o) { return [o[0], "ثبت‌کننده‌ی آگهی «" + o[1] + "»"]; }));
+    f.innerHTML = '<label class="ad-field"><span>گیرنده</span><select class="ad-input" name="to"></select></label>' +
+      '<label class="ad-field"><span>عنوان *</span><input class="ad-input" name="title" maxlength="200" required></label>' +
+      '<label class="ad-field"><span>متن</span><textarea class="ad-input" name="body" rows="4" maxlength="4000"></textarea></label>';
+    opts.forEach(function (o) { var op = el("option", null, esc(o[1])); op.value = o[0]; f.to.appendChild(op); });
+    var row = el("div", "ad-form-actions");
+    var send = el("button", "ad-btn is-primary", "ارسال پیام"); send.type = "submit";
+    row.appendChild(send); f.appendChild(row);
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = { title: f.title.value.trim(), body: f.body.value.trim(), kind: f.to.value ? "admin" : "news", target: f.to.value || null };
+      if (!msg.title) return;
+      send.disabled = true;
+      var done = function () { logAct("پیام «" + msg.title + "» ارسال شد"); };
+      if (DB) {
+        DB.insert("messages", { title: msg.title, body: msg.body, kind: msg.kind, target_listing: msg.target })
+          .then(done).then(loadDB).then(refresh).catch(function (er) { send.disabled = false; dbFail(er); });
+      } else {
+        S.messages = (S.messages || []).concat([Object.assign({ id: "m" + Date.now(), at: Date.now() }, msg)]);
+        done(); refresh();
+      }
+    });
+    card.appendChild(f);
+    main.appendChild(card);
+
+    var list = el("div", "ad-list");
+    main.appendChild(el("h2", "ad-card-title ad-list-title", "پیام‌های ارسال‌شده"));
+    main.appendChild(list);
+    var names = {};
+    ownedListings().forEach(function (o) { names[o[0]] = o[1]; });
+    var items = sentMessages();
+    if (!items.length) return empty(list, "هنوز پیامی نفرستاده‌اید.");
+    items.forEach(function (m) {
+      var r = el("article", "ad-row is-stack");
+      r.innerHTML = '<div class="ad-row-title">' + esc(m.title) + ' <span class="ad-pill is-' + (m.target ? "info" : "ok") + '">' +
+        (m.target ? "برای ثبت‌کننده‌ی «" + esc(names[m.target] || m.target) + "»" : "همه") + "</span></div>" +
+        '<div class="ad-row-sub">' + faDate(m.at) + " " + faTime(m.at) + "</div>" + (m.body ? '<p class="ad-msg">' + esc(m.body) + "</p>" : "");
+      var acts = el("div", "ad-row-acts");
+      acts.appendChild(actBtn("حذف", "is-danger", function () {
+        confirmBox("پیام «" + m.title + "» از صندوق کاربران حذف شود؟", "حذف", function () {
+          if (DB) DB.remove("messages", "id=eq." + m.id).then(function () { logAct("پیام «" + m.title + "» حذف شد"); }).then(loadDB).then(refresh).catch(dbFail);
+          else { S.messages = (S.messages || []).filter(function (x) { return x.id !== m.id; }); logAct("پیام «" + m.title + "» حذف شد"); refresh(); }
+        });
+      }));
+      r.appendChild(acts);
+      list.appendChild(r);
+    });
+  };
 
   /* ---- کاربران ---- */
   VIEWS.users = function () {
