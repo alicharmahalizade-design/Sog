@@ -8,8 +8,8 @@
   <meta name="description" content="خدمات و کسب‌وکارهای مراسم سوگ: قاری قرآن، سنگ قبر، چاپ، گل، تشریفات و سفارش سریع.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/img/icon-192-v2.png" type="image/png">
-  <link rel="stylesheet" href="assets/css/styles.css?v=178">
-  <link rel="stylesheet" href="assets/css/business.css?v=178">
+  <link rel="stylesheet" href="assets/css/styles.css?v=179">
+  <link rel="stylesheet" href="assets/css/business.css?v=179">
 </head>
 <body data-nav="business">
   <div class="app-frame">
@@ -36,38 +36,14 @@
       <a href="business.html" class="tab is-active">خدمات مراسمات</a>
     </div>
 
-    <div class="city-row">
-      <button type="button" class="city-picker-btn" id="cityPickerBtn" aria-label="انتخاب شهر">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-        <span id="cityPickerLabel">کل ایران</span>
-      </button>
-      <nav class="city-bar" id="cityBar" aria-label="انتخاب شهر"></nav>
-    </div>
-
+    <!-- معرفی و انتخاب شهر -->
+    <section class="bh-hero" id="bhHero"></section>
     <!-- استوری کسب‌وکارها -->
     <section class="story-bar" id="storyBar" hidden aria-label="استوری کسب‌وکارها"></section>
-    <!-- ورود به ثبت کسب‌وکار -->
-    <a class="biz-join" href="biz-register.html">
-      <span class="biz-join-txt"><b>کسب‌وکار خود را ثبت کنید</b><span>ماه اول رایگان؛ سپس ماهانه ۳۰۰ هزار تومان</span></span>
-      <span class="biz-join-btn">یک ماه رایگان</span>
-    </a>
-
-    <section class="cat-section" id="gridView">
-      <h2 class="block-title">دسته‌بندی خدمات</h2>
-      <div class="cat-grid" id="catGrid"></div>
-    </section>
-
-    <section class="acc-section" id="accView" hidden>
-      <div class="acc-list" id="accList"></div>
-    </section>
-
-    <section class="featured-section" id="featuredSection" hidden>
-      <h2 class="block-title">کسب‌وکارهای ویژه</h2>
-      <div class="featured-track" id="featuredTrack"></div>
-    </section>
-
-    <main id="bizList" class="biz-list"></main>
-    <div id="emptyState" class="empty-state" hidden><p>کسب‌وکاری برای این بخش یافت نشد.</p></div>
+    <!-- دسته‌ها (چسبان) -->
+    <nav class="bh-cats" id="bhCats" aria-label="دسته‌های خدمات"></nav>
+    <!-- خانه‌ی خدمات یا فهرست نتایج -->
+    <main class="bz-main" id="bzMain"><div class="bh-skel"></div><div class="bh-skel"></div></main>
   </div>
 
   <!-- بۀ‌شیت انتخاب شهر -->
@@ -114,16 +90,16 @@
     </form>
   </div>
 
-  <script src="assets/js/icons.js?v=178"></script>
-  <script src="assets/js/splash.js?v=178"></script>
+  <script src="assets/js/icons.js?v=179"></script>
+  <script src="assets/js/splash.js?v=179"></script>
 
-  <script src="assets/js/util.js?v=178"></script>
-  <script src="assets/js/biz-store.js?v=178"></script>
-  <script src="assets/js/sog-config.js?v=178"></script>
-  <script src="assets/js/sog-db.js?v=178"></script>
-  <script src="assets/js/storage.js?v=178"></script>
-  <script src="assets/js/admin-overlay.js?v=178"></script>
-  <script src="assets/js/business.js?v=178"></script>
-  <script src="assets/js/nav.js?v=178"></script>
+  <script src="assets/js/util.js?v=179"></script>
+  <script src="assets/js/biz-store.js?v=179"></script>
+  <script src="assets/js/sog-config.js?v=179"></script>
+  <script src="assets/js/sog-db.js?v=179"></script>
+  <script src="assets/js/storage.js?v=179"></script>
+  <script src="assets/js/admin-overlay.js?v=179"></script>
+  <script src="assets/js/business.js?v=179"></script>
+  <script src="assets/js/nav.js?v=179"></script>
 </body>
 </html>

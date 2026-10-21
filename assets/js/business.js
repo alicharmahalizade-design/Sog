@@ -4,8 +4,8 @@
   "use strict";
 
   var DATA = { businesses: [], categories: [], cities: [] };
-  /* نمایش فقط به‌صورت آکاردئونی است */
-  var state = { city: "all", category: null, query: null, open: null, sub: null, openBiz: null };
+  /* category: دسته‌ی انتخابی (null = خانه)، sub: زیرشاخه، sort: ترتیب نتایج */
+  var state = { city: "all", category: null, query: null, sub: null, sort: "smart" };
 
   /* آیکون‌های دسته */
   var CAT_ICON = {
@@ -19,11 +19,11 @@
     car: SogIcon("car", 26),
     candle: SogIcon("candle", 26),
     mic: SogIcon("reciter", 26),
-    grid: SogIcon("grid", 26)
+    grid: SogIcon("grid", 26),
+    all: SogIcon("biz", 26)
   };
   var STAR = SogIcon("star", 14);
-  var CHECK = SogIcon("check", 11);
-  var CALL = SogIcon("call", 20);
+
 
   function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
   /* یکسان‌سازی حروف عربی/فارسی و نیم‌فاصله تا جستجو به شکل نوشتن حساس نباشد */
@@ -75,21 +75,6 @@
     return true;
   }
 
-  /* ---------- نوار شهر ---------- */
-  function renderCities() {
-    var bar = document.getElementById("cityBar");
-    bar.innerHTML = "";
-    DATA.cities.forEach(function (c) {
-      var chip = el("button", "city-chip" + (c.slug === state.city ? " is-active" : ""));
-      chip.type = "button";
-      chip.appendChild(el("span", "chip-label", c.name));
-      chip.addEventListener("click", function () { state.city = c.slug; renderCities(); applyView(); });
-      bar.appendChild(chip);
-    });
-    var label = document.getElementById("cityPickerLabel");
-    if (label) label.textContent = currentCityName();
-  }
-
   /* ---------- انتخاب شهر با جستجو ---------- */
   function currentCityName() {
     var c = DATA.cities.filter(function (x) { return x.slug === state.city; })[0];
@@ -113,8 +98,7 @@
       btn.addEventListener("click", function () {
         state.city = c.slug;
         closeCitySheet();
-        renderCities();
-        applyView();
+        render();
       });
       box.appendChild(btn);
     });
@@ -141,210 +125,15 @@
   }
 
   function bindCityPicker() {
-    var btn = document.getElementById("cityPickerBtn");
     var close = document.getElementById("cityClose");
     var back = document.getElementById("cityBackdrop");
     var input = document.getElementById("citySearchInput");
-    if (btn) btn.addEventListener("click", openCitySheet);
-    /* دکمه‌ی انتخاب شهر در هدر صفحه‌ی خدمات */
     var headBtn = document.getElementById("cityBtn");
     if (headBtn) headBtn.addEventListener("click", openCitySheet);
-    /* برچسب دکمه‌ی شهر در هدر با شهر انتخابی هماهنگ می‌ماند */
-    var headLbl = document.getElementById("cityBtnLabel");
-    if (headLbl) {
-      var pick = document.getElementById("cityPickerLabel");
-      var sync = function () { headLbl.textContent = pick ? pick.textContent : "کل ایران"; };
-      sync();
-      if (pick && window.MutationObserver) new MutationObserver(sync).observe(pick, { childList: true, characterData: true, subtree: true });
-    }
     if (close) close.addEventListener("click", closeCitySheet);
     if (back) back.addEventListener("click", closeCitySheet);
     if (input) input.addEventListener("input", function () { renderCityOptions(input.value); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeCitySheet(); });
-  }
-
-  /* ---------- گرید دسته ---------- */
-  function renderCategories() {
-    var grid = document.getElementById("catGrid");
-    grid.innerHTML = "";
-    DATA.categories.forEach(function (cat) {
-      var item = el("button", "cat-item" + (state.category === cat.slug ? " is-active" : ""));
-      item.type = "button";
-      item.appendChild(el("div", "cat-icon", CAT_ICON[cat.icon] || CAT_ICON.candle));
-      item.appendChild(el("div", "cat-label", esc(cat.name)));
-      item.addEventListener("click", function () {
-        state.category = (state.category === cat.slug ? null : cat.slug);
-        renderCategories(); renderList();
-        window.scrollTo({ top: document.querySelector(".biz-list").offsetTop - 60, behavior: "smooth" });
-      });
-      grid.appendChild(item);
-    });
-  }
-
-  /* ---------- ویژه ---------- */
-  function renderFeatured() {
-    var sec = document.getElementById("featuredSection");
-    var track = document.getElementById("featuredTrack");
-    var items = DATA.businesses.filter(function (b) { return b.featured; });
-    if (!items.length || state.category || state.query) { sec.hidden = true; return; }
-    sec.hidden = false; track.innerHTML = "";
-    items.sort(rank).forEach(function (b) {
-      var card = el("div", "featured-card");
-      var logo = el("div", "f-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
-      card.appendChild(logo);
-      card.appendChild(el("div", "f-name", esc(b.name) + " " + SogUtil.badge(b)));
-      card.appendChild(el("div", "f-cat", esc(b.category_name)));
-      card.appendChild(el("div", "f-rating", STAR + " " + esc(b.rating) + " (" + esc(b.reviews) + ")"));
-      card.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
-      track.appendChild(card);
-    });
-  }
-
-  /* ---------- کارت کسب‌وکار ---------- */
-  function bizCard(b) {
-    var card = el("article", "biz-card");
-    var main = el("div", "biz-main");
-    main.style.cursor = "pointer";
-    main.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
-    var logo = el("div", "biz-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
-    var info = el("div", "biz-info");
-    info.appendChild(el("div", "biz-name", esc(b.name) + " " + SogUtil.badge(b)));
-    var sub = el("div", "biz-sub");
-    sub.innerHTML = esc(b.category_name) + ' <span class="dot"></span> ' + esc(b.city);
-    info.appendChild(sub);
-    var metrics = el("div", "biz-metrics");
-    metrics.innerHTML = '<span class="biz-rating">' + STAR + " " + esc(b.rating) + ' <span style="color:var(--text-mute)">(' + esc(b.reviews) + ')</span></span>' +
-      '<span class="biz-price">' + esc(b.price_from) + '</span>';
-    info.appendChild(metrics);
-    main.appendChild(logo); main.appendChild(info);
-    card.appendChild(main);
-
-    if (b.services && b.services.length) {
-      var sv = el("div", "biz-services");
-      b.services.forEach(function (s) { sv.appendChild(el("span", "svc-chip", esc(s))); });
-      card.appendChild(sv);
-    }
-
-    var actions = el("div", "biz-actions");
-    var order = el("button", "btn-order", '' + SogIcon("cart", 18) + ' سفارش سریع');
-    order.type = "button";
-    order.addEventListener("click", function () { openOrder(b); });
-    var call = el("button", "btn-call", CALL); call.type = "button";
-    call.addEventListener("click", function () { location.href = "tel:" + toEn(b.phone); });
-    actions.appendChild(order); actions.appendChild(call);
-    card.appendChild(actions);
-    return card;
-  }
-  function toEn(s) { return String(s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }); }
-  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".charAt(+d); }); }
-
-  /* ---------- بنر فیلتر ---------- */
-  function filterBanner() {
-    if (state.city === "all" && !state.category && !state.query) return null;
-    var parts = [];
-    if (state.category) { var c = DATA.categories.filter(function (x) { return x.slug === state.category; })[0]; if (c) parts.push(c.name); }
-    if (state.city !== "all") { var ct = DATA.cities.filter(function (x) { return x.slug === state.city; })[0]; if (ct) parts.push("شهر: " + ct.name); }
-    if (state.query) parts.push("جستجو: «" + state.query + "»");
-    var b = el("div", "filter-banner");
-    b.appendChild(el("span", null, parts.join(" • ")));
-    var btn = el("button", null, "حذف فیلتر"); btn.type = "button";
-    btn.addEventListener("click", function () {
-      state.city = "all"; state.category = null; state.query = null;
-      var s = document.getElementById("searchInput"); if (s) s.value = "";
-      renderCities(); renderCategories(); applyView();
-    });
-    b.appendChild(btn);
-    return b;
-  }
-
-  /* ---------- لیست ---------- */
-  function renderList() {
-    renderFeatured();
-    var list = document.getElementById("bizList");
-    var empty = document.getElementById("emptyState");
-    list.innerHTML = "";
-    var banner = filterBanner();
-    if (banner) list.appendChild(banner);
-    var items = DATA.businesses.filter(matches).sort(rank);
-    if (!items.length) { empty.hidden = false; return; }
-    empty.hidden = true;
-    items.forEach(function (b) { list.appendChild(bizCard(b)); });
-  }
-
-  /* ---------- نمایش آکاردئونی ---------- */
-  var CHEV = SogIcon("chevron", 22);
-  var STAR_O = SogIcon("star", 13);
-  var ICO = {
-    call: SogIcon("call", 22),
-    sms: SogIcon("sms", 22),
-    whatsapp: SogIcon("whatsapp", 22),
-    eitaa: SogIcon("telegram", 22),
-    instagram: SogIcon("instagram", 22)
-  };
-
-  /* کسب‌وکارهای یک دسته با در نظر گرفتن شهر، جستجو و زیرشاخه‌ی انتخاب‌شده */
-  function catItems(slug, sub) {
-    return DATA.businesses.filter(function (b) {
-      if (b.category_slug !== slug) return false;
-      if (state.city !== "all" && b.city_slug !== state.city) return false;
-      if (sub && (b.services || []).indexOf(sub) === -1) return false;
-      if (state.query) {
-        var hay = normalize(b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" "));
-        var q = normalize(state.query);
-        if (q && hay.indexOf(q) === -1) return false;
-      }
-      return true;
-    }).sort(rank);
-  }
-
-  /* زیرشاخه‌های یک دسته از روی خدمات کسب‌وکارها ساخته می‌شوند */
-  function catSubs(slug) {
-    var out = [];
-    DATA.businesses.forEach(function (b) {
-      if (b.category_slug !== slug) return;
-      (b.services || []).forEach(function (sv) { if (out.indexOf(sv) === -1) out.push(sv); });
-    });
-    return out;
-  }
-
-  /* ستاره‌های امتیاز */
-  function stars(rating) {
-    var n = Math.round(parseFloat(SogUtil.toEn(rating)) || 0);
-    var h = "";
-    for (var i = 1; i <= 5; i++) h += (i <= n ? STAR : STAR_O);
-    return h;
-  }
-
-  /* دایره‌های راه ارتباطی */
-  function contactCircles(b) {
-    var wrap = el("div", "acc-contacts");
-    var links = [
-      { k: "call", label: "تماس", href: "tel:" + toEn(b.phone) },
-      { k: "sms", label: "پیامک", href: "sms:" + toEn(b.phone) },
-      { k: "whatsapp", label: "واتساپ", href: SogUtil.waLink(b.whatsapp || b.phone, "") },
-      { k: "eitaa", label: "ایتا", href: b.eitaa || null },
-      { k: "instagram", label: "اینستاگرام", href: b.instagram || null }
-    ];
-    links.forEach(function (l) {
-      var item = el("a", "acc-contact" + (l.href ? "" : " is-off"));
-      item.href = l.href || "javascript:void(0)";
-      if (l.href && l.k !== "call" && l.k !== "sms") { item.target = "_blank"; item.rel = "noopener"; }
-      if (!l.href) item.setAttribute("aria-disabled", "true");
-      item.appendChild(el("span", "acc-contact-ico", ICO[l.k]));
-      item.appendChild(el("span", "acc-contact-label", l.label));
-      wrap.appendChild(item);
-    });
-    var more = el("button", "acc-more", "مشاهده‌ی صفحه‌ی کسب‌وکار");
-    more.type = "button";
-    more.addEventListener("click", function () { location.href = "business-detail.html?id=" + b.id; });
-    wrap.appendChild(more);
-
-    var rep = el("button", "acc-report",
-      '' + SogIcon("report", 14) + ' گزارش خطا');
-    rep.type = "button";
-    rep.addEventListener("click", function () { openBizReport(b); });
-    wrap.appendChild(rep);
-    return wrap;
   }
 
   /* پیام کوتاه */
@@ -360,210 +149,324 @@
     }, 2600);
   }
 
-  /* گزارش خطای کسب‌وکار — همان فرم صفحه‌ی کسب‌وکار */
-  var BIZ_REPORT_TYPES = [
-    "این کسب‌وکار تکراری است",
-    "شماره تماس یا آدرس نادرست است",
-    "تصویر نامناسب یا اشتباه است",
-    "خدمات یا قیمت‌ها نادرست است",
-    "محتوای توهین‌آمیز یا نامرتبط",
-    "این کسب‌وکار دیگر فعال نیست"
-  ];
 
-  function openBizReport(b) {
-    var back = el("div", "sheet-backdrop");
-    var sheet = el("div", "biz-report-sheet");
-    sheet.setAttribute("role", "dialog");
-    sheet.setAttribute("aria-modal", "true");
-    sheet.setAttribute("aria-label", "گزارش خطا");
+  /* ================= نمای صفحه‌ی خدمات (طراحی تازه) =================
+     خانه: معرفی + استوری + نوار دسته‌ی چسبان + «منتخب سوگ» + یک ردیف افقی برای هر دسته.
+     با انتخاب دسته یا جستجو: فهرست نتایج با زیرشاخه، مرتب‌سازی و کارت‌های فشرده. */
+  function toEn(s) { return String(s == null ? "" : s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }); }
+  function faNum(n) { return String(n).replace(/[0-9]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".charAt(+d); }); }
+  function rateNum(b) { return parseFloat(toEn(b.rating)) || 0; }
+  function reviewsNum(b) { return parseInt(toEn(b.reviews).replace(/\D/g, ""), 10) || 0; }
+  function priceNum(b) { var d = toEn(b.price_from).replace(/\D/g, ""); return d ? +d : Infinity; }
+  function goBiz(b) { location.href = "business-detail.html?id=" + encodeURIComponent(b.id); }
+  function catOf(slug) { return DATA.categories.filter(function (c) { return c.slug === slug; })[0] || null; }
+  function cover(b) {
+    var g = b.gallery || [];
+    return b.cover || (g.length ? g[(parseInt(b.id, 10) || 0) % g.length] : "") || b.logo;
+  }
+  function bg(url) { return url ? "background-image:url('" + String(url).replace(/'/g, "%27") + "')" : ""; }
 
-    var close = el("button", "report-close", SogIcon("close", 22));
-    close.type = "button"; close.setAttribute("aria-label", "بستن");
+  var SORTS = [["smart", "پیشنهادی"], ["rate", "بیشترین امتیاز"], ["reviews", "پرنظرترین"], ["price", "ارزان‌ترین"]];
+  function sorter(a, b) {
+    if (state.sort === "rate") return rateNum(b) - rateNum(a);
+    if (state.sort === "reviews") return reviewsNum(b) - reviewsNum(a);
+    if (state.sort === "price") return priceNum(a) - priceNum(b);
+    return rank(a, b);
+  }
+  function inCity(b) { return state.city === "all" || b.city_slug === state.city; }
+  function inQuery(b) {
+    if (!state.query) return true;
+    var q = normalize(state.query);
+    return !q || normalize(b.name + " " + b.category_name + " " + b.city + " " + (b.services || []).join(" ")).indexOf(q) !== -1;
+  }
+  function pool() { return DATA.businesses.filter(function (b) { return inCity(b) && inQuery(b); }); }
+  function subsOf(slug) {
+    var out = [];
+    DATA.businesses.forEach(function (b) {
+      if (b.category_slug === slug && inCity(b)) (b.services || []).forEach(function (s) { if (out.indexOf(s) === -1) out.push(s); });
+    });
+    return out;
+  }
 
-    var form = el("form", "report-form");
-    form.innerHTML =
-      '<h3 class="report-title">گزارش خطا — ' + esc(b.name) + '</h3>' +
-      '<label class="report-field"><span>نوع خطا</span><select name="type" required>' +
-      BIZ_REPORT_TYPES.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join("") +
-      '</select></label>' +
-      '<label class="report-field"><span>توضیحات</span>' +
-      '<textarea name="note" rows="3" placeholder="چه چیزی درست نیست؟ کوتاه توضیح بدهید."></textarea></label>' +
-      '<div class="report-actions">' +
-      '<button type="button" class="btn-ghost" data-cancel>بی‌خیال</button>' +
-      '<button type="submit" class="btn-primary">ثبت و ارسال</button></div>';
-
-    sheet.appendChild(close); sheet.appendChild(form);
-    document.body.appendChild(back); document.body.appendChild(sheet);
-    document.body.style.overflow = "hidden";
-    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
-
-    function done() {
-      sheet.remove(); back.remove();
-      document.body.style.overflow = "";
+  function setCategory(slug) {
+    state.category = slug; state.sub = null; state.sort = "smart";
+    render();
+    var rail = document.getElementById("bhCats");
+    if (rail) {
+      var top = rail.getBoundingClientRect().top + window.scrollY - 64;
+      if (window.scrollY > top) window.scrollTo({ top: top, behavior: "smooth" });
     }
-    close.addEventListener("click", done);
-    back.addEventListener("click", done);
-    form.querySelector("[data-cancel]").addEventListener("click", done);
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var fd = new FormData(form);
-      try {
-        var box = JSON.parse(localStorage.getItem("sog:reports") || "[]");
-        box.push({
-          kind: "business", id: b.id, name: b.name,
-          type: fd.get("type"), note: fd.get("note") || "",
-          at: Date.now(), to: ["sog-support", "business-owner"], status: "queued"
-        });
-        localStorage.setItem("sog:reports", JSON.stringify(box));
-      } catch (err) {}
-      done();
-      toast("گزارش شما ثبت و برای پشتیبانی سوگ و صاحب کسب‌وکار ارسال شد.");
+  }
+
+  function render() {
+    renderHero();
+    renderStories();
+    renderRail();
+    var main = document.getElementById("bzMain");
+    if (!main) return;
+    main.innerHTML = "";
+    if (state.category || state.query) renderResults(main); else renderHome(main);
+  }
+
+  /* ---------- معرفی بالای صفحه ---------- */
+  function renderHero() {
+    var hero = document.getElementById("bhHero");
+    if (!hero) return;
+    var list = DATA.businesses.filter(inCity);
+    var partners = list.filter(function (b) { return b.partner || b.verified; }).length;
+    var cats = {};
+    list.forEach(function (b) { cats[b.category_slug] = 1; });
+    var city = currentCityName();
+    hero.innerHTML =
+      '<div class="bh-hero-txt">' +
+        '<span class="bh-eyebrow">خدمات مراسم سوگ</span>' +
+        "<h1>هرچه برای برگزاری مراسم لازم است، یک‌جا</h1>" +
+      "</div>" +
+      '<button type="button" class="bh-city">' + SogIcon("pin", 16) + "<span>" + esc(city) + "</span>" + SogIcon("chev", 14) + "</button>" +
+      '<div class="bh-stats">' +
+        "<span><b>" + faNum(list.length) + "</b>کسب‌وکار</span>" +
+        "<span><b>" + faNum(Object.keys(cats).length) + "</b>دسته‌ی خدمات</span>" +
+        "<span><b>" + faNum(partners) + "</b>تأییدشده</span>" +
+      "</div>";
+    hero.querySelector(".bh-city").addEventListener("click", openCitySheet);
+    var lbl = document.getElementById("cityBtnLabel");
+    if (lbl) lbl.textContent = city;
+  }
+
+  /* ---------- نوار دسته‌ها (چسبان) ---------- */
+  function renderRail() {
+    var rail = document.getElementById("bhCats");
+    if (!rail) return;
+    var keep = rail.querySelector(".bh-cats-track");
+    var x = keep ? keep.scrollLeft : 0;
+    rail.innerHTML = "";
+    var track = el("div", "bh-cats-track");
+    var counts = {};
+    DATA.businesses.filter(inCity).forEach(function (b) { counts[b.category_slug] = (counts[b.category_slug] || 0) + 1; });
+    [{ slug: null, name: "همه", icon: "all" }].concat(DATA.categories).forEach(function (c) {
+      var on = state.category === c.slug;
+      var n = c.slug ? counts[c.slug] || 0 : 0;
+      var b = el("button", "bh-cat" + (on ? " is-on" : "") + (c.slug && !n ? " is-empty" : ""));
+      b.type = "button";
+      b.innerHTML = '<span class="bh-cat-ic">' + (CAT_ICON[c.icon] || CAT_ICON.candle) + "</span>" +
+        '<span class="bh-cat-tx">' + esc(c.name) + "</span>";
+      b.addEventListener("click", function () { setCategory(on && c.slug ? null : c.slug); });
+      track.appendChild(b);
+    });
+    rail.appendChild(track);
+    track.scrollLeft = x;
+    var cur = track.querySelector(".is-on");
+    if (cur && !keep) cur.scrollIntoView({ inline: "center", block: "nearest" });
+  }
+
+  /* ---------- خانه ---------- */
+  function secHead(title, sub, onAll, icon) {
+    var h = el("div", "bh-sec-head");
+    h.innerHTML = (icon ? '<span class="bh-sec-ic">' + icon + "</span>" : "") +
+      '<span class="bh-sec-tx"><b>' + esc(title) + "</b>" + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span>";
+    if (onAll) {
+      var a = el("button", "bh-sec-all", "همه" + SogIcon("chevLeft", 14));
+      a.type = "button"; a.addEventListener("click", onAll);
+      h.appendChild(a);
+    }
+    return h;
+  }
+
+  function renderHome(main) {
+    var list = pool();
+    if (!list.length) return emptyState(main, "در " + currentCityName() + " هنوز کسب‌وکاری ثبت نشده است.");
+
+    /* منتخب سوگ: همکاران رسمی و ویژه‌ها */
+    var spot = list.filter(function (b) { return b.partner || b.featured; }).sort(rank).slice(0, 8);
+    if (spot.length) {
+      var s1 = el("section", "bh-sec");
+      s1.appendChild(secHead("منتخب سوگ", "همکاران رسمی و کسب‌وکارهای ویژه"));
+      var tr = el("div", "bh-spot-track");
+      spot.forEach(function (b) { tr.appendChild(spotCard(b)); });
+      s1.appendChild(tr);
+      main.appendChild(s1);
+    }
+
+    main.appendChild(joinBanner());
+
+    /* یک ردیف افقی برای هر دسته */
+    DATA.categories.forEach(function (c) {
+      var items = list.filter(function (b) { return b.category_slug === c.slug; }).sort(rank);
+      if (!items.length) return;
+      var sec = el("section", "bh-sec");
+      sec.appendChild(secHead(c.name, faNum(items.length) + " کسب‌وکار", function () { setCategory(c.slug); }, CAT_ICON[c.icon]));
+      var row = el("div", "bh-row-track" + (items.length <= 2 ? " is-fill" : ""));
+      items.slice(0, 10).forEach(function (b) { row.appendChild(tileCard(b)); });
+      sec.appendChild(row);
+      main.appendChild(sec);
     });
   }
 
-  /* ردیف کسب‌وکار — خودش یک آکاردئون تودرتو است */
-  function accBiz(b) {
-    var isOpen = state.openBiz === b.id;
-    var row = el("div", "acc-biz" + (isOpen ? " is-open" : ""));
-
-    var head = el("button", "acc-biz-head"); head.type = "button";
-    head.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    var logo = el("span", "acc-biz-logo"); logo.style.backgroundImage = 'url("' + b.logo + '")';
-    var info = el("span", "acc-biz-info");
-    info.appendChild(el("span", "acc-biz-name", esc(b.name) + " " + SogUtil.badge(b)));
-    if (isOpen) info.appendChild(el("span", "acc-biz-stars", stars(b.rating)));
-    else info.appendChild(el("span", "acc-biz-sub", esc(b.city) + ' <span class="dot"></span> ' + esc(b.price_from)));
-    head.appendChild(logo); head.appendChild(info);
-    head.appendChild(el("span", "acc-chev", CHEV));
-    head.addEventListener("click", function () {
-      state.openBiz = isOpen ? null : b.id;
-      renderAccordion();
+  /* کارت بزرگ «منتخب»: کاور با اطلاعات روی تصویر و دکمه‌های تماس زیرش */
+  function spotCard(b) {
+    var card = el("article", "bh-spot");
+    var story = hasStory(b.id);
+    card.innerHTML =
+      '<div class="bh-spot-cover" style="' + bg(cover(b)) + '">' +
+        (b.partner ? '<span class="bh-flag is-gold">همکار رسمی سوگ</span>' : '<span class="bh-flag">ویژه</span>') +
+        '<div class="bh-spot-id">' +
+          '<span class="bh-logo' + (story ? " has-story" : "") + '" style="' + bg(b.logo) + '"></span>' +
+          '<span class="bh-spot-name"><b>' + esc(b.name) + "</b>" +
+          "<small>" + esc(b.category_name) + " · " + esc(b.city) + "</small></span>" +
+          '<span class="bh-rate">' + STAR + esc(b.rating || "—") + "</span>" +
+        "</div>" +
+      "</div>" +
+      '<div class="bh-spot-foot">' +
+        '<span class="bh-price">' + esc(b.price_from || "") + "</span>" +
+      "</div>";
+    card.querySelector(".bh-spot-foot").appendChild(actions(b, true));
+    card.querySelector(".bh-spot-cover").addEventListener("click", function (e) {
+      if (story && e.target.classList.contains("bh-logo")) return openStoriesFor(b.id);
+      goBiz(b);
     });
-    row.appendChild(head);
+    return card;
+  }
 
-    if (isOpen) row.appendChild(contactCircles(b));
+  /* کارت کوچک ردیف‌های دسته */
+  function tileCard(b) {
+    var t = el("article", "bh-tile");
+    var story = hasStory(b.id);
+    t.innerHTML =
+      '<div class="bh-tile-cover" style="' + bg(cover(b)) + '">' +
+        '<span class="bh-logo is-sm' + (story ? " has-story" : "") + '" style="' + bg(b.logo) + '"></span>' +
+      "</div>" +
+      '<div class="bh-tile-body">' +
+        '<b class="bh-tile-name"><span>' + esc(b.name) + "</span>" + SogUtil.badge(b) + "</b>" +
+        '<span class="bh-tile-meta"><span class="bh-rate">' + STAR + esc(b.rating || "—") + "</span>" +
+        '<span class="bh-dot"></span><span>' + esc(b.city) + "</span></span>" +
+        '<span class="bh-tile-price">' + esc(b.price_from || "تماس بگیرید") + "</span>" +
+      "</div>";
+    t.addEventListener("click", function (e) {
+      if (story && e.target.classList.contains("bh-logo")) return openStoriesFor(b.id);
+      goBiz(b);
+    });
+    return t;
+  }
+
+  /* دکمه‌های تماس، واتساپ و سفارش */
+  function actions(b, compact) {
+    var row = el("div", "bh-acts" + (compact ? " is-compact" : ""));
+    var call = el("a", "bh-act", SogIcon("call", 18)); call.href = "tel:" + toEn(b.phone); call.setAttribute("aria-label", "تماس با " + b.name);
+    var wa = el("a", "bh-act is-wa", SogIcon("whatsapp", 18)); wa.href = SogUtil.waLink(b.whatsapp || b.phone, "");
+    wa.target = "_blank"; wa.rel = "noopener"; wa.setAttribute("aria-label", "واتساپ " + b.name);
+    var order = el("button", "bh-order", SogIcon("cart", 16) + "<span>سفارش سریع</span>"); order.type = "button";
+    order.addEventListener("click", function (e) { e.stopPropagation(); openOrder(b); });
+    [call, wa].forEach(function (a) { a.addEventListener("click", function (e) { e.stopPropagation(); }); });
+    row.appendChild(call); row.appendChild(wa); row.appendChild(order);
     return row;
   }
 
-  function renderAccordion() {
-    var wrap = document.getElementById("accList");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-
-    /* دسته‌ها بر اساس تعداد کسب‌وکار مرتب می‌شوند (پرتعدادترین بالا) */
-    var rows = DATA.categories.map(function (cat) {
-      return { cat: cat, items: catItems(cat.slug, null) };
-    }).filter(function (r) { return r.items.length > 0; })
-      .sort(function (a, b) { return b.items.length - a.items.length; });
-
-    if (!rows.length) {
-      wrap.appendChild(el("p", "acc-empty", "کسب‌وکاری برای این بخش یافت نشد."));
-      return;
-    }
-
-    rows.forEach(function (r) {
-      var isOpen = state.open === r.cat.slug;
-      var subs = catSubs(r.cat.slug);
-      var sub = isOpen ? state.sub : null;
-      var item = el("div", "acc-item" + (isOpen ? " is-open" : ""));
-
-      var head = el("button", "acc-head"); head.type = "button";
-      head.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      head.appendChild(el("span", "acc-ico", CAT_ICON[r.cat.icon] || CAT_ICON.candle));
-      var htext = el("span", "acc-head-text");
-      var titleLine = el("span", "acc-title-line");
-      titleLine.appendChild(el("span", "acc-title", esc(r.cat.name)));
-      titleLine.appendChild(el("span", "acc-count", "(" + faNum(r.items.length) + " مورد)"));
-      htext.appendChild(titleLine);
-      if (subs.length) htext.appendChild(el("span", "acc-subs-hint", esc(subs.slice(0, 3).join(" ، ")) + (subs.length > 3 ? " و …" : "")));
-      head.appendChild(htext);
-      head.appendChild(el("span", "acc-chev", CHEV));
-      head.addEventListener("click", function () {
-        state.open = isOpen ? null : r.cat.slug;
-        state.sub = null; state.openBiz = null;
-        renderAccordion();
-      });
-      item.appendChild(head);
-
-      if (isOpen) {
-        var body = el("div", "acc-body");
-
-        if (subs.length) {
-          var chips = el("div", "acc-subs");
-          subs.forEach(function (sv) {
-            var chip = el("button", "acc-sub-chip" + (sub === sv ? " is-active" : ""), esc(sv));
-            chip.type = "button";
-            chip.addEventListener("click", function () {
-              state.sub = (sub === sv ? null : sv);
-              state.openBiz = null;
-              renderAccordion();
-            });
-            chips.appendChild(chip);
-          });
-          body.appendChild(chips);
-        }
-
-        var items = catItems(r.cat.slug, sub);
-        if (!items.length) body.appendChild(el("p", "acc-empty", "موردی در این زیرشاخه نیست."));
-        else {
-          var cards = el("div", "bz-cards");
-          items.forEach(function (b) { cards.appendChild(bizRich(b)); });
-          body.appendChild(cards);
-        }
-
-        item.appendChild(body);
-      }
-
-      wrap.appendChild(item);
-    });
+  function joinBanner() {
+    var a = el("a", "bh-join");
+    a.href = "biz-register.html";
+    a.innerHTML = '<span class="bh-join-ic">' + SogIcon("biz", 24) + "</span>" +
+      '<span class="bh-join-tx"><b>کسب‌وکار مراسم دارید؟</b><small>ماه اول رایگان؛ سپس ماهانه ۳۰۰ هزار تومان</small></span>' +
+      '<span class="bh-join-go">ثبت رایگان</span>';
+    return a;
   }
 
-  /* ---------- کارت کسب‌وکار (طراحی تازه) ----------
-     کاور ۱۱۲ + لوگوی ۵۶ روی لبه، نام و نشان، امتیاز و قیمت، خدمات، و سه دکمه‌ی همیشه‌پیدا */
-  function bizRich(b) {
-    var card = el("article", "bz-card");
-    var go = function () { location.href = "business-detail.html?id=" + b.id; };
-    var cover = el("div", "bz-cover");
-    var gl = b.gallery || [];
-    var img = b.cover || (gl.length ? gl[(parseInt(b.id, 10) || 0) % gl.length] : "");
-    if (img) cover.style.backgroundImage = 'url("' + img + '")';
-    if (b.featured && !b.partner) cover.appendChild(el("span", "bz-tag", "ویژه"));
-    if (hasStory(b.id)) {
-      var sb = el("button", "bz-story-dot", SogIcon("story", 14) + "<span>استوری</span>"); sb.type = "button";
-      sb.addEventListener("click", function (e) { e.stopPropagation(); openStoriesFor(b.id); });
-      cover.appendChild(sb);
+  /* ---------- نتایج دسته یا جستجو ---------- */
+  function renderResults(main) {
+    var cat = state.category ? catOf(state.category) : null;
+    var items = pool().filter(function (b) {
+      if (state.category && b.category_slug !== state.category) return false;
+      if (state.sub && (b.services || []).indexOf(state.sub) === -1) return false;
+      return true;
+    }).sort(sorter);
+
+    var head = el("div", "bh-res-head");
+    head.innerHTML = '<span class="bh-res-tx"><b>' + esc(cat ? cat.name : "نتایج جستجو") + "</b><small>" +
+      faNum(items.length) + " کسب‌وکار" + (state.query ? " برای «" + esc(state.query) + "»" : "") +
+      (state.city !== "all" ? " در " + esc(currentCityName()) : "") + "</small></span>";
+    var clear = el("button", "bh-res-clear", SogIcon("close", 16) + "<span>همه‌ی خدمات</span>");
+    clear.type = "button";
+    clear.addEventListener("click", function () {
+      state.query = null; var s = document.getElementById("searchInput"); if (s) s.value = "";
+      setCategory(null);
+    });
+    head.appendChild(clear);
+    main.appendChild(head);
+
+    /* زیرشاخه‌ها */
+    if (cat) {
+      var subs = subsOf(cat.slug);
+      if (subs.length > 1) {
+        var chips = el("div", "bh-subs");
+        [null].concat(subs).forEach(function (sv) {
+          var c = el("button", "bh-sub" + (state.sub === sv ? " is-on" : ""), esc(sv || "همه"));
+          c.type = "button";
+          c.addEventListener("click", function () { state.sub = sv; render(); });
+          chips.appendChild(c);
+        });
+        main.appendChild(chips);
+      }
     }
-    cover.addEventListener("click", go);
-    card.appendChild(cover);
-    var logo = el("span", "bz-logo" + (hasStory(b.id) ? " has-story" : ""));
-    logo.style.backgroundImage = 'url("' + b.logo + '")';
-    logo.addEventListener("click", function () { if (hasStory(b.id)) openStoriesFor(b.id); else go(); });
-    card.appendChild(logo);
-    var body = el("div", "bz-body");
-    body.addEventListener("click", go);
-    body.appendChild(el("h3", "bz-name", '<span>' + esc(b.name) + "</span>" + SogUtil.badge(b)));
-    var r = parseFloat(SogUtil.toEn(b.rating)) || 0;
-    body.appendChild(el("div", "bz-meta",
-      '<span class="bz-rate">' + STAR + " " + esc(b.rating || "—") + ' <i>(' + esc(b.reviews || "۰") + ")</i></span>" +
-      '<span class="dot"></span><span>' + esc(b.city || "") + "</span>" +
-      (b.price_from ? '<span class="dot"></span><span class="bz-price">' + esc(b.price_from) + "</span>" : "")));
-    if (b.services && b.services.length) {
-      var sv = el("div", "bz-svcs");
-      b.services.slice(0, 3).forEach(function (x) { sv.appendChild(el("span", null, esc(x))); });
-      if (b.services.length > 3) sv.appendChild(el("span", "is-more", "+" + faNum(b.services.length - 3)));
-      body.appendChild(sv);
-    }
-    void r;
-    card.appendChild(body);
-    var acts = el("div", "bz-acts");
-    var call = el("a", "bz-btn", SogIcon("call", 18) + "<span>تماس</span>"); call.href = "tel:" + toEn(b.phone);
-    var wa = el("a", "bz-btn is-wa", SogIcon("whatsapp", 18) + "<span>واتساپ</span>");
-    wa.href = SogUtil.waLink(b.whatsapp || b.phone, ""); wa.target = "_blank"; wa.rel = "noopener";
-    var order = el("button", "bz-btn is-order", SogIcon("cart", 18) + "<span>سفارش سریع</span>"); order.type = "button";
-    order.addEventListener("click", function () { openOrder(b); });
-    acts.appendChild(call); acts.appendChild(wa); acts.appendChild(order);
-    card.appendChild(acts);
+
+    /* مرتب‌سازی */
+    var sort = el("div", "bh-sort");
+    sort.appendChild(el("span", "bh-sort-lb", SogIcon("sort", 16) + "<span>ترتیب</span>"));
+    SORTS.forEach(function (s) {
+      var b = el("button", "bh-sort-op" + (state.sort === s[0] ? " is-on" : ""), s[1]);
+      b.type = "button";
+      b.addEventListener("click", function () { state.sort = s[0]; render(); });
+      sort.appendChild(b);
+    });
+    main.appendChild(sort);
+
+    if (!items.length) return emptyState(main, "موردی با این فیلترها پیدا نشد.");
+    var list = el("div", "bh-list");
+    items.forEach(function (b) { list.appendChild(itemCard(b)); });
+    main.appendChild(list);
+    main.appendChild(joinBanner());
+  }
+
+  /* کارت فهرست نتایج: تصویر مربعی + اطلاعات + دکمه‌ها */
+  function itemCard(b) {
+    var card = el("article", "bh-item");
+    var story = hasStory(b.id);
+    var svc = (b.services || []).slice(0, 2).map(function (s) { return "<span>" + esc(s) + "</span>"; }).join("") +
+      ((b.services || []).length > 2 ? '<span class="is-more">+' + faNum(b.services.length - 2) + "</span>" : "");
+    card.innerHTML =
+      '<div class="bh-item-top">' +
+        '<span class="bh-item-img" style="' + bg(cover(b)) + '">' +
+          '<span class="bh-logo is-xs' + (story ? " has-story" : "") + '" style="' + bg(b.logo) + '"></span>' +
+        "</span>" +
+        '<div class="bh-item-info">' +
+          '<b class="bh-item-name"><span>' + esc(b.name) + "</span>" + SogUtil.badge(b) + "</b>" +
+          '<span class="bh-item-meta">' + esc(b.category_name) + '<span class="bh-dot"></span>' + esc(b.city) + "</span>" +
+          '<span class="bh-item-meta"><span class="bh-rate">' + STAR + esc(b.rating || "—") + "</span>" +
+            '<i class="bh-rev">(' + esc(b.reviews || "۰") + " نظر)</i>" +
+            (b.price_from ? '<span class="bh-dot"></span><span class="bh-price">' + esc(b.price_from) + "</span>" : "") + "</span>" +
+          (svc ? '<span class="bh-item-svcs">' + svc + "</span>" : "") +
+        "</div>" +
+      "</div>";
+    card.appendChild(actions(b));
+    card.querySelector(".bh-item-top").addEventListener("click", function (e) {
+      if (story && e.target.classList.contains("bh-logo")) return openStoriesFor(b.id);
+      goBiz(b);
+    });
     return card;
+  }
+
+  function emptyState(main, msg) {
+    var box = el("div", "bh-empty");
+    box.innerHTML = '<span class="bh-empty-ic">' + SogIcon("search", 28) + "</span><p>" + esc(msg) + "</p>";
+    if (state.city !== "all" || state.query || state.category) {
+      var b = el("button", "bh-empty-btn", "نمایش همه‌ی خدمات در کل ایران"); b.type = "button";
+      b.addEventListener("click", function () {
+        state.city = "all"; state.query = null; state.category = null; state.sub = null;
+        var s = document.getElementById("searchInput"); if (s) s.value = "";
+        render();
+      });
+      box.appendChild(b);
+    }
+    main.appendChild(box);
+    main.appendChild(joinBanner());
   }
 
   /* ---------- استوری کسب‌وکارها (مثل اینستاگرام) ---------- */
@@ -704,7 +607,7 @@
       document.body.style.overflow = "";
       document.removeEventListener("keydown", onKey);
       setTimeout(function () { ov.remove(); }, 220);
-      renderStories(); renderAccordion();
+      render();
     }
     function onKey(e) {
       if (e.key === "Escape") close();
@@ -790,27 +693,9 @@
       var m = myStories();
       (m[bid] = m[bid] || []).push({ id: "m" + Date.now(), img: data, text: ov.querySelector(".stc-text").value.trim(), at: Date.now() });
       if (!saveMyStories(m)) { alert("حافظه‌ی مرورگر پر است؛ یک استوری قبلی را حذف کنید."); return; }
-      done(); renderStories(); renderAccordion();
+      done(); render();
       openStoriesFor(bid);
     });
-  }
-
-  /* ---------- نمایش ---------- */
-  function applyView() {
-    var grid = document.getElementById("gridView");
-    var acc = document.getElementById("accView");
-    var list = document.getElementById("bizList");
-    var featured = document.getElementById("featuredSection");
-    var empty = document.getElementById("emptyState");
-
-    if (grid) grid.hidden = true;
-    if (list) list.hidden = true;
-    if (featured) featured.hidden = true;
-    if (empty) empty.hidden = true;
-    if (acc) acc.hidden = false;
-
-    renderStories();
-    renderAccordion();
   }
 
   /* ---------- بۀ‌شیت سفارش ---------- */
@@ -876,7 +761,9 @@
     /* بدون تأخیر: با هر حرف، نتیجه‌ها به‌روز می‌شوند */
     input.addEventListener("input", function () {
       state.query = input.value || null;
-      applyView();
+      /* جستجو در همه‌ی دسته‌ها */
+      if (state.query) { state.category = null; state.sub = null; }
+      render();
     });
     bindVoice(input);
   }
@@ -920,7 +807,7 @@
     });
     rec.onresult = function (e) {
       var text = e.results[0][0].transcript;
-      input.value = text; state.query = text; applyView();
+      input.value = text; state.query = text; state.category = null; state.sub = null; render();
     };
     rec.onend = function () { mic.classList.remove("is-listening"); stopCountdown(); };
     rec.onerror = function () { mic.classList.remove("is-listening"); stopCountdown(); };
@@ -928,14 +815,14 @@
 
   /* ---------- راه‌اندازی ---------- */
   load().then(function () {
-    renderCities(); renderCategories(); bindCityPicker(); applyView(); bindSearch();
+    bindCityPicker(); render(); bindSearch();
     /* از «کسب‌وکارهای من»: عکس انتخاب‌شده آنجا، این‌جا منتشر می‌شود */
     var sq = new URLSearchParams(location.search).get("story"), draft = null;
     try { draft = sessionStorage.getItem("sog:storyDraft"); sessionStorage.removeItem("sog:storyDraft"); } catch (e) {}
     var mineB = DATA.businesses.filter(function (b) { return String(b.id) === sq && SogBizStore.get(b.id); });
     if (sq && draft && mineB.length) { history.replaceState(null, "", "business.html"); composeSheet(mineB, draft); }
   }).catch(function (e) {
-    document.getElementById("bizList").innerHTML = '<p style="color:#c66;text-align:center;padding:30px">خطا در بارگذاری کسب‌وکارها.</p>';
+    document.getElementById("bzMain").innerHTML = '<p class="bh-empty">خطا در بارگذاری کسب‌وکارها.</p>';
     console.error(e);
   });
 

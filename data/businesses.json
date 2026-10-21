@@ -113,7 +113,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-gol-501.svg"
     },
     {
       "id": 502,
@@ -166,7 +167,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-sang-502.svg"
     },
     {
       "id": 503,
@@ -219,7 +221,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-qari-503.svg"
     },
     {
       "id": 504,
@@ -272,7 +275,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-chap-504.svg"
     },
     {
       "id": 505,
@@ -325,7 +329,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-tashrifat-505.svg"
     },
     {
       "id": 506,
@@ -378,7 +383,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-halva-506.svg"
     },
     {
       "id": 507,
@@ -431,7 +437,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-catering-507.svg"
     },
     {
       "id": 508,
@@ -484,7 +491,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-taxi-508.svg"
     },
     {
       "id": 509,
@@ -537,7 +545,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-hejle-509.svg"
     },
     {
       "id": 510,
@@ -590,7 +599,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-maddah-510.svg"
     },
     {
       "id": 511,
@@ -643,7 +653,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-gol-511.svg"
     },
     {
       "id": 512,
@@ -696,7 +707,8 @@
           "text": "کیفیت خوب بود، فقط کمی دیر رسیدند.",
           "date": "۱۴۰۵/۰۲/۱۵"
         }
-      ]
+      ],
+      "cover": "assets/img/biz/cover-sang-512.svg"
     },
     {
       "id": 513,
@@ -728,7 +740,8 @@
         "assets/img/hall-5.jpg",
         "assets/img/hall-1.jpg"
       ],
-      "reviews_list": []
+      "reviews_list": [],
+      "cover": "assets/img/biz/cover-tashrifat-513.svg"
     }
   ]
 }
