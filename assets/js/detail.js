@@ -2074,6 +2074,17 @@
     return uniq.length ? uniq.slice(0, 2).join(" / ") : "مراسم یادبود";
   }
 
+  /* کپسول‌های مراسم روی استوری: هر مراسم یک کپسول (اطلاعیه: «اطلاعیه درگذشت») */
+  function ceremonyPills(d) {
+    var lst = ALL_LISTINGS.filter(function (x) { return String(x.id) === String(d.id != null ? d.id : id); })[0];
+    if (lst && (lst.is_notice || !(lst.ceremony_labels && lst.ceremony_labels.length))) return ["اطلاعیه درگذشت"];
+    var names = (d.ceremonies || []).map(function (c) { return c.title; }).filter(Boolean);
+    if (d.chehelom && d.chehelom.title) names.push(d.chehelom.title);
+    var uniq = [];
+    names.forEach(function (n) { if (uniq.indexOf(n) === -1) uniq.push(n); });
+    return uniq.length ? uniq.slice(0, 3) : ["مراسم یادبود"];
+  }
+
   /* فقط نام طایفه‌ی پدری و مادری */
   function tribesLine(d) {
     var f = d.family && d.family.father, m = d.family && d.family.mother;
@@ -2408,7 +2419,7 @@
     var run = function () {
       Promise.all([loadPortrait(d), loadLogo()]).then(function (res) {
         var portrait = res[0], logo = res[1];
-        var canvas = ack ? makeAckStory(d, ack, portrait, logo) : SogStoryMaker.draw(d, portrait, logo, ceremonyLabel(d));
+        var canvas = ack ? makeAckStory(d, ack, portrait, logo) : SogStoryMaker.draw(d, portrait, logo, ceremonyPills(d));
         canvas.toBlob(function (blob) {
           var url = URL.createObjectURL(blob);
           var fileName = (ack ? "sog-thanks-" : "sog-story-") + d.deceased_name + ".png";
