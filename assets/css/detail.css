@@ -61,18 +61,22 @@
 .family-card {
   position: relative;
   background: var(--surface-2); border: none;
-  border-radius: 16px; padding: 16px 10px 16px 12px;
+  /* اندازه‌ها روی شبکه‌ی ۴ پیکسلی و همه از همین سه متغیر:
+     برچسب ۳۲ ← ۱۲ ← خط ۱ ← ۱۲ ← مقدار */
+  --fam-pad: 12px; --fam-lbl: 32px; --fam-gap: 12px;   /* ۳۲ = پهنای بلندترین برچسب («طایفه») */
+  border-radius: 16px; padding: 16px 12px;
+  padding-inline-start: var(--fam-pad);
   display: flex; flex-direction: column; gap: 10px;
 }
 /* یک خط عمودیِ یکپارچه برای کل کارت (به‌جای سه خط جدا) */
 .family-card::before {
   content: ""; position: absolute; top: 12px; bottom: 12px;
-  inset-inline-start: 52px;            /* نزدیکِ برچسب‌ها تا برای مقدار جای بیشتری بماند */
+  inset-inline-start: calc(var(--fam-pad) + var(--fam-lbl) + var(--fam-gap));
   width: 1px; background: #3a3a3a;
 }
 /* هر سه ردیف هم‌راستا: ستون برچسب با عرض ثابت */
 /* بدون شمارنده؛ ارتفاع ردیف همان ارتفاع قبلی (۲۰) می‌ماند تا اندازه‌ی کادر عوض نشود */
-.family-row { display: grid; grid-template-columns: 38px 1fr; align-items: center; font-size: 14px; min-height: 20px; }
+.family-row { display: grid; grid-template-columns: var(--fam-lbl) 1fr; align-items: center; font-size: 14px; min-height: 20px; }
 .family-row .lbl {
   color: var(--accent); font-weight: 700;
   display: flex; align-items: center;
@@ -81,7 +85,7 @@
 .family-row .val {
   color: var(--text); justify-self: stretch; text-align: start;
   min-width: 0;
-  padding-inline-start: 10px;          /* فاصله از خط جداکننده */
+  padding-inline-start: calc(var(--fam-gap) * 2 + 1px);   /* ۱۲ تا خط + ۱ خط + ۱۲ بعد از خط */
   /* همیشه یک‌خطی، حتی پیش از آماده شدن چرخش؛ هرگز به خط دوم نمی‌رود */
   overflow: hidden; white-space: nowrap;
 }
