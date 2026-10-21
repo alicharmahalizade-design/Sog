@@ -211,6 +211,29 @@
     return f;
   }
 
+  /* شهر یا روستا: انتخاب از تقسیمات کشوری (place-picker.js).
+     data.city همیشه نام شهر (یا شهرستانِ روستا) است تا فیلتر شهرها در صفحه‌ی اصلی کار کند. */
+  function placeInput() {
+    var b = el("button", "place-btn"); b.type = "button";
+    function paint() {
+      var lbl = data.place && window.SogPlacePicker ? SogPlacePicker.label(data.place) : (data.city || "");
+      b.innerHTML = '<span class="pb-ico">' + SogIcon("pin", 18) + "</span>" +
+        '<span class="pb-text' + (lbl ? "" : " is-empty") + '">' + esc(lbl || "انتخاب شهر یا روستا") + "</span>" +
+        '<span class="pb-chev">' + SogIcon("chevron", 18) + "</span>";
+    }
+    b.addEventListener("click", function () {
+      if (!window.SogPlacePicker) return;
+      SogPlacePicker.open({ onPick: function (pl) {
+        data.place = pl;
+        data.city = pl.type === "city" ? pl.name : pl.county;
+        data.province = pl.province;
+        paint();
+      } });
+    });
+    paint();
+    return b;
+  }
+
   /* دو فیلد کنار هم در یک ردیف */
   function fieldRow(a, b) {
     var row = el("div", "field-row");
@@ -518,7 +541,7 @@
       p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; })));
       p.appendChild(field("سن درگذشته", true, textInput("age", "مثال : ۸۵ سال")));
       p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
-      p.appendChild(field("شهر", false, textInput("city", "نام شهر محل زندگی را وارد کنید")));
+      p.appendChild(field("شهر یا روستا", false, placeInput()));
       return p;
     }});
 
@@ -806,7 +829,7 @@
       field("نام پدر", false, textInput("father", "نام پدر")),
       field("طایفه", false, textInput("father_tayefe", "نام طایفه"))
     ));
-    p.appendChild(field("شهر", true, textInput("city", "نام شهر را وارد کنید")));
+    p.appendChild(field("شهر یا روستا", true, placeInput()));
 
     /* متن اطلاعیه با متن‌های آماده.
        textInput برای textareaِ دارای شمارنده، یک پوشش برمی‌گرداند نه خود فیلد. */
@@ -984,8 +1007,10 @@
       event_date_jalali: ev,
       event_weekday: "",
       city: data.city || "",
+      village: data.place && data.place.type === "village" ? data.place.name : "",
+      province: data.province || "",
       city_slug: "",
-      location: data.city || "",
+      location: data.place && window.SogPlacePicker ? SogPlacePicker.label(data.place) : (data.city || ""),
       tayefe: data.father_tayefe || "",
       il: data.father_il || "",
       father: data.father || "",
@@ -1030,7 +1055,7 @@
       if (nm.split(" ").filter(Boolean).length < 2) {
         toast("نام و نام خانوادگی درگذشته را کامل وارد کنید."); return;
       }
-      if (!String(data.city || "").trim()) { toast("نام شهر را وارد کنید."); return; }
+      if (!String(data.city || "").trim()) { toast("شهر یا روستا را انتخاب کنید."); return; }
       if (!String(data.quick_note || "").trim()) {
         toast("متن اطلاعیه را بنویسید یا یکی از متن‌های آماده را انتخاب کنید."); return;
       }

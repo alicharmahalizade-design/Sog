@@ -75,3 +75,6 @@ service-worker.js         کش آفلاین
 
 ---
 _فونت: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL 1.1)_
+
+## داده‌ی شهرها و روستاها
+`data/places/` از تقسیمات کشوری مرکز آمار ایران (مرداد ۱۳۹۹) ساخته شده است؛ منبع: [ahmadazizi/iran-cities](https://github.com/ahmadazizi/iran-cities) (مجوز MIT). مکان‌های غیرمسکونی (شرکت، مرغداری، معدن، ایستگاه، تلمبه و…) حذف شده‌اند.
