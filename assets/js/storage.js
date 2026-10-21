@@ -241,6 +241,23 @@
       var hit = Store.getMyAds().filter(function (a) { return String(a.id) === String(id); });
       return hit.length ? hit[0] : null;
     },
+    /* فرم کامل هر آگهی برای ویرایش بعدی */
+    getMyAdForm: function (id) { return readMap("sog:myAdForms")[id] || null; },
+    saveMyAdForm: function (id, form) {
+      var m = readMap("sog:myAdForms"); m[id] = form;
+      try { localStorage.setItem("sog:myAdForms", JSON.stringify(m)); return true; }
+      catch (e) { return false; }   /* حافظه پر: آگهی می‌ماند ولی بدون امکان ویرایش */
+    },
+    /* حذف کامل آگهیِ این دستگاه از «آگهی‌های من» */
+    forgetMyAd: function (id) {
+      Store.removeMyAd(id);
+      var m = readMap("sog:myAdForms"); delete m[id]; writeMap("sog:myAdForms", m);
+      var t = readMap("sog:ownerTokens"); delete t[id]; writeMap("sog:ownerTokens", t);
+      try {
+        var ids = (JSON.parse(localStorage.getItem("sog:myListings")) || []).filter(function (x) { return String(x) !== String(id); });
+        localStorage.setItem("sog:myListings", JSON.stringify(ids));
+      } catch (e) {}
+    },
     removeMyAd: function (id) {
       var all = Store.getMyAds().filter(function (a) { return String(a.id) !== String(id); });
       try { localStorage.setItem(MYADS_KEY, JSON.stringify(all)); } catch (e) {}

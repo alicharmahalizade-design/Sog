@@ -323,3 +323,10 @@ button.acc-sub { width: 100%; border: none; font-family: inherit; text-align: st
 .ar-count.is-new { background: var(--badge); color: #fff; }
 .inbox-body { font-size: 14px; line-height: 2; color: var(--text); margin: 0 0 16px; overflow-wrap: anywhere; }
 .inbox-go { display: block; text-align: center; text-decoration: none; }
+.acc-sub-info { flex: 1 1 auto; }
+.acc-sub-acts { display: flex; gap: 6px; flex: 0 0 auto; }
+.acc-sub-btn {
+  height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #3a3a3a;
+  background: transparent; color: var(--text-dim); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.acc-sub-btn.is-danger { color: #e07070; border-color: rgba(224,112,112,.4); }

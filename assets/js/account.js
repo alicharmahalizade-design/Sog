@@ -135,8 +135,12 @@
     }, "هنوز در آگهی‌ای همدردی ثبت نکرده‌اید."));
 
     box.appendChild(accRow("آگهی‌های من", myListingItems(), function (it) {
+      var canEdit = it._rawId && SogStore.getMyAdForm && SogStore.getMyAdForm(it._rawId);
+      var acts = [];
+      if (canEdit) acts.push({ label: "ویرایش", fn: function () { location.href = "register.html?edit=" + encodeURIComponent(it._rawId); } });
+      acts.push({ label: "حذف", danger: true, fn: function () { removeMyListing(it); } });
       return { title: it.deceased_name, sub: it.city, photo: it.photo,
-        href: it.id ? "listing.html?id=" + it.id : null };
+        href: it.id ? "listing.html?id=" + it.id : null, actions: acts };
     }, "هنوز آگهی ثبت نکرده‌اید."));
 
     box.appendChild(accRow("سفارش‌های من", myOrders(), function (o) {
@@ -178,6 +182,15 @@
         if (it.sub) info.appendChild(el("span", "acc-sub-meta", esc(it.sub)));
         row.appendChild(info);
 
+        if (it.actions) {
+          var ab = el("span", "acc-sub-acts");
+          it.actions.forEach(function (ac) {
+            var bt = el("button", "acc-sub-btn" + (ac.danger ? " is-danger" : ""), esc(ac.label)); bt.type = "button";
+            bt.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); ac.fn(); });
+            ab.appendChild(bt);
+          });
+          row.appendChild(ab);
+        }
         if (it.onRemove) {
           var x = el("button", "acc-sub-x", "×"); x.type = "button";
           x.setAttribute("aria-label", "حذف");
@@ -212,8 +225,21 @@
       var item = LISTINGS.filter(function (l) { return String(l.id) === String(rawId); })[0];
       /* آگهی‌هایی که روی همین دستگاه ثبت شده‌اند هنوز در فهرست سرور نیستند */
       if (!item && SogStore.getMyAd) item = SogStore.getMyAd(rawId);
-      return item || { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
+      item = item ? Object.assign({}, item) : { id: null, deceased_name: "آگهی ثبت‌شده", city: "در انتظار انتشار", photo: "" };
+      item._rawId = rawId;
+      return item;
     });
+  }
+
+  /* حذف آگهی از «آگهی‌های من»؛ با Supabase نسخه‌ی منتشرشده هم برای همه پنهان می‌شود */
+  function removeMyListing(it) {
+    if (!confirm("آگهی «" + (it.deceased_name || "") + "» حذف شود؟")) return;
+    var id = it._rawId, token = SogStore.ownerToken ? SogStore.ownerToken(id) : "";
+    var gone = function () { SogStore.forgetMyAd(id); render(); toast("آگهی حذف شد."); };
+    if (DB && token) {
+      DB.rpc("owner_remove_listing", { p_id: String(id), p_token: token }).then(gone)
+        .catch(function () { toast("حذف نشد؛ اتصال اینترنت را بررسی کنید."); });
+    } else gone();
   }
 
   function myOrders() {

@@ -340,6 +340,25 @@ language sql stable security definer set search_path = public as $$
    order by r.id desc
    limit 300;
 $$;
+-- حذف آگهی توسط ثبت‌کننده‌اش: نسخه‌ی منتشرشده پنهان و ارسال‌های در انتظارش لغو می‌شود
+create or replace function public.owner_remove_listing(p_id text, p_token uuid)
+returns boolean
+language plpgsql security definer set search_path = public as $$
+declare ok boolean := false;
+begin
+  if exists (select 1 from public.listing_owners where listing_id = p_id and token = p_token) then
+    update public.listings set status = 'hidden' where id = p_id;
+    ok := true;
+  end if;
+  update public.submissions set status = 'rejected', reviewed_at = now()
+   where status = 'pending' and kind = 'listing'
+     and payload ->> 'owner_token' = p_token::text and payload -> 'ad' ->> 'id' = p_id;
+  if found then ok := true; end if;
+  return ok;
+end $$;
+revoke all on function public.owner_remove_listing(text, uuid) from public;
+grant execute on function public.owner_remove_listing(text, uuid) to anon, authenticated;
+
 revoke all on function public.my_inbox(jsonb) from public;
 revoke all on function public.my_listing_reports(jsonb) from public;
 grant execute on function public.my_inbox(jsonb) to anon, authenticated;

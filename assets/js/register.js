@@ -846,6 +846,7 @@
 
   /* ---------- ناوبری ---------- */
   var steps = buildSteps();
+
   var current = 0;
   var panels = document.getElementById("panels");
 
@@ -1011,6 +1012,17 @@
 
   var lastNotified = 0;
   var savedId = "";
+  /* ویرایش آگهیِ ثبت‌شده: register.html?edit=<شناسه> */
+  var editingId = "";
+  (function () {
+    var id = new URLSearchParams(location.search).get("edit");
+    if (!id || !window.SogStore) return;
+    var form = SogStore.getMyAdForm(id);
+    if (!form) { setTimeout(function () { toast("اطلاعات این آگهی برای ویرایش روی این دستگاه نیست."); }, 300); return; }
+    Object.keys(form).forEach(function (k) { data[k] = form[k]; });
+    editingId = savedId = id;
+    document.title = "ویرایش آگهی | سوگ";
+  })();
   function submit() {
     if (data.mode === "quick") {
       if (!data.photos[0]) { toast("تصویر درگذشته را انتخاب کنید."); return; }
@@ -1065,6 +1077,12 @@
         lastNotified = notifyCompleted(data.name);
       }
     } catch (e) {}
+    /* فرم کامل برای ویرایش بعدی؛ در حالت ویرایش، نسخه‌ی محلی آگهی جایگزین می‌شود */
+    if (window.SogStore && newId) {
+      SogStore.saveMyAdForm(newId, data);
+      if (editingId) { SogStore.removeMyAd(newId); SogStore.addMyAd(buildAd(newId)); }
+    }
+
     /* با Supabase: آگهی برای بررسی به پنل مدیریت فرستاده می‌شود و پس از تأیید برای همه منتشر می‌شود */
     if (window.SogDB && SogDB.enabled) {
       var sendBtn = document.querySelector(".btn-next");
@@ -1090,7 +1108,11 @@
 
   function showRegSuccess() {
     var sp = document.querySelector("#regSuccess p");
-    if (data.mode === "quick" && sp) {
+    if (editingId && sp) {
+      sp.textContent = window.SogDB && SogDB.enabled
+        ? "تغییرات آگهی ثبت شد و پس از بررسی مدیر جایگزین نسخه‌ی قبلی می‌شود."
+        : "تغییرات آگهی ذخیره شد.";
+    } else if (data.mode === "quick" && sp) {
       sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
     } else if (sp && lastNotified > 0) {
       sp.textContent = "آگهی تکمیل شد و به " + faNum(lastNotified) +
@@ -1110,5 +1132,7 @@
     setTimeout(function () { draftBtn.classList.remove("saved"); }, 1200);
   });
 
+  /* در حالت ویرایش، مراحل با نوع ثبتِ ذخیره‌شده ساخته می‌شوند */
+  if (editingId) steps = buildSteps();
   show(0);
 })();
