@@ -51,6 +51,12 @@
       '<div class="skeleton sk-block" style="height:200px"></div>';
   }
 
+  /* بخش‌هایی که فعلاً نمایش داده نمی‌شوند و در نسخه‌های بعدی برمی‌گردند */
+  var LATER = { candle: true, guestbook: true, notes: true };
+
+  /* همدردی‌ها: ۱۲ تای اول، سپس با هر «دیدن همدردی بیشتر» ۴۰ تای دیگر */
+  var COND_FIRST = 12, COND_STEP = 40;
+
   /* ---------- بارگذاری ---------- */
   var deceasedCity = null;
   var ALL_LISTINGS = [];
@@ -197,10 +203,12 @@
       root.appendChild(contactRow(d.contacts, d));
     }
     root.appendChild(condolenceSection(d));
-    root.appendChild(guestbookSection(d));
+    if (!LATER.guestbook) root.appendChild(guestbookSection(d));
 
-    if (ownerMode(d)) root.appendChild(ownerNote(d));
-    root.appendChild(privateNote(d));
+    if (!LATER.notes) {
+      if (ownerMode(d)) root.appendChild(ownerNote(d));
+      root.appendChild(privateNote(d));
+    }
     root.appendChild(needsBanner());
     bindAccordions();
     markAccordionGroups(root);
@@ -291,13 +299,6 @@
     grid.appendChild(familyCard([["مادر", m.name], ["طایفه", m.tayefe], ["ایل", m.il]]));
     return grid;
   }
-  /* شمار آگهی‌های یک طایفه یا ایل */
-  function clanCount(key, value) {
-    var v = String(value || "").trim();
-    if (!v) return 0;
-    return ALL_LISTINGS.filter(function (it) { return String(it[key] || "").trim() === v; }).length;
-  }
-
   function familyCard(rows) {
     var card = el("div", "family-card");
     rows.forEach(function (r) {
@@ -313,9 +314,6 @@
         a.href = "index.html?" + key + "=" + encodeURIComponent(r[1]);
         a.title = "مشاهده‌ی همه‌ی آگهی‌های " + r[0] + " " + r[1];
         row.appendChild(a);
-        /* شمارنده در ستون خودش، هم‌تراز با بقیه‌ی ردیف‌ها */
-        var n = clanCount(key, r[1]);
-        row.appendChild(n > 0 ? el("span", "clan-count", faNum(n)) : el("span", "clan-count is-none"));
       } else {
         row.appendChild(el("span", "val", esc(r[1])));
       }
@@ -1462,39 +1460,45 @@
       inner.appendChild(el("p", "cond-hidden-note", "همه‌ی همدردی‌ها فعلاً برای بازدیدکنندگان مخفی است."));
     }
 
-    var visible = list.slice(0, 5);
-    visible.forEach(function (cd) { inner.appendChild(condolenceItem(cd, d, isOwner)); });
-
-    if (list.length > 5) {
-      var more = el("button", "cond-more", "مشاهده بیشتر ▾");
-      var expanded = false;
-      more.addEventListener("click", function () {
-        expanded = !expanded;
-        if (expanded) { list.slice(5).forEach(function (cd) { inner.insertBefore(condolenceItem(cd, d, isOwner), more); }); more.textContent = "بستن ▴"; }
-        else { location.reload(); }
-      });
-      inner.appendChild(more);
+    /* فهرست در یک کادر، مثل کادر «فعالیت‌های من» در پروفایل */
+    var box = el("div", "cond-box");
+    var shown = 0;
+    function showMore(n) {
+      list.slice(shown, shown + n).forEach(function (cd) { box.appendChild(condolenceItem(cd, d, isOwner)); });
+      shown = Math.min(list.length, shown + n);
+      if (shown >= list.length && more.parentNode) more.remove();
     }
+    var more = el("button", "cond-more", "<span>دیدن همدردی بیشتر</span>" + ICON.chevron);
+    more.type = "button";
+    more.addEventListener("click", function () { showMore(COND_STEP); });
+    if (list.length) inner.appendChild(box);
+    if (list.length > COND_FIRST) inner.appendChild(more);
+    showMore(COND_FIRST);
 
     var actions = el("div", "cond-actions");
     var reg = el("div", "cond-action");
-    var rb = el("button", "ca-btn", ICON.plus);
+    var rb = el("button", "ca-btn is-primary", ICON.plus);
+    rb.type = "button";
+    rb.setAttribute("aria-label", "ثبت همدردی");
     rb.addEventListener("click", function () { openCondolenceSheet(d); });
     reg.appendChild(rb); reg.appendChild(el("span", null, "ثبت همدردی"));
+    actions.appendChild(reg);
+    if (!LATER.candle) actions.appendChild(candleAction(d));
+    inner.appendChild(actions);
 
-    // شمع مجازی / صلوات‌شمار تعاملی
+    return accordion("همدردی با خانواده سوگوار", inner, { open: true });
+  }
+  /* شمع مجازی / صلوات‌شمار — فعلاً نمایش داده نمی‌شود (LATER.candle) */
+  function candleAction(d) {
     var baseCount = parseInt(toEnNum(d.condolence_count || "0").replace(/\D/g, ""), 10) || 0;
     var cnt = el("div", "cond-action");
     var cb = el("button", "ca-btn candle", ICON.candle);
     var cntLabel = el("span", null, faNum(baseCount + SogStore.getSalavat(id)));
-    var already = SogStore.hasCandle(id);
-
     function paintCandle() {
       cb.classList.toggle("is-lit", SogStore.hasCandle(id));
       cb.setAttribute("aria-label", SogStore.hasCandle(id) ? "شما شمع روشن کرده‌اید" : "روشن‌کردن شمع");
     }
     paintCandle();
-
     cb.addEventListener("click", function () {
       if (!SogStore.lightCandle(id)) {
         /* هر کاربر فقط یک‌بار می‌تواند شمع روشن کند */
@@ -1507,11 +1511,9 @@
       paintCandle();
     });
     cnt.appendChild(cb); cnt.appendChild(cntLabel);
-    actions.appendChild(reg); actions.appendChild(cnt);
-    inner.appendChild(actions);
-
-    return accordion("همدردی با خانواده سوگوار", inner, { open: true });
+    return cnt;
   }
+
   function condolenceItem(cd, d, isOwner) {
     var item = el("div", "condolence-item");
     var head = el("button", "cond-head");
@@ -2027,7 +2029,7 @@
 
   /* ---------- فوتر نیازمندی‌ها ---------- */
   function needsBanner() {
-    var a = el("a", "needs-banner", "<b>نیازمندی‌های مراسمات</b><small>چاپ بنر - گل‌فروشی - سنگ مزار و ...</small>");
+    var a = el("a", "needs-banner", "<b>نیازمندی‌های مراسمات</b><small>چاپ بنر، تاج گل، سنگ مزار و کلیه خدمات مرتبط</small>");
     a.href = "business.html";
     return a;
   }
