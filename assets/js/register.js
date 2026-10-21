@@ -55,6 +55,14 @@
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
 
+  /* نام و موبایل ثبت‌کننده از حساب کاربری پر می‌شود (قابل ویرایش) */
+  (function () {
+    var u = {};
+    try { u = (window.SogStore && SogStore.getUser && SogStore.getUser()) || {}; } catch (e) {}
+    data.applicant_name = String(u.name || "").trim();
+    if (u.phone) data.phone = String(u.phone);
+  })();
+
   /* ویرایشگر برش: جابه‌جایی با کشیدن، بزرگ‌نمایی با اسلایدر، نسبت ۴:۵ */
   function openCropper(file, onDone) {
     openCropperSrc(URL.createObjectURL(file), onDone, true);
@@ -656,6 +664,7 @@
     steps.push({ title: "ارتباط با شما", build: function () {
       var p = el("section", "reg-panel");
       p.appendChild(el("p", "panel-sub", "برای ارتباط با شما شماره تلفن و کانال‌های ارتباطی مجازی خود را وارد کنید …"));
+      p.appendChild(field("نام ثبت‌کننده", false, textInput("applicant_name", "نام و نام خانوادگی شما")));
       p.appendChild(field("موبایل", true, textInput("phone", "۰۹۱۲۳۴۵۶۷۸۹", { type: "tel", inputmode: "tel" })));
       p.appendChild(field("کد ملی ثبت‌کننده", true,
         textInput("melli", "کد ملی ۱۰ رقمی ثبت‌کننده‌ی آگهی", { type: "tel", inputmode: "numeric", max: 10 }),
@@ -827,6 +836,7 @@
     picker.appendChild(track);
     p.appendChild(picker);
 
+    p.appendChild(field("نام ثبت‌کننده", false, textInput("applicant_name", "نام و نام خانوادگی شما")));
     p.appendChild(field("کد ملی ثبت‌کننده", true,
       textInput("melli", "کد ملی ۱۰ رقمی ثبت‌کننده", { type: "tel", inputmode: "numeric", max: 10 }),
       "برای جلوگیری از ثبت آگهی جعلی لازم است و در آگهی نمایش داده نمی‌شود."));
