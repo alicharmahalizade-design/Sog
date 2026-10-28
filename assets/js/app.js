@@ -827,7 +827,8 @@
     // بالای کارت: برچسب‌ها + بوکمارک
     var top = el("div", "listing-top");
     var tags = el("div", "tags");
-    (item.ceremony_labels || []).forEach(function (lbl) {
+    if (isUrgent(item)) tags.appendChild(urgentTag());
+    else (item.ceremony_labels || []).forEach(function (lbl) {
       var t = el("span", "tag", lbl);
       t.dataset.type = item.ceremony_type;
       tags.appendChild(t);
@@ -977,10 +978,10 @@
     return b;
   }
 
-  /* عنوان بخش سوگ‌های فوری: ستاره + نور متحرک روی متن */
-  function urgentTitle() {
-    var h = el("h2", "urgent-title");
-    h.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+  /* برچسب کارت سوگ فوری: ستاره + نور متحرک روی متن */
+  function urgentTag() {
+    var h = el("span", "tag urgent-title");
+    h.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">' +
       '<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z" fill="currentColor"/></svg>' +
       '<span class="urgent-shine">اطلاعیه درگذشت</span>';
     return h;
@@ -1007,14 +1008,11 @@
     var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
     var collection = showCollection ? buildYearCollection() : null;
 
-    var urgentDone = !urgentFirst();
     items.forEach(function (item, i) {
       if (collection && i === CARDS_BEFORE_COLLECTION) {
         feed.appendChild(collection);
         collection = null;
       }
-      if (!urgentDone && i === 0 && isUrgent(item)) feed.appendChild(urgentTitle());
-      urgentDone = true;
       feed.appendChild(listingCard(item));
     });
     // اگر آگهی‌ها کمتر از حد بودند، کالکشن را انتهای فهرست بگذار
