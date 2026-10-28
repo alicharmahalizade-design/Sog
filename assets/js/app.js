@@ -977,6 +977,15 @@
     return b;
   }
 
+  /* عنوان بخش سوگ‌های فوری: ستاره + نور متحرک روی متن */
+  function urgentTitle() {
+    var h = el("h2", "urgent-title");
+    h.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+      '<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z" fill="currentColor"/></svg>' +
+      '<span class="urgent-shine">اطلاعیه درگذشت</span>';
+    return h;
+  }
+
   /* ---------- رندر فید ---------- */
   function renderFeed() {
     var feed = document.getElementById("feed");
@@ -1004,7 +1013,7 @@
         feed.appendChild(collection);
         collection = null;
       }
-      if (!urgentDone && i === 0 && isUrgent(item)) feed.appendChild(el("h2", "collection-title", "اطلاعیه درگذشت"));
+      if (!urgentDone && i === 0 && isUrgent(item)) feed.appendChild(urgentTitle());
       urgentDone = true;
       feed.appendChild(listingCard(item));
     });

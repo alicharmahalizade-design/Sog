@@ -299,6 +299,27 @@ option { direction: rtl; text-align: right; }
   font-size: 17px; font-weight: 700;
   margin: 8px 0 14px;
 }
+/* عنوان «اطلاعیه درگذشت» — نوار نور از روی متن رد می‌شود */
+.urgent-title {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text);
+  font-size: 15px; font-weight: 500;
+  margin: 8px 0 14px;
+}
+.urgent-shine {
+  background: linear-gradient(90deg, var(--text) 40%, var(--text-mute) 50%, var(--text) 60%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: urgent-sweep 2.6s linear infinite;
+}
+@keyframes urgent-sweep {
+  0%   { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .urgent-shine { animation: none; background: none; color: var(--text); }
+}
 .year-track {
   display: flex; gap: 12px;
   overflow-x: auto;
