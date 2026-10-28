@@ -1031,9 +1031,29 @@
       father: data.father || "",
       mother: data.mother || "",
       is_mine: true,
-      pending: true,
+      /* ربات بررسی: آگهی و اطلاعیه‌ی سالم بلافاصله منتشر می‌شود؛ فقط موارد مشکوک منتظر کارشناس می‌مانند */
+      pending: botFlags().length > 0,
       created_at: new Date().toISOString().slice(0, 10)
     };
+  }
+
+  /* همان قواعد ربات سمت سرور (supabase/schema.sql)، برای انتشار فوری روی همین دستگاه */
+  var BOT_WORDS = ["کثافت", "احمق", "الاغ", "بیشعور", "بی‌شعور", "حرومزاده", "حرامزاده", "جنده", "کونی", "کسکش", "کس کش",
+    "مادرجنده", "پدرسگ", "پدر سگ", "گوه", "خفه شو", "گمشو", "لعنت بر", "حقش بود", "خوشحالم که مرد",
+    "شرط بندی", "شرط‌بندی", "کازینو", "بت فوروارد", "وام فوری", "خرید فالوور", "فالوور", "کسب درآمد", "درآمد دلاری",
+    "ارز دیجیتال", "تخفیف ویژه", "سفارش دهید", "عضو کانال", "کانال تلگرام", "پیج اینستاگرام"];
+  function botFlags() {
+    var r = [], nm = String(data.name || "").trim();
+    if (nm.length < 3 || nm.length > 80) r.push("نام درگذشته نامعتبر");
+    if (/[0-9۰-۹@#$%^&*<>{}]/.test(nm)) r.push("نماد یا عدد در نام");
+    var text = [nm, data.brief, data.quick_note, data.father, data.mother, data.applicant_name, JSON.stringify(data.events || {})]
+      .join(" ").toLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک");
+    BOT_WORDS.forEach(function (w) { if (text.indexOf(w) !== -1) r.push("واژه‌ی نامناسب: " + w); });
+    if (/(https?:\/\/|www\.|t\.me\/|wa\.me\/|instagram\.com|bit\.ly)/.test(text)) r.push("لینک بیرونی");
+    if (/(.)\1{7,}/.test(text)) r.push("حروف تکراری");
+    var dy = data.death && parseInt(toEnNum(data.death.y), 10);
+    if (dy && (dy > TODAY.y || dy < 1300)) r.push("تاریخ درگذشت نامعتبر");
+    return r;
   }
 
   function toEnNum(v) {
@@ -1152,11 +1172,15 @@
       sp.textContent = window.SogDB && SogDB.enabled
         ? "تغییرات آگهی ثبت شد و پس از بررسی مدیر جایگزین نسخه‌ی قبلی می‌شود."
         : "تغییرات آگهی ذخیره شد.";
+    } else if (botFlags().length && sp) {
+      sp.textContent = "آگهی ثبت شد و برای بررسی بیشتر به کارشناس سپرده شد؛ پس از تأیید منتشر می‌شود.";
     } else if (data.mode === "quick" && sp) {
-      sp.textContent = "خبر درگذشت ثبت شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
+      sp.textContent = "خبر درگذشت ثبت و همین حالا منتشر شد. هر وقت زمان خاکسپاری و بزرگداشت مشخص شد، از «آگهی‌های من» به همین آگهی اضافه کنید.";
     } else if (sp && lastNotified > 0) {
       sp.textContent = "آگهی تکمیل شد و به " + faNum(lastNotified) +
         " نفر که منتظر خبر مراسم بودند پیامک اطلاع‌رسانی ارسال می‌شود.";
+    } else if (sp) {
+      sp.textContent = "آگهی شما با موفقیت ثبت و در مرجع سوگ ایران منتشر شد.";
     }
     document.getElementById("regSuccess").classList.add("show");
   }
