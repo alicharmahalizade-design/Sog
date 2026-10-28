@@ -950,3 +950,19 @@
 .cond-period.is-open .cp-head .chev { transform: rotate(180deg); }
 .cond-period:not(.is-current) .cp-body { padding-top: 10px; }
 .cond-period .cp-empty { margin: 0 4px 6px; font-size: 12.5px; color: var(--text-mute); }
+
+/* مدیران همکار آگهی */
+.managers-sheet .sheet-handle { width: 42px; height: 4px; border-radius: 3px; background: #444; margin: 0 auto 12px; }
+.managers-sheet .mg-sub { margin: -6px 0 14px; font-size: 12.5px; line-height: 1.9; color: var(--text-dim); text-align: center; }
+.managers-sheet .mg-list { margin-bottom: 16px; border-radius: 14px; background: var(--surface-2); }
+.managers-sheet .mg-empty { margin: 0; padding: 14px; font-size: 13px; color: var(--text-mute); text-align: center; }
+.managers-sheet .mg-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px; border-bottom: 1px solid #2c2c2c;
+}
+.managers-sheet .mg-row:last-child { border-bottom: 0; }
+.managers-sheet .mg-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.managers-sheet .mg-who b { font-size: 14px; font-weight: 700; }
+.managers-sheet .mg-who small { font-size: 11.5px; color: var(--text-dim); }
+.managers-sheet .mg-acts { display: flex; gap: 6px; flex: none; }
+.managers-sheet .mg-rm { color: #e06a6a; }

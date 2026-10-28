@@ -313,6 +313,89 @@ drop policy if exists "listing_owners: admin manages" on public.listing_owners;
 create policy "listing_owners: admin manages" on public.listing_owners
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
+-- ---------- مدیران همکار آگهی (خانواده و نزدیکان) ----------
+-- ثبت‌کننده برای هر نفر یک لینک دعوت می‌سازد؛ با باز کردن لینک، آن نفر رمز مدیریت خودش را می‌گیرد
+-- و مثل ثبت‌کننده پیام‌ها، گزارش‌ها و خیرات‌ها را می‌بیند و همدردی‌ها را مدیریت می‌کند.
+-- حذف آگهی و افزودن/حذف مدیر فقط کار خودِ ثبت‌کننده است.
+create table if not exists public.listing_managers (
+  id          bigint generated always as identity primary key,
+  listing_id  text not null,
+  name        text not null check (char_length(name) between 2 and 80),
+  relation    text check (char_length(relation) <= 40),
+  invite      uuid not null unique default gen_random_uuid(),
+  token       uuid unique,
+  accepted_at timestamptz,
+  created_at  timestamptz not null default now()
+);
+create index if not exists listing_managers_listing_idx on public.listing_managers (listing_id);
+alter table public.listing_managers enable row level security;
+revoke all on public.listing_managers from anon;
+drop policy if exists "listing_managers: admin manages" on public.listing_managers;
+create policy "listing_managers: admin manages" on public.listing_managers
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- هر رمزی که اجازه‌ی مدیریت یک آگهی را می‌دهد: ثبت‌کننده + مدیرانِ پذیرفته‌شده
+create or replace view public.listing_access as
+  select listing_id, token from public.listing_owners
+  union all
+  select listing_id, token from public.listing_managers where token is not null;
+revoke all on public.listing_access from anon, authenticated;
+
+create or replace function public.add_listing_manager(p_id text, p_owner uuid, p_name text, p_relation text default null)
+returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v uuid;
+begin
+  if not exists (select 1 from public.listing_owners where listing_id = p_id and token = p_owner) then
+    raise exception 'not owner';
+  end if;
+  if (select count(*) from public.listing_managers where listing_id = p_id) >= 10 then raise exception 'too many'; end if;
+  insert into public.listing_managers (listing_id, name, relation)
+  values (p_id, left(trim(p_name), 80), nullif(left(trim(coalesce(p_relation, '')), 40), ''))
+  returning invite into v;
+  return v;
+end $$;
+
+create or replace function public.list_listing_managers(p_id text, p_owner uuid)
+returns table (id bigint, name text, relation text, invite uuid, accepted boolean, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select m.id, m.name, m.relation, m.invite, m.token is not null, m.created_at
+    from public.listing_managers m
+   where m.listing_id = p_id
+     and exists (select 1 from public.listing_owners o where o.listing_id = p_id and o.token = p_owner)
+   order by m.id;
+$$;
+
+create or replace function public.remove_listing_manager(p_id text, p_owner uuid, p_manager bigint)
+returns boolean
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.listing_owners where listing_id = p_id and token = p_owner) then return false; end if;
+  delete from public.listing_managers where id = p_manager and listing_id = p_id;
+  return found;
+end $$;
+
+-- پذیرفتن دعوت: هر لینک یک‌بار مصرف است و رمز تازه‌ای به مدیر می‌دهد
+create or replace function public.accept_listing_manager(p_id text, p_invite uuid)
+returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v uuid := gen_random_uuid();
+begin
+  update public.listing_managers set token = v, accepted_at = now()
+   where listing_id = p_id and invite = p_invite and token is null;
+  if not found then return null; end if;
+  return v;
+end $$;
+
+revoke all on function public.add_listing_manager(text, uuid, text, text) from public;
+revoke all on function public.list_listing_managers(text, uuid) from public;
+revoke all on function public.remove_listing_manager(text, uuid, bigint) from public;
+revoke all on function public.accept_listing_manager(text, uuid) from public;
+grant execute on function public.add_listing_manager(text, uuid, text, text) to anon, authenticated;
+grant execute on function public.list_listing_managers(text, uuid) to anon, authenticated;
+grant execute on function public.remove_listing_manager(text, uuid, bigint) to anon, authenticated;
+grant execute on function public.accept_listing_manager(text, uuid) to anon, authenticated;
+
 -- ---------- پیام‌های مدیریتی و خبری ----------
 -- target_listing خالی = برای همه؛ وگرنه فقط برای ثبت‌کننده‌ی همان آگهی
 create table if not exists public.messages (
@@ -335,7 +418,7 @@ returns table (id bigint, title text, body text, kind text, target_listing text,
 language sql stable security definer set search_path = public as $$
   with mine as (
     select o.listing_id
-      from public.listing_owners o
+      from public.listing_access o
       join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
         on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
   )
@@ -351,7 +434,7 @@ returns table (id bigint, kind text, target_id text, target_name text, type text
 language sql stable security definer set search_path = public as $$
   with mine as (
     select o.listing_id
-      from public.listing_owners o
+      from public.listing_access o
       join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
         on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
   )
@@ -408,7 +491,7 @@ returns table (id bigint, listing_id text, donor_name text, charity_name text, a
 language sql stable security definer set search_path = public as $$
   with mine as (
     select o.listing_id
-      from public.listing_owners o
+      from public.listing_access o
       join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
         on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
   )

@@ -243,6 +243,21 @@
       return t;
     },
     ownerToken: function (id) { return readMap("sog:ownerTokens")[id] || ""; },
+    /* مدیر همکار (با لینک دعوت): مثل ثبت‌کننده مدیریت می‌کند ولی مدیر اضافه/حذف نمی‌کند */
+    isManagerOnly: function (id) { return !!readMap("sog:managerOf")[id]; },
+    becomeManager: function (id, token) {
+      id = String(id);
+      var t = readMap("sog:ownerTokens"); t[id] = token; writeMap("sog:ownerTokens", t);
+      var m = readMap("sog:managerOf"); m[id] = true; writeMap("sog:managerOf", m);
+      try {
+        var ids = JSON.parse(localStorage.getItem("sog:myListings")) || [];
+        if (ids.map(String).indexOf(id) === -1) ids.push(id);
+        localStorage.setItem("sog:myListings", JSON.stringify(ids));
+      } catch (e) {}
+    },
+    /* بدون Supabase: فهرست مدیرانی که ثبت‌کننده روی همین دستگاه دعوت کرده */
+    getLocalManagers: function (id) { return readMap("sog:managers")[id] || []; },
+    setLocalManagers: function (id, list) { var m = readMap("sog:managers"); m[id] = list; writeMap("sog:managers", m); },
     /* [{id, token}] همه‌ی آگهی‌هایی که این دستگاه ثبت کرده */
     ownedItems: function () {
       var m = readMap("sog:ownerTokens");
@@ -271,6 +286,7 @@
       Store.removeMyAd(id);
       var m = readMap("sog:myAdForms"); delete m[id]; writeMap("sog:myAdForms", m);
       var t = readMap("sog:ownerTokens"); delete t[id]; writeMap("sog:ownerTokens", t);
+      var mo = readMap("sog:managerOf"); delete mo[id]; writeMap("sog:managerOf", mo);
       try {
         var ids = (JSON.parse(localStorage.getItem("sog:myListings")) || []).filter(function (x) { return String(x) !== String(id); });
         localStorage.setItem("sog:myListings", JSON.stringify(ids));

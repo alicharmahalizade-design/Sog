@@ -407,6 +407,137 @@
     return box;
   }
 
+  /* ---------- مدیران همکار آگهی ----------
+     ثبت‌کننده برای هر نفر (خانواده، نزدیکان) یک لینک دعوت می‌سازد. با باز کردن لینک،
+     آن نفر هم مدیر آگهی می‌شود: همدردی‌ها را مدیریت می‌کند و پیام‌ها و خیرات‌ها را می‌بیند. */
+  var MAX_MANAGERS = 10;
+  function inviteUrl(invite) {
+    return location.origin + location.pathname + "?id=" + encodeURIComponent(id) + "&invite=" + encodeURIComponent(invite);
+  }
+  function newUuid() {
+    try { return crypto.randomUUID(); } catch (e) {
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+      });
+    }
+  }
+  function openManagersSheet(d) {
+    var token = SogStore.ownerToken ? SogStore.ownerToken(String(id)) : "";
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "report-sheet managers-sheet");
+    sheet.setAttribute("role", "dialog"); sheet.setAttribute("aria-modal", "true");
+    function done() {
+      sheet.classList.remove("is-in"); back.classList.remove("is-in");
+      document.body.style.overflow = "";
+      setTimeout(function () { sheet.remove(); back.remove(); }, 220);
+    }
+    function load() {
+      if (DB && token) {
+        return DB.rpc("list_listing_managers", { p_id: String(id), p_owner: token })
+          .then(function (rows) { return (rows || []).map(function (r) { return { id: r.id, name: r.name, relation: r.relation, invite: r.invite, accepted: r.accepted }; }); })
+          .catch(function () { return []; });
+      }
+      return Promise.resolve(SogStore.getLocalManagers(id));
+    }
+    function paint(list) {
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<h3 class="report-title">مدیران آگهی</h3>' +
+        '<p class="mg-sub">خانواده و نزدیکان را اضافه کنید تا آن‌ها هم بتوانند آگهی را مدیریت کنند: همدردی‌ها را مخفی یا نمایش دهند و پیام‌ها و خیرات‌ها را ببینند. حذف آگهی و افزودن مدیر فقط با خود شماست.</p>' +
+        '<div class="mg-list"></div>' +
+        (list.length < MAX_MANAGERS
+          ? '<div class="mg-add">' +
+              '<label class="report-field"><span>نام</span><input type="text" class="mg-name" maxlength="80" placeholder="مثلاً سعید فرشچیان"></label>' +
+              '<label class="report-field"><span>نسبت</span><select class="mg-rel">' +
+                ["فرزند", "همسر", "برادر", "خواهر", "پدر", "مادر", "خانواده", "دوست", "سایر"].map(function (r) { return "<option>" + r + "</option>"; }).join("") +
+              "</select></label></div>"
+          : '<p class="mg-sub">حداکثر ' + faNum(MAX_MANAGERS) + " مدیر می‌توانید اضافه کنید.</p>") +
+        '<div class="report-actions">' +
+          (list.length < MAX_MANAGERS ? '<button type="button" class="btn-primary mg-go">ساخت لینک دعوت</button>' : "") +
+          '<button type="button" class="btn-ghost mg-close">بستن</button></div>';
+      var box = sheet.querySelector(".mg-list");
+      if (!list.length) box.appendChild(el("p", "mg-empty", "هنوز مدیری اضافه نکرده‌اید."));
+      list.forEach(function (m) {
+        var row = el("div", "mg-row");
+        row.innerHTML = '<span class="mg-who"><b>' + esc(m.name) + "</b><small>" + esc(m.relation || "") +
+          (m.relation ? " · " : "") + (m.accepted ? "فعال" : "در انتظار باز کردن لینک") + "</small></span>";
+        var acts = el("span", "mg-acts");
+        if (!m.accepted) {
+          var share = el("button", "owner-btn", "ارسال لینک"); share.type = "button";
+          share.addEventListener("click", function () { shareInvite(m); });
+          acts.appendChild(share);
+        }
+        var rm = el("button", "owner-btn mg-rm", "حذف"); rm.type = "button";
+        rm.addEventListener("click", function () {
+          if (!confirm("«" + m.name + "» از مدیران آگهی حذف شود؟")) return;
+          var after = function () { toast("«" + m.name + "» حذف شد."); load().then(paint); };
+          if (DB && token) {
+            DB.rpc("remove_listing_manager", { p_id: String(id), p_owner: token, p_manager: m.id }).then(after)
+              .catch(function () { toast("حذف نشد؛ اتصال اینترنت را بررسی کنید."); });
+          } else {
+            SogStore.setLocalManagers(id, SogStore.getLocalManagers(id).filter(function (x) { return x.id !== m.id; }));
+            after();
+          }
+        });
+        acts.appendChild(rm);
+        row.appendChild(acts);
+        box.appendChild(row);
+      });
+      sheet.querySelector(".mg-close").addEventListener("click", done);
+      var go = sheet.querySelector(".mg-go");
+      if (go) go.addEventListener("click", function () {
+        var name = sheet.querySelector(".mg-name").value.trim();
+        var rel = sheet.querySelector(".mg-rel").value;
+        if (name.length < 2) { toast("نام را بنویسید."); sheet.querySelector(".mg-name").focus(); return; }
+        go.disabled = true;
+        var made = function (m) { load().then(function (l) { paint(l); shareInvite(m); }); };
+        if (DB && token) {
+          DB.rpc("add_listing_manager", { p_id: String(id), p_owner: token, p_name: name, p_relation: rel })
+            .then(function (inv) { made({ name: name, relation: rel, invite: inv }); })
+            .catch(function () { go.disabled = false; toast("ساخته نشد؛ آگهی هنوز منتشر نشده یا اتصال اینترنت قطع است."); });
+        } else {
+          var m = { id: "m" + Date.now(), name: name, relation: rel, invite: newUuid(), accepted: false };
+          SogStore.setLocalManagers(id, SogStore.getLocalManagers(id).concat([m]));
+          made(m);
+        }
+      });
+    }
+    /* لینک دعوت: واتساپ، پیامک یا کپی */
+    function shareInvite(m) {
+      var url = inviteUrl(m.invite);
+      var text = "سلام " + m.name + "، شما را به‌عنوان مدیر آگهی «" + d.deceased_name + "» در سایت سوگ اضافه کردم. برای فعال شدن این لینک را باز کنید:\n" + url;
+      if (navigator.share) { navigator.share({ title: "مدیریت آگهی", text: text }).catch(function () {}); return; }
+      try { navigator.clipboard.writeText(text); toast("لینک دعوت کپی شد؛ برای " + m.name + " بفرستید."); }
+      catch (e) { prompt("این لینک را برای " + m.name + " بفرستید:", url); }
+    }
+    back.addEventListener("click", done);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    load().then(paint);
+    requestAnimationFrame(function () { back.classList.add("is-in"); sheet.classList.add("is-in"); });
+  }
+
+  /* باز شدن لینک دعوت مدیر: ?id=…&invite=… */
+  (function acceptInvite() {
+    var inv = new URLSearchParams(location.search).get("invite");
+    if (!inv || !/^[0-9a-f-]{36}$/i.test(inv)) return;
+    var clean = function () { try { history.replaceState(null, "", location.pathname + "?id=" + encodeURIComponent(id)); } catch (e) {} };
+    if (SogStore.ownerToken(String(id)) && !SogStore.isManagerOnly(String(id))) { clean(); return; }   /* خود ثبت‌کننده */
+    var ok = function (tok) {
+      SogStore.becomeManager(id, tok); clean();
+      setTimeout(function () {
+        if (currentDetail) render(currentDetail);
+        toast("شما به‌عنوان مدیر این آگهی اضافه شدید.");
+      }, 600);
+    };
+    if (DB) {
+      DB.rpc("accept_listing_manager", { p_id: String(id), p_invite: inv }).then(function (tok) {
+        if (tok) ok(tok);
+        else { clean(); setTimeout(function () { toast("این لینک دعوت قبلاً استفاده شده یا باطل شده است."); }, 600); }
+      }).catch(function () { setTimeout(function () { toast("دعوت ثبت نشد؛ اتصال اینترنت را بررسی کنید."); }, 600); });
+    } else ok(inv);   /* بدون Supabase: نسخه‌ی نمایشی روی همین دستگاه */
+  })();
+
   function openCharitySheet(d) {
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "report-sheet charity-sheet");
@@ -1956,7 +2087,14 @@
     /* ---- نوار مدیریت صاحب عزا ---- */
     if (isOwner) {
       var bar = el("div", "owner-bar");
-      bar.appendChild(el("span", "owner-tag", "شما ثبت‌کننده‌ی این آگهی هستید"));
+      var managerOnly = SogStore.isManagerOnly && SogStore.isManagerOnly(id);
+      bar.appendChild(el("span", "owner-tag", managerOnly ? "شما مدیر این آگهی هستید" : "شما ثبت‌کننده‌ی این آگهی هستید"));
+      if (!managerOnly) {
+        var mg = el("button", "owner-btn", "مدیران آگهی");
+        mg.type = "button";
+        mg.addEventListener("click", function () { openManagersSheet(d); });
+        bar.appendChild(mg);
+      }
       var hideAll = el("button", "owner-btn" + (hidden.all ? " is-on" : ""),
         hidden.all ? "نمایش همه‌ی همدردی‌ها" : "مخفی‌کردن همه‌ی همدردی‌ها");
       hideAll.type = "button";
