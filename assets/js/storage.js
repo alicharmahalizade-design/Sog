@@ -62,6 +62,13 @@
   function setActiveId(id) {
     try { if (id) localStorage.setItem(ACTIVE_KEY, id); else localStorage.removeItem(ACTIVE_KEY); } catch (e) {}
   }
+  /* شناسه‌ی حساب فعال (بدون حساب: رشته‌ی خالی) */
+  function currentAcct() {
+    var all = accounts();
+    if (!all.length) return "";
+    var id = activeId();
+    return all.some(function (a) { return a.id === id; }) ? id : all[0].id;
+  }
   function accounts() {
     var a = [];
     try { a = JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || []; } catch (e) { a = []; }
@@ -84,10 +91,21 @@
 
   var Store = {
     /* ----- همدردی خودِ کاربر (قابل ویرایش) ----- */
-    getMyCondolence: function (id) { return readMap(MYCOND_KEY)[id] || null; },
+    /* هر حساب همدردی خودش را دارد: کلید «شناسه‌ی حساب|شناسه‌ی آگهی» (بدون حساب: فقط شناسه‌ی آگهی) */
+    getMyCondolence: function (id) {
+      var m = readMap(MYCOND_KEY), a = currentAcct();
+      if (a && m[id]) {
+        /* همدردی قدیمیِ بدون حساب: یک‌بار به حسابی که هم‌نام آن است (وگرنه حساب فعال) سپرده می‌شود */
+        var e = m[id], owner = accounts().filter(function (x) { return x.name && x.name === e.name; })[0];
+        var to = owner ? owner.id : a;
+        if (!m[to + "|" + id]) m[to + "|" + id] = e;
+        delete m[id]; writeMap(MYCOND_KEY, m);
+      }
+      return m[a ? a + "|" + id : id] || null;
+    },
     setMyCondolence: function (id, entry) {
-      var m = readMap(MYCOND_KEY);
-      if (entry) m[id] = entry; else delete m[id];
+      var m = readMap(MYCOND_KEY), a = currentAcct(), k = a ? a + "|" + id : String(id);
+      if (entry) m[k] = entry; else delete m[k];
       writeMap(MYCOND_KEY, m);
     },
 

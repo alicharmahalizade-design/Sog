@@ -276,10 +276,10 @@
       return out;
     }
     var mine = lsGet("sog:myCondolence", {});
-    Object.keys(mine).forEach(function (id) {
-      var cd = mine[id] || {};
+    Object.keys(mine).forEach(function (k) {
+      var cd = mine[k] || {}, id = String(k).split("|").pop();   /* کلید: «حساب|آگهی» */
       var lst = allListings().filter(function (l) { return String(l.id) === String(id); })[0];
-      var key = "mine|" + id, o = S.condolences[key] || {};
+      var key = "mine|" + k, o = S.condolences[key] || {};
       out.unshift({ key: key, listingId: id, listing: lst ? lst.deceased_name : "آگهی " + fa(id), name: cd.name || "کاربر این دستگاه",
                     message: cd.text || cd.message || "", date: cd.date || "", kind: cd.kind || "person",
                     verified: !!o.verified, status: o.status || "published", local: true });
