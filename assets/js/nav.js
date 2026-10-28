@@ -31,7 +31,7 @@
     { key: "business", label: "کسب‌وکار", href: "business.html" },
     { key: "register", label: "ثبت سوگ", href: "register.html", center: true },
     { key: "saved", label: "ذخیره‌ها", href: "account.html?open=saved" },
-    { key: "account", label: "پروفایل", href: "account.html" }
+    { key: "account", label: "حساب من", href: "account.html" }
   ];
 
   var accountTab = null;
