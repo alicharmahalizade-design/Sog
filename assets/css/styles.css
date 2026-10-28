@@ -306,18 +306,30 @@ option { direction: rtl; text-align: right; }
   font-size: 15px; font-weight: 500;
   margin: 8px 0 14px;
 }
+.urgent-title svg {
+  flex: none;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,.45));
+  animation: urgent-star 2.6s ease-in-out infinite;
+}
 .urgent-shine {
-  background: linear-gradient(90deg, var(--text) 40%, var(--text-mute) 50%, var(--text) 60%);
+  background: linear-gradient(90deg, var(--text) 40%, transparent 50%, var(--text) 60%);
   background-size: 300% 100%;
+  background-position: 100% 0;
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
-  animation: urgent-sweep 2.6s linear infinite;
+  animation: urgent-sweep 2.6s ease-in-out infinite;
+}
+/* ستاره می‌چرخد و می‌تپد؛ نور یک بار از روی متن رد می‌شود و مکث می‌کند */
+@keyframes urgent-star {
+  0%, 100% { transform: rotate(0) scale(1); opacity: 1; }
+  50%      { transform: rotate(90deg) scale(.8); opacity: .75; }
 }
 @keyframes urgent-sweep {
-  0%   { background-position: 100% 0; }
-  100% { background-position: 0 0; }
+  0%, 45%  { background-position: 100% 0; }
+  75%, 100% { background-position: 0 0; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .urgent-title svg { animation: none; }
   .urgent-shine { animation: none; background: none; color: var(--text); }
 }
 .year-track {
