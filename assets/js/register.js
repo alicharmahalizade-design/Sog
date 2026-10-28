@@ -563,7 +563,7 @@
       p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; })));
       p.appendChild(field("سن درگذشته", true, textInput("age", "مثال : ۸۵ سال")));
       p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
-      p.appendChild(field("شهر یا روستا", false, placeInput()));
+      p.appendChild(field("شهر محل سکونت", false, placeInput()));
       return p;
     }});
 
