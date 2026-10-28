@@ -132,7 +132,8 @@
     }
     return true;
   }
-  /* سوگ فوری: تشییع/خاکسپاری‌ای که روزش هنوز نگذشته — همیشه اول فید، نزدیک‌ترین بالاتر */
+  /* سوگ فوری: تشییع/خاکسپاری‌ای که روزش هنوز نگذشته.
+     فقط وقتی شهری انتخاب شده اول فید می‌آید (نزدیک‌ترین بالاتر)؛ در «کل ایران» ترتیب عادی است. */
   function isUrgent(item) {
     var funeral = item.ceremony_type === "khaksepari" || (item.ceremony_labels || []).some(function (l) {
       return l.indexOf("تشییع") !== -1 || l.indexOf("خاکسپاری") !== -1;
@@ -143,9 +144,10 @@
     var today = new Date(); today.setHours(0, 0, 0, 0);
     return ev.getTime() >= today.getTime();
   }
+  function urgentFirst() { return state.sel.length > 0; }
   function sortItems(items) {
     return items.slice().sort(function (a, b) {
-      var ua = isUrgent(a), ub = isUrgent(b);
+      var ua = urgentFirst() && isUrgent(a), ub = urgentFirst() && isUrgent(b);
       if (ua !== ub) return ua ? -1 : 1;
       if (ua) return jalaliNum(a) - jalaliNum(b);
       return state.sort === "soonest" ? jalaliNum(a) - jalaliNum(b) : jalaliNum(b) - jalaliNum(a);
@@ -996,11 +998,14 @@
     var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
     var collection = showCollection ? buildYearCollection() : null;
 
+    var urgentDone = !urgentFirst();
     items.forEach(function (item, i) {
       if (collection && i === CARDS_BEFORE_COLLECTION) {
         feed.appendChild(collection);
         collection = null;
       }
+      if (!urgentDone && i === 0 && isUrgent(item)) feed.appendChild(el("h2", "collection-title", "اطلاعیه درگذشت"));
+      urgentDone = true;
       feed.appendChild(listingCard(item));
     });
     // اگر آگهی‌ها کمتر از حد بودند، کالکشن را انتهای فهرست بگذار
