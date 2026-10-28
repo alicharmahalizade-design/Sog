@@ -27,7 +27,7 @@
   /* برچسب نمایشی یک مکان انتخاب‌شده */
   function label(p) {
     if (!p) return "";
-    return p.type === "village" ? "روستای " + p.name + "، شهرستان " + p.county : p.name + (p.county && p.county !== p.name ? "، شهرستان " + p.county : "");
+    return p.type === "village" ? "شهرستان " + p.county + "، روستای " + p.name : (p.county && p.county !== p.name ? "شهرستان " + p.county + "، " : "") + p.name;
   }
 
   function open(opts) {
