@@ -980,6 +980,12 @@
         });
       });
       tiles.appendChild(story);
+
+      var close = el("button", "nt-close");
+      close.type = "button";
+      close.innerHTML = SogIcon("logout", 22) + "<span>بستن</span>";
+      close.addEventListener("click", done);
+      sheet.querySelector(".nt-cta").appendChild(close);
     }
 
     function paintPhone() {
@@ -1013,7 +1019,7 @@
 
     paintInfo();
     back.addEventListener("click", done);
-    /* بستن: لمس بیرون، کشیدن به پایین یا Esc (دکمه‌ی جداگانه ندارد) */
+    /* بستن: لمس بیرون، کشیدن به پایین یا Esc یا دکمه‌ی «بستن» */
     var y0 = null;
     sheet.addEventListener("touchstart", function (e) { y0 = sheet.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
     sheet.addEventListener("touchmove", function (e) {

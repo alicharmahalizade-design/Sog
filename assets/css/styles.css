@@ -909,6 +909,12 @@ option { direction: rtl; text-align: right; }
   background: #161616; border: none; border-radius: 20px; padding: 10px 8px 14px; cursor: pointer;
   font-family: inherit; font-size: 13.5px; color: var(--accent);
 }
+.notice-sheet .nt-close {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; margin-top: 8px; padding: 18px 12px;
+  background: #161616; border: none; border-radius: 20px; cursor: pointer;
+  font-family: inherit; font-size: 15px; color: var(--text);
+}
 .notice-sheet .nt-ic {
   width: 56px; height: 56px; border-radius: 50%; background: #222;
   display: grid; place-items: center; color: var(--accent);
