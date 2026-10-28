@@ -878,10 +878,11 @@ option { direction: rtl; text-align: right; }
 .notice-sheet .nt-card {
   background: #161616; border-radius: 20px; padding: 14px 16px 16px; margin-bottom: 12px;
 }
-.notice-sheet .nt-top { display: flex; align-items: flex-start; gap: 12px; }
+/* متن و تصویر هم‌قد: لبه‌ی بالا و پایینِ هر دو در یک خط؛ عکس به اندازه‌ی ستون متن کشیده می‌شود */
+.notice-sheet .nt-top { display: flex; align-items: stretch; gap: 14px; }
 .notice-sheet .nt-head {
-  flex: 1 1 auto; min-width: 0; padding-top: 12px;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  flex: 1 1 auto; min-width: 0; padding: 2px 0;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px;
 }
 .notice-sheet .nt-badge {
   font-size: 13px; font-weight: 500; color: var(--accent);
@@ -897,8 +898,8 @@ option { direction: rtl; text-align: right; }
 }
 .notice-sheet .nt-facts li::before { content: ". "; }
 .notice-sheet .nt-photo {
-  flex: 0 0 auto; width: 40%; max-width: 160px; aspect-ratio: 4 / 5; border-radius: 18px;
-  background: #2a2a2a center/cover no-repeat;
+  flex: 0 0 38%; max-width: 160px; min-height: 150px; align-self: stretch; border-radius: 18px;
+  background: #2a2a2a center top/cover no-repeat;
 }
 .notice-sheet .nt-text {
   margin: 16px 0 0; font-size: 13.5px; line-height: 2; color: var(--text);
