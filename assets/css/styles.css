@@ -145,22 +145,25 @@ option { direction: rtl; text-align: right; }
 .home-cities {
   display: flex; align-items: center; gap: 10px;
   padding: 15px 0;
-  padding-inline-start: 14px;
+  padding-inline-start: 10px;
   background: #121212;
 }
 .all-iran {
   flex: 0 0 auto;
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  background: transparent; border: none; padding: 0;
-  color: var(--text); font-size: 14px; font-weight: 700; line-height: 1.35;
-  white-space: nowrap;
+  background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 5px 10px;
+  color: var(--text-dim); font-size: 14px; font-weight: 700; line-height: 1.35;
+  white-space: nowrap; transition: background .2s, border-color .2s;
 }
 .all-iran .ai-name { display: inline-block; transform-origin: right center; }
 .all-iran .ai-total {
   color: var(--accent); font-size: 13px; font-weight: 700;
   direction: ltr; font-variant-numeric: tabular-nums;
 }
+/* «کل ایران» فعال: مثل چیپ شهرِ انتخاب‌شده، با کادر برنزی */
+.all-iran.is-active { background: #1a1713; border-color: var(--accent); }
 .all-iran.is-active .ai-name { color: #fff; }
+.all-iran:not(.is-active) .ai-total { opacity: .6; }
 .hc-div {
   flex: 0 0 auto; width: 1px; height: 38px; background: #303030;
 }
