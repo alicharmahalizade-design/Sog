@@ -888,6 +888,8 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .cond-head .cond-verified, .cond-head .mine-badge { flex: 0 0 auto; }
+/* همدردی خودِ کاربر: «نیکوکار» ته ردیف، جای برچسب قبلی «شما» */
+.condolence-item.is-mine .donor-badge { margin-inline-start: auto; }
 .cond-head .chev { flex: 0 0 auto; }
 
 /* خیرات‌های به نیت درگذشته — فقط برای ثبت‌کننده‌ی سوگ */

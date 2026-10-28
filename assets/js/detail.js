@@ -1676,8 +1676,7 @@
     head.innerHTML = (av ? '<img class="cond-logo" src="' + esc(av) + '" alt="">'
       : '<span class="cond-logo mine-avatar">' + SogIcon("user", 22) + '</span>') +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
-      (iDonated() ? DONOR_BADGE : "") +
-      '<span class="mine-badge">شما</span>';
+      (iDonated() ? DONOR_BADGE : "");
     var body = el("div", "cond-body");
     var innerB = el("div");
     var msg = el("div", "cond-message");
