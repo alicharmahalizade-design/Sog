@@ -4,6 +4,8 @@
 (function () {
   "use strict";
   var active = document.body.getAttribute("data-nav") || "";
+  /* پروفایل با «ذخیره‌ها»ی باز: تب ذخیره‌ها فعال دیده شود */
+  if (active === "account" && /[?&]open=saved\b/.test(location.search)) active = "saved";
 
   var ICON = {
     home: SogIcon("home", 24),
@@ -28,7 +30,7 @@
     { key: "home", label: "آگهی‌ها", href: "index.html" },
     { key: "business", label: "کسب‌وکار", href: "business.html" },
     { key: "register", label: "ثبت سوگ", href: "register.html", center: true },
-    { key: "saved", label: "ذخیره‌ها", href: "index.html?view=saved" },
+    { key: "saved", label: "ذخیره‌ها", href: "account.html?open=saved" },
     { key: "account", label: "پروفایل", href: "account.html" }
   ];
 
