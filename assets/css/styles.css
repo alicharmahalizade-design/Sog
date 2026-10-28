@@ -987,15 +987,15 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 }
 .arc-col { display: flex; flex-direction: column; align-items: center; padding: 8px 0; border-radius: 10px; border: 1px solid transparent; }
 .arc-y, .arc-m { background: none; border: 0; font-family: inherit; padding: 4px 2px; cursor: pointer; }
-.arc-y { font-size: 19px; font-weight: 700; color: var(--text-dim); margin-bottom: 14px; }
+.arc-y { font-size: 15px; font-weight: 700; color: var(--text-dim); margin-bottom: 12px; }
 .arc-m { font-size: 12px; color: var(--text-mute); }
 .arc-col.d1 .arc-y { color: #8a8a8a; }
 .arc-col.d2 .arc-y { color: #555; }
 .arc-col.d2 .arc-m { color: #4a4a4a; }
 .arc-y.is-hidden { visibility: hidden; }
 .arc-col.is-on { background: #000; border-color: var(--accent); position: relative; z-index: 1; }
-.arc-col.is-on .arc-y { color: var(--accent); font-size: 21px; }
-.arc-col.is-on .arc-m { color: var(--accent); font-size: 13px; font-weight: 700; }
+.arc-col.is-on .arc-y { color: var(--accent); font-size: 16px; }
+.arc-col.is-on .arc-m { color: var(--accent); font-size: 12.5px; font-weight: 700; }
 .arc-arrow {
   position: relative; z-index: 1; flex: 0 0 auto; width: 28px; height: 28px; border-radius: 8px;
   display: grid; place-items: center; background: #000; border: 0; color: var(--text); cursor: pointer;
