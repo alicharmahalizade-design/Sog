@@ -4,7 +4,7 @@
 /* پروفایل */
 .profile-card {
   display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, #241d16, var(--card));
+  background: #1c1813;
   border: 1px solid var(--card-border); border-radius: 18px; padding: 16px;
 }
 .profile-avatar {

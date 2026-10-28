@@ -416,7 +416,7 @@ option { direction: rtl; text-align: right; }
 }
 .bn-center .bn-ico {
   width: 36px; height: 36px; margin-top: -6px;
-  background: linear-gradient(180deg, #e9c88a, var(--accent));
+  background: var(--accent);
   color: #2a1a06; border-radius: 50%;
   box-shadow: 0 4px 10px rgba(217,154,91,.32); border: 2px solid var(--bg);
 }
@@ -448,7 +448,7 @@ option { direction: rtl; text-align: right; }
 
 /* ===== صفحه شروع ثبت سوگ ===== */
 .reg-intro { text-align: center; padding: 40px 24px 96px; }
-.reg-candle { width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 20px; display: grid; place-items: center; background: radial-gradient(circle, rgba(255,157,47,.2), transparent 70%); }
+.reg-candle { width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 20px; display: grid; place-items: center; background: rgba(255,157,47,.12); }
 .reg-intro h1 { font-size: 24px; font-weight: 700; margin: 0 0 12px; }
 .reg-intro p { color: var(--text-dim); font-size: 14px; line-height: 2; margin: 0 0 24px; }
 .reg-start { display: block; background: var(--accent); color: #1a1206; text-decoration: none; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: 700; }
@@ -470,7 +470,7 @@ option { direction: rtl; text-align: right; }
   /* لوگو بالاتر از مرکز می‌نشیند (مطابق طرح) */
   display: grid; place-items: start center;
   padding-top: 22vh;
-  background: radial-gradient(120% 80% at 50% 38%, #16120e 0%, #0a0908 45%, #000 100%);
+  background: #000;
   opacity: 1; transition: opacity .25s ease;
 }
 #sogSplash.is-out { opacity: 0; pointer-events: none; }
@@ -495,7 +495,7 @@ option { direction: rtl; text-align: right; }
 .splash-mark { position: relative; display: grid; place-items: center; }
 .splash-mark::before {
   content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(217,154,91,.28) 0%, rgba(217,154,91,.08) 45%, rgba(217,154,91,0) 70%);
+  background: rgba(217,154,91,.1);
   animation: splash-glow 3.2s ease-in-out infinite;
 }
 .splash-mark img {
@@ -531,7 +531,7 @@ option { direction: rtl; text-align: right; }
 }
 .splash-bar span {
   display: block; width: 40%; height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, rgba(217,154,91,0), #d99a5b, rgba(217,154,91,0));
+  background: #d99a5b;
   animation: splash-slide 1.25s ease-in-out infinite;
 }
 @keyframes splash-slide {
@@ -730,7 +730,7 @@ option { direction: rtl; text-align: right; }
 .cob-foot .cob-skip { flex: 1 1 0; margin: 0; }
 .cob-confirm {
   flex: 2 1 0; height: 46px; border-radius: 12px; border: none;
-  background: linear-gradient(180deg, #e9c88a, var(--accent)); color: #1c1206;
+  background: var(--accent); color: #1c1206;
   font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
 }
 
@@ -939,7 +939,7 @@ option { direction: rtl; text-align: right; }
 /* ---------- پلیر صوتی سوگ ---------- */
 .sp {
   display: flex; align-items: center; gap: 14px; padding: 12px 14px; margin-bottom: 10px;
-  border-radius: 18px; background: linear-gradient(135deg, #1d1813, #141414 70%);
+  border-radius: 18px; background: #171411;
   border: 1px solid rgba(217,154,91,.18);
 }
 .sp-btn {
@@ -1068,7 +1068,7 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
   background: #2a2016; border: 1px solid var(--accent); color: var(--accent);
 }
 .story-actions .btn-ghost {
-  background: linear-gradient(180deg, #e9c88a, var(--accent));
+  background: var(--accent);
   border: 1px solid var(--accent); color: #1c1206;
   box-shadow: 0 4px 12px rgba(217,154,91,.28);
 }

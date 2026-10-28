@@ -2157,9 +2157,8 @@
   }
   /* تصویر متوفی به‌صورت دایره‌ای روی کارت */
   function drawPortrait(x, img, cx, cy, r) {
-    var rg = x.createRadialGradient(cx, cy, r * 0.7, cx, cy, r * 1.9);
-    rg.addColorStop(0, "rgba(217,154,91,.30)"); rg.addColorStop(1, "rgba(217,154,91,0)");
-    x.fillStyle = rg; x.beginPath(); x.arc(cx, cy, r * 1.9, 0, 7); x.fill();
+    /* حلقه‌ی تک‌رنگ دور تصویر (بدون گرادیان) */
+    x.fillStyle = "rgba(217,154,91,.14)"; x.beginPath(); x.arc(cx, cy, r * 1.25, 0, 7); x.fill();
 
     x.save();
     x.beginPath(); x.arc(cx, cy, r, 0, 7); x.clip();
@@ -2233,8 +2232,7 @@
   function makeCard(d, portrait) {
     var W = 1080, H = 1350, x = document.createElement("canvas").getContext("2d");
     x.canvas.width = W; x.canvas.height = H;
-    var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#181410"); g.addColorStop(1, "#0a0a0a");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = "#121010"; x.fillRect(0, 0, W, H);
     // قاب
     x.strokeStyle = "rgba(217,154,91,.35)"; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80);
     x.direction = "rtl"; x.textAlign = "center";
@@ -2320,9 +2318,6 @@
     x.direction = "rtl";
 
     x.fillStyle = "#000"; x.fillRect(0, 0, W, H);
-    var glow = x.createRadialGradient(W / 2, 420, 80, W / 2, 420, 950);
-    glow.addColorStop(0, "rgba(217,154,91,.07)"); glow.addColorStop(1, "rgba(217,154,91,0)");
-    x.fillStyle = glow; x.fillRect(0, 0, W, H);
 
     var CX = 56, CW = W - CX * 2, PAD = 52, innerW = CW - PAD * 2;
     var PH = 230, HEAD_GAP = 110, SIGN_GAP = 130;

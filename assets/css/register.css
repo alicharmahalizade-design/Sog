@@ -242,7 +242,7 @@
 .rp-bar { height: 4px; border-radius: 4px; background: #232323; overflow: hidden; }
 .rp-bar span {
   display: block; height: 100%; border-radius: 4px;
-  background: linear-gradient(90deg, #b9793c, var(--accent));
+  background: var(--accent);
   transition: width .3s ease;
 }
 

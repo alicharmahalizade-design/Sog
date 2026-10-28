@@ -1,7 +1,7 @@
 /* ===== نشان‌ها ===== */
 .sog-badge.partner {
   display: inline-flex; align-items: center; gap: 4px;
-  background: linear-gradient(180deg, #e9c88a, #c9a055);
+  background: var(--accent);
   color: #2a1c06; font-size: 11px; font-weight: 700;
   padding: 2px 9px 2px 7px; border-radius: 999px; white-space: nowrap;
 }
@@ -40,7 +40,7 @@
 .bp { padding-bottom: 96px; }
 .bp-cover {
   position: relative; height: 150px;
-  background: linear-gradient(135deg, #2a2320, #141414) center/cover no-repeat;
+  background: #1d1916 center/cover no-repeat;
 }
 .bp-cover::after { content:""; position:absolute; inset:0; background: linear-gradient(to top, var(--bg), transparent 70%); }
 .bp-top {
@@ -259,7 +259,7 @@
   transition: transform .15s;
 }
 .st-item:active .st-ring { transform: scale(.94); }
-.st-item.is-new .st-ring { background: conic-gradient(from 200deg, #f4c27a, #d99a5b, #b5562e, #e07a52, #f4c27a); }
+.st-item.is-new .st-ring { background: var(--accent); }
 .st-logo {
   width: 64px; height: 64px; border-radius: 50%;
   background: #222 center/cover no-repeat; border: 3px solid var(--bg);
@@ -510,7 +510,7 @@
 .bh-join {
   display: flex; align-items: center; gap: 12px; margin: 24px 16px 0; padding: 12px;
   border-radius: 16px; text-decoration: none;
-  background: linear-gradient(135deg, rgba(217,154,91,.2), rgba(217,154,91,.06));
+  background: rgba(217,154,91,.13);
   border: 1px solid rgba(217,154,91,.32);
 }
 .bh-join-ic {

@@ -83,7 +83,7 @@
 /* ===== اشتراک: ماه اول رایگان، سپس ماهانه ===== */
 .br-plan {
   margin: 0 0 16px; padding: 16px; border-radius: 16px;
-  background: linear-gradient(135deg, rgba(217,154,91,.18), rgba(217,154,91,.06));
+  background: rgba(217,154,91,.12);
   border: 1px solid rgba(217,154,91,.35);
   display: flex; flex-direction: column; gap: 8px;
 }
