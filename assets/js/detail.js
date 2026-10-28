@@ -1280,7 +1280,6 @@
       var all = (c.gallery || []).concat(mine);
 
       if (all.length) {
-        box.appendChild(el("h3", "gallery-title", "تصاویر مراسم " + esc(c.title || "")));
         box.appendChild(carousel(all, function (n) { openLightbox(all, n); }, function (slide, i) {
           /* فقط تصاویری که خود کاربر اضافه کرده قابل حذف‌اند */
           if (owner && i >= (c.gallery || []).length) {
