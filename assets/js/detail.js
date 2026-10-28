@@ -2194,7 +2194,7 @@
     var charity = el("button", "cond-tile");
     charity.type = "button";
     var given = myDonations().filter(function (x) { return String(x.listing) === String(id); }).length;
-    charity.innerHTML = '<span class="ct-ic">' + SogIcon("charity", 26) + "</span><span>خیریه</span>" +
+    charity.innerHTML = '<span class="ct-ic">' + SogIcon("charity", 32, 1.35) + "</span><span>خیریه</span>" +
       (given ? '<small class="ct-note">شما ' + faNum(given) + " بار خیرات کرده‌اید</small>" : "");
     charity.addEventListener("click", function () { loadCharities().then(function () { openCharitySheet(d); }); });
     var reg = el("button", "cond-tile");
