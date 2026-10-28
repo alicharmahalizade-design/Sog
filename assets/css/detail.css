@@ -919,3 +919,24 @@
 .cond-message.no-copy, .cond-message.no-copy * {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
+
+/* همدردی‌ها به تفکیک دوره: ختم / چهلم / سالگرد */
+.cond-period + .cond-period { margin-top: 14px; }
+.cond-period .cp-head {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  margin: 0 0 10px; padding: 0 4px; background: none; border: 0;
+  font-family: inherit; color: var(--text); text-align: start;
+}
+.cond-period .cp-title { font-size: 14px; font-weight: 700; }
+.cond-period .cp-meta {
+  font-size: 11px; padding: 2px 9px; border-radius: 999px;
+  background: #2a2a2a; color: var(--text-dim); white-space: nowrap;
+}
+.cond-period.is-current .cp-meta { background: rgba(217,154,91,.16); color: var(--accent); }
+.cond-period:not(.is-current) .cp-head {
+  cursor: pointer; margin: 0; padding: 14px 16px; border-radius: 16px; background: #1c1c1c;
+}
+.cond-period:not(.is-current) .cp-head .chev { margin-inline-start: auto; transition: transform .2s; }
+.cond-period.is-open .cp-head .chev { transform: rotate(180deg); }
+.cond-period:not(.is-current) .cp-body { padding-top: 10px; }
+.cond-period .cp-empty { margin: 0 4px 6px; font-size: 12.5px; color: var(--text-mute); }

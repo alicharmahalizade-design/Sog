@@ -1903,6 +1903,33 @@
     return (r < 2 && c === r) || (r >= 2 && c === 11 - r);
   }
 
+  /* دوره‌ی همدردی برای یک تاریخ شمسی (یا امروز): ختم تا روز چهلم، چهلم تا سالگرد اول، سپس سالگردها */
+  var YEAR_ORD = ["", "", "دوم", "سوم", "چهارم", "پنجم", "ششم", "هفتم", "هشتم", "نهم", "دهم"];
+  function jDate(str) {
+    var p = toEnNum(str || "").match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (!p || !window.SogUtil) return null;
+    var g = SogUtil.jalaliToGregorian(+p[1], +p[2], +p[3]);
+    return { y: +p[1], m: +p[2], d: +p[3], t: new Date(g.y, g.m - 1, g.d).getTime() };
+  }
+  function condPeriod(d, dateStr) {
+    var death = jDate(d.death && d.death.date);
+    if (!death) return null;
+    var t;
+    if (dateStr == null) { var n = new Date(); t = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(); }
+    else { var j = jDate(dateStr); if (!j) return null; t = j.t; }
+    var fortieth = death.t + 39 * 86400000;   /* روز چهلم، با احتساب روز درگذشت */
+    if (t < fortieth) return { key: "khatm", order: 0, title: "همدردی‌های مراسم ختم", short: "مراسم ختم" };
+    var years = 0;
+    while (years < 200) {
+      var g = SogUtil.jalaliToGregorian(death.y + years + 1, death.m, death.d);
+      if (new Date(g.y, g.m - 1, g.d).getTime() > t) break;
+      years++;
+    }
+    if (!years) return { key: "chehelom", order: 1, title: "همدردی‌های چهلم", short: "چهلم" };
+    var name = years === 1 ? "سالگرد" : "سالگرد " + (YEAR_ORD[years] || faNum(years));
+    return { key: "salgard" + years, order: 1 + years, title: "همدردی‌های " + name, short: name };
+  }
+
   function condolenceSection(d) {
     var wrap = el("div");
     var inner = el("div");
@@ -1926,10 +1953,7 @@
       inner.appendChild(bar);
     }
 
-    /* ---- همدردی خودِ کاربر، همیشه اول فهرست ---- */
     var mine = SogStore.getMyCondolence(id);
-    if (mine) inner.appendChild(myCondolenceItem(d, mine));
-
     var list = d.condolences.filter(function (cd) {
       if (hidden.all) return false;
       return hidden.items.indexOf(condKey(cd)) === -1;
@@ -1939,29 +1963,78 @@
       inner.appendChild(el("p", "cond-hidden-note", "همه‌ی همدردی‌ها فعلاً برای بازدیدکنندگان مخفی است."));
     }
 
-    /* فهرست در یک کادر، مثل کادر «فعالیت‌های من» در پروفایل */
-    var box = el("div", "cond-box");
-    var shown = 0;
     var st = adminSet();
     /* اول ۵ تا، سپس با هر «دیدن همدردی‌های بیشتر» ۷، بعد ۱۲، و از آن به بعد ۱۵ تا ۱۵ تا (از تنظیمات پنل) */
     var PAGES = String(st.condPages || "5,7,12,15").replace(/[۰-۹]/g, function (x) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(x); })
       .split(/[^0-9]+/).map(Number).filter(function (n) { return n > 0; });
     if (!PAGES.length) PAGES = [5, 7, 12, 15];
-    var clicks = 0;
-    function showMore(n) {
-      list.slice(shown, shown + n).forEach(function (cd) { box.appendChild(condolenceItem(cd, d, isOwner)); });
-      shown = Math.min(list.length, shown + n);
-      if (shown >= list.length && more.parentNode) more.remove();
+
+    /* فهرست در یک کادر، مثل کادر «فعالیت‌های من» در پروفایل؛ با «دیدن همدردی‌های بیشتر» */
+    function pagedList(items, into) {
+      var box = el("div", "cond-box");
+      var shown = 0, clicks = 0;
+      var more = el("button", "cond-more", "<span>دیدن همدردی‌های بیشتر</span>" + ICON.chevron);
+      more.type = "button";
+      function showMore(n) {
+        items.slice(shown, shown + n).forEach(function (cd) { box.appendChild(condolenceItem(cd, d, isOwner)); });
+        shown = Math.min(items.length, shown + n);
+        if (shown >= items.length && more.parentNode) more.remove();
+      }
+      more.addEventListener("click", function () {
+        clicks++;
+        showMore(PAGES[Math.min(clicks, PAGES.length - 1)]);
+      });
+      if (items.length) into.appendChild(box);
+      if (items.length > PAGES[0]) into.appendChild(more);
+      showMore(PAGES[0]);
     }
-    var more = el("button", "cond-more", "<span>دیدن همدردی‌های بیشتر</span>" + ICON.chevron);
-    more.type = "button";
-    more.addEventListener("click", function () {
-      clicks++;
-      showMore(PAGES[Math.min(clicks, PAGES.length - 1)]);
-    });
-    if (list.length) inner.appendChild(box);
-    if (list.length > PAGES[0]) inner.appendChild(more);
-    showMore(PAGES[0]);
+
+    /* همدردی‌های هر دوره جدا: ختم (تا روز چهلم)، چهلم (تا سالگرد)، سالگردها.
+       دوره‌های گذشته بسته می‌شوند؛ همدردی تازه زیر سربرگ دوره‌ی جاری ثبت می‌شود. */
+    var now = condPeriod(d, null);
+    if (!now) {
+      /* بدون تاریخ درگذشت: یک فهرست ساده مثل قبل */
+      if (mine) inner.appendChild(myCondolenceItem(d, mine));
+      pagedList(list, inner);
+    } else {
+      var groups = {};
+      list.forEach(function (cd) {
+        var p = condPeriod(d, cd.date) || now;
+        (groups[p.key] = groups[p.key] || { p: p, items: [] }).items.push(cd);
+      });
+      var minePeriod = mine ? (condPeriod(d, mine.date) || now) : null;
+      if (minePeriod && !groups[minePeriod.key]) groups[minePeriod.key] = { p: minePeriod, items: [] };
+      if (!groups[now.key]) groups[now.key] = { p: now, items: [] };
+
+      Object.keys(groups).map(function (k) { return groups[k]; })
+        .sort(function (a, b) { return b.p.order - a.p.order; })
+        .forEach(function (g) {
+          var cur = g.p.key === now.key;
+          var n = g.items.length + (minePeriod && minePeriod.key === g.p.key ? 1 : 0);
+          var sec = el("div", "cond-period" + (cur ? " is-current" : ""));
+          var head = el(cur ? "div" : "button", "cp-head");
+          head.innerHTML = '<span class="cp-title">' + esc(g.p.title) + "</span>" +
+            '<span class="cp-meta">' + (cur ? "در حال ثبت" : faNum(n) + " همدردی · بسته شد") + "</span>" +
+            (cur ? "" : ICON.chevron);
+          sec.appendChild(head);
+          var bodyP = el("div", "cp-body");
+          if (minePeriod && minePeriod.key === g.p.key) bodyP.appendChild(myCondolenceItem(d, mine));
+          pagedList(g.items, bodyP);
+          if (cur && !n) bodyP.appendChild(el("p", "cp-empty", "هنوز همدردی‌ای برای " + g.p.short + " ثبت نشده است."));
+          if (!cur) {
+            head.type = "button";
+            head.setAttribute("aria-expanded", "false");
+            bodyP.hidden = true;
+            head.addEventListener("click", function () {
+              bodyP.hidden = !bodyP.hidden;
+              head.setAttribute("aria-expanded", bodyP.hidden ? "false" : "true");
+              sec.classList.toggle("is-open", !bodyP.hidden);
+            });
+          }
+          sec.appendChild(bodyP);
+          inner.appendChild(sec);
+        });
+    }
 
     var actions = el("div", "cond-actions");
     var reg = el("div", "cond-action");
