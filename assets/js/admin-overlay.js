@@ -73,6 +73,24 @@
 
   function condKey(listingId, cd) { return listingId + "|" + (cd.name || "") + "|" + String(cd.date || ""); }
 
+  /* بازگردانی یک‌باره‌ی آگهی‌های نمونه‌ی فرشچیان (۱۰۱ تا ۱۰۳) که روی این دستگاه مخفی/حذف شده بودند */
+  (function restoreOnce() {
+    if (DB) return;
+    try {
+      if (localStorage.getItem("sog:restored:farshchian")) return;
+      var st = parse(KEY);
+      if (st && st.listings) {
+        var changed = false;
+        ["101", "102", "103"].forEach(function (k) {
+          var o = st.listings[k];
+          if (o && (o.status === "hidden" || o.status === "deleted")) { delete o.status; delete o.autoHidden; changed = true; }
+        });
+        if (changed) localStorage.setItem(KEY, JSON.stringify(st));
+      }
+      localStorage.setItem("sog:restored:farshchian", "1");
+    } catch (e) {}
+  })();
+
   /* ---------- اعمال روی هر فایل داده ---------- */
   function applyListings(json, s) {
     var out = [];
