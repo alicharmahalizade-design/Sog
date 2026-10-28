@@ -132,8 +132,22 @@
     }
     return true;
   }
+  /* سوگ فوری: تشییع/خاکسپاری‌ای که روزش هنوز نگذشته — همیشه اول فید، نزدیک‌ترین بالاتر */
+  function isUrgent(item) {
+    var funeral = item.ceremony_type === "khaksepari" || (item.ceremony_labels || []).some(function (l) {
+      return l.indexOf("تشییع") !== -1 || l.indexOf("خاکسپاری") !== -1;
+    });
+    if (!funeral) return false;
+    var ev = eventDateOf(item);
+    if (!ev) return false;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return ev.getTime() >= today.getTime();
+  }
   function sortItems(items) {
     return items.slice().sort(function (a, b) {
+      var ua = isUrgent(a), ub = isUrgent(b);
+      if (ua !== ub) return ua ? -1 : 1;
+      if (ua) return jalaliNum(a) - jalaliNum(b);
       return state.sort === "soonest" ? jalaliNum(a) - jalaliNum(b) : jalaliNum(b) - jalaliNum(a);
     });
   }
