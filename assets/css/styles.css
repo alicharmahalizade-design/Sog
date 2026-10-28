@@ -896,7 +896,12 @@ option { direction: rtl; text-align: right; }
   display: flex; flex-direction: column; gap: 6px;
   font-size: 13px; color: var(--text-mute, #8a8a8a);
 }
-.notice-sheet .nt-facts li::before { content: ". "; }
+/* نوار عمودی گرد کنار مشخصات (به‌جای نقطه‌ها) */
+.notice-sheet .nt-facts { position: relative; padding-inline-start: 14px; }
+.notice-sheet .nt-facts::before {
+  content: ""; position: absolute; inset-inline-start: 0; top: 2px; bottom: 2px;
+  width: 4px; border-radius: 4px; background: var(--accent); opacity: .55;
+}
 /* جداکننده‌ی برچسب و مقدار: خط باریک و کم‌رنگ به رنگ برنزی سایت (به‌جای «:») */
 .notice-sheet .nt-sep {
   display: inline-block; width: 1px; height: 12px; margin: 0 8px; vertical-align: -1px;
