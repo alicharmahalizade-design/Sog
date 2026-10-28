@@ -1212,78 +1212,97 @@
     else b.addEventListener("click", onClick);
     return b;
   }
+  /* سال جاری شمسی (برای سقف نوار سال‌ها) */
+  function thisJYear() {
+    var n = new Date(), y = n.getFullYear();
+    return (n.getMonth() > 2 || (n.getMonth() === 2 && n.getDate() >= 21)) ? y - 621 : y - 622;
+  }
+  function setArchiveMode(on) {
+    document.body.classList.toggle("is-archive", !!on);
+    var t = document.getElementById("arcPageTitle");
+    if (t) t.hidden = !on;
+  }
+  /* آخرین ماهِ دارای آگهی در یک سال (برای انتخاب پیش‌فرض) */
+  function latestMonth(all, y) {
+    var best = null;
+    all.forEach(function (it) { if (it.death_year === y) { var m = monthOf(it); if (m && (best == null || m > best)) best = m; } });
+    return best || 12;
+  }
   function renderArchive(feed) {
     var all = archiveItems();
-    var byYear = {};
-    all.forEach(function (it) { byYear[it.death_year] = (byYear[it.death_year] || 0) + 1; });
-    var years = Object.keys(byYear).map(Number);
-    var top = Math.max.apply(null, years.concat([state.year])), bottom = Math.min.apply(null, years.concat([state.year]));
+    var top = thisJYear();
+    if (state.month == null) state.month = latestMonth(all, state.year);
+    setArchiveMode(true);
 
-    var head = el("div", "arc-head");
-    var title = el("div", "arc-title");
-    title.appendChild(el("h2", null, "سوگ‌های سال‌های گذشته"));
-    var close = el("button", "arc-close", "بستن"); close.type = "button";
-    close.addEventListener("click", function () { state.year = null; state.month = null; renderFeed(); window.scrollTo({ top: 0 }); });
-    title.appendChild(close);
-    head.appendChild(title);
+    /* نوار زمان: سال‌ها بالا، ماه‌ها پایین، وسط انتخاب‌شده در کادر؛ فلش‌ها ماه به ماه جابه‌جا می‌کنند */
+    var pick = el("div", "arc-picker");
+    var grid = el("div", "arc-grid");
+    function step(delta) {
+      var m = state.month + delta, y = state.year;
+      if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
+      if (y > top || (y === top && m > 12)) return;
+      state.year = y; state.month = m; renderFeed();
+    }
+    for (var off = 2; off >= -2; off--) (function (o) {
+      var col = el("div", "arc-col" + (o === 0 ? " is-on" : "") + " d" + Math.abs(o));
+      var yy = state.year + o, mm = ((state.month - 1 + o) % 12 + 12) % 12 + 1;
+      var yb = el("button", "arc-y", toFa(yy)); yb.type = "button";
+      if (yy > top) { yb.disabled = true; yb.classList.add("is-hidden"); }
+      else yb.addEventListener("click", function () {
+        state.year = yy;
+        var has = all.some(function (it) { return it.death_year === yy && monthOf(it) === state.month; });
+        if (!has) state.month = latestMonth(all, yy);
+        renderFeed();
+      });
+      var mb = el("button", "arc-m", MONTHS[mm - 1]); mb.type = "button";
+      mb.addEventListener("click", function () { state.month = mm; renderFeed(); });
+      col.appendChild(yb); col.appendChild(mb);
+      grid.appendChild(col);
+    })(off);
+    var newer = el("button", "arc-arrow is-newer", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); newer.type = "button";
+    newer.setAttribute("aria-label", "ماه بعد");
+    newer.addEventListener("click", function () { step(1); });
+    var older = el("button", "arc-arrow is-older", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); older.type = "button";
+    older.setAttribute("aria-label", "ماه قبل");
+    older.addEventListener("click", function () { step(-1); });
+    if (state.year >= top && state.month >= 12) newer.disabled = true;
+    pick.appendChild(el("span", "arc-line"));
+    pick.appendChild(newer); pick.appendChild(grid); pick.appendChild(older);
+    feed.appendChild(pick);
 
-    /* سال‌ها: پیوسته از جدیدترین تا قدیمی‌ترین؛ سال بی‌آگهی کم‌رنگ و غیرفعال */
-    var ys = el("div", "arc-years");
-    for (var y = top; y >= bottom; y--) (function (yy) {
-      ys.appendChild(stripButton(toFa(yy), "arc-year", yy === state.year, !byYear[yy], function () {
-        state.year = yy; state.month = null; renderFeed();
-      }));
-    })(y);
-    head.appendChild(ys);
-
-    var inYear = all.filter(function (it) { return it.death_year === state.year; });
-    var byMonth = {};
-    inYear.forEach(function (it) { var m = monthOf(it); if (m) byMonth[m] = (byMonth[m] || 0) + 1; });
-    var ms = el("div", "arc-months");
-    ms.appendChild(stripButton("همه", "arc-month", state.month == null, false, function () { state.month = null; renderFeed(); }));
-    MONTHS.forEach(function (name, i) {
-      var m = i + 1;
-      ms.appendChild(stripButton(name, "arc-month", state.month === m, !byMonth[m], function () {
-        state.month = state.month === m ? null : m; renderFeed();
-      }));
-    });
-    head.appendChild(ms);
-    feed.appendChild(head);
-
-    var list = inYear.filter(function (it) { return state.month == null || monthOf(it) === state.month; });
-    list = sortItems(list);
-    feed.appendChild(el("p", "arc-count", toFa(list.length) + " آگهی" +
-      (state.month ? " در " + MONTHS[state.month - 1] : "") + " " + toFa(state.year)));
-    if (!list.length) { feed.appendChild(el("p", "arc-empty", "آگهی‌ای در این بازه نیست.")); return; }
+    var list = sortItems(all.filter(function (it) { return it.death_year === state.year && monthOf(it) === state.month; }));
+    if (!list.length) {
+      feed.appendChild(el("p", "arc-empty", "در " + MONTHS[state.month - 1] + " " + toFa(state.year) + " آگهی‌ای ثبت نشده است."));
+      return;
+    }
     var box = el("div", "arc-list");
     list.forEach(function (it) { box.appendChild(archiveCard(it)); });
     feed.appendChild(box);
-
-    /* سال و ماه انتخاب‌شده در نوارها دیده شود */
-    requestAnimationFrame(function () {
-      [ys.querySelector(".is-on"), ms.querySelector(".is-on")].forEach(function (n) {
-        if (n) n.scrollIntoView({ block: "nearest", inline: "center" });
-      });
-    });
   }
-  /* کارت فشرده‌ی آرشیو: عکس مربع ۸۸، نام و دو برچسب «طایفه» و «پدر» */
+  /* کارت فشرده‌ی آرشیو: عکس سمت راست، نام و نام خانوادگی/طایفه، نشانک سمت چپ */
   function archiveCard(it) {
-    var a = el("a", "arc-card");
-    a.href = "listing.html?id=" + encodeURIComponent(it.id);
+    var a = el("div", "arc-card");
+    a.setAttribute("role", "link"); a.tabIndex = 0;
+    var go = function () { SogStore.markSeen(it.id); location.href = "listing.html?id=" + encodeURIComponent(it.id); };
+    a.addEventListener("click", go);
+    a.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
     var ph = el("span", "arc-photo");
     if (it.photo) ph.style.backgroundImage = 'url("' + it.photo + '")';
     a.appendChild(ph);
     var body = el("span", "arc-body");
     body.appendChild(el("span", "arc-name", esc(it.deceased_name || "")));
-    var chips = el("span", "arc-chips");
-    var pairs = [["طایفه", it.tayefe], ["پدر", it.father]];
-    if (!it.tayefe && !it.father) pairs = [["شهر", it.city], ["تاریخ", it.event_date_jalali]];
-    pairs.forEach(function (p) {
-      if (!p[1]) return;
-      chips.appendChild(el("span", "arc-chip", '<b>' + p[0] + '</b><i></i>' + esc(p[1])));
-    });
-    body.appendChild(chips);
+    var sub = it.tayefe || it.father || it.city || "";
+    if (sub) body.appendChild(el("span", "arc-sub", esc(sub)));
     a.appendChild(body);
+    var saved = SogStore.isSaved(it.id);
+    var bm = el("button", "arc-bm" + (saved ? " is-saved" : ""), bookmarkSvg(saved));
+    bm.type = "button"; bm.setAttribute("aria-label", "ذخیره");
+    bm.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var now = SogStore.toggleSaved(it.id);
+      bm.classList.toggle("is-saved", now); bm.innerHTML = bookmarkSvg(now);
+    });
+    a.appendChild(bm);
     return a;
   }
 
@@ -1292,6 +1311,7 @@
     var feed = document.getElementById("feed");
     var empty = document.getElementById("emptyState");
     feed.innerHTML = "";
+    setArchiveMode(false);
 
     /* نمای آرشیو وقتی سالی از «سوگ‌های سال‌های گذشته» انتخاب شده و فیلتر دیگری فعال نیست */
     if (state.year != null && !state.query && !state.sel.length && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il) {
