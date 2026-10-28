@@ -947,7 +947,7 @@
                    ["تاریخ درگذشت", item.event_date_jalali], [null, item.city]]
         .filter(function (f) { return f[1]; })
         .map(function (f) {
-          return "<li>" + (f[0] ? esc(f[0]) + " : " : "") + esc(f[1]) + "</li>";
+          return "<li>" + (f[0] ? esc(f[0]) + '<i class="nt-sep" aria-hidden="true"></i>' : "") + esc(f[1]) + "</li>";
         }).join("");
       sheet.innerHTML =
         '<div class="sheet-handle"></div>' +

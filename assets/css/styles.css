@@ -897,6 +897,11 @@ option { direction: rtl; text-align: right; }
   font-size: 13px; color: var(--text-mute, #8a8a8a);
 }
 .notice-sheet .nt-facts li::before { content: ". "; }
+/* جداکننده‌ی برچسب و مقدار: خط باریک و کم‌رنگ به رنگ برنزی سایت (به‌جای «:») */
+.notice-sheet .nt-sep {
+  display: inline-block; width: 1px; height: 12px; margin: 0 8px; vertical-align: -1px;
+  background: var(--accent); opacity: .45;
+}
 .notice-sheet .nt-photo {
   flex: 0 0 38%; max-width: 160px; min-height: 150px; align-self: stretch; border-radius: 18px;
   background: #2a2a2a center top/cover no-repeat;
