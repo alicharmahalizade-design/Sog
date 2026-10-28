@@ -754,7 +754,7 @@
       condBtn.title = "پس از انتشار آگهی، بازدیدکنندگان می‌توانند همدردی ثبت کنند";
       pair.appendChild(thanksBtn); pair.appendChild(condBtn);
 
-      var thanksBox = el("div", "thanks-box");
+      var thanksBox = el("div", "field thanks-box");   /* همان ظاهر فیلدهای دیگر */
       thanksBox.hidden = !data.thanks;
       var ta = textInput("thanks", "متن سپاسگزاری خود را بنویسید…", { tag: "textarea", rows: 4, max: 600 });
       thanksBox.appendChild(ta);
