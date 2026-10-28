@@ -89,6 +89,18 @@
     return [];
   }
 
+  /* یک‌بار: همه‌ی آگهی‌هایی که روی این دستگاه «در انتظار تأیید» مانده بودند منتشر می‌شوند */
+  (function publishPendingOnce() {
+    try {
+      if (localStorage.getItem("sog:pendingReleased")) return;
+      var ads = JSON.parse(localStorage.getItem(MYADS_KEY)) || [];
+      var changed = false;
+      ads.forEach(function (a) { if (a && a.pending) { a.pending = false; changed = true; } });
+      if (changed) localStorage.setItem(MYADS_KEY, JSON.stringify(ads));
+      localStorage.setItem("sog:pendingReleased", "1");
+    } catch (e) {}
+  })();
+
   var Store = {
     /* ----- همدردی خودِ کاربر (قابل ویرایش) ----- */
     /* هر حساب همدردی خودش را دارد: کلید «شناسه‌ی حساب|شناسه‌ی آگهی» (بدون حساب: فقط شناسه‌ی آگهی) */
