@@ -361,6 +361,54 @@ language sql stable security definer set search_path = public as $$
    order by r.id desc
    limit 300;
 $$;
+-- ---------- خیرات به نیت درگذشته ----------
+-- هر بار که بازدیدکننده دکمه‌ی پرداخت خیرات را می‌زند یک ردیف ثبت می‌شود (اعلام خودِ خیّر؛ پرداخت در سایت مؤسسه است).
+-- فهرست فقط با رمز مالکیت آگهی (my_listing_donations) به ثبت‌کننده‌ی سوگ نشان داده می‌شود.
+create table if not exists public.donations (
+  id           bigint generated always as identity primary key,
+  listing_id   text not null,
+  donor_name   text,
+  charity_name text not null check (char_length(charity_name) between 1 and 120),
+  amount       bigint not null check (amount between 1000 and 10000000000),
+  created_at   timestamptz not null default now()
+);
+create index if not exists donations_listing_idx on public.donations (listing_id, created_at);
+alter table public.donations enable row level security;
+revoke all on public.donations from anon, authenticated;
+grant select on public.donations to authenticated;
+drop policy if exists "donations: admin reads" on public.donations;
+create policy "donations: admin reads" on public.donations
+  for select to authenticated using (public.is_admin());
+
+create or replace function public.add_donation(p_listing text, p_name text, p_charity text, p_amount bigint)
+returns boolean
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.donations (listing_id, donor_name, charity_name, amount)
+  values (left(p_listing, 80), nullif(left(trim(coalesce(p_name, '')), 120), ''), left(trim(p_charity), 120), p_amount);
+  return true;
+end $$;
+revoke all on function public.add_donation(text, text, text, bigint) from public;
+grant execute on function public.add_donation(text, text, text, bigint) to anon, authenticated;
+
+create or replace function public.my_listing_donations(p_items jsonb default '[]'::jsonb)
+returns table (id bigint, listing_id text, donor_name text, charity_name text, amount bigint, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  with mine as (
+    select o.listing_id
+      from public.listing_owners o
+      join jsonb_array_elements(case when jsonb_typeof(p_items) = 'array' and jsonb_array_length(p_items) <= 300 then p_items else '[]'::jsonb end) e
+        on o.listing_id = e ->> 'id' and o.token::text = e ->> 'token'
+  )
+  select d.id, d.listing_id, d.donor_name, d.charity_name, d.amount, d.created_at
+    from public.donations d
+   where d.listing_id in (select listing_id from mine)
+   order by d.id desc
+   limit 500;
+$$;
+revoke all on function public.my_listing_donations(jsonb) from public;
+grant execute on function public.my_listing_donations(jsonb) to anon, authenticated;
+
 -- حذف آگهی توسط ثبت‌کننده‌اش: نسخه‌ی منتشرشده پنهان و ارسال‌های در انتظارش لغو می‌شود
 create or replace function public.owner_remove_listing(p_id text, p_token uuid)
 returns boolean

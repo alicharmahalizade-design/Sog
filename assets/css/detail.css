@@ -889,3 +889,28 @@
 }
 .cond-head .cond-verified, .cond-head .mine-badge { flex: 0 0 auto; }
 .cond-head .chev { flex: 0 0 auto; }
+
+/* خیرات‌های به نیت درگذشته — فقط برای ثبت‌کننده‌ی سوگ */
+.donations-box {
+  margin: 12px 14px 0; padding: 14px; border-radius: 16px;
+  background: #161616; border: 1px solid #262626;
+}
+.donations-box .db-title { margin: 0 0 4px; font-size: 14.5px; color: var(--accent); }
+.donations-box .db-sub { margin: 0 0 12px; font-size: 11.5px; color: var(--text-mute, #6f6f6f); }
+.donations-box .db-empty { margin: 0; font-size: 13px; color: var(--text-dim); }
+.donations-box .db-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-radius: 12px; background: rgba(217,154,91,.12);
+  font-size: 13px; color: var(--text-dim);
+}
+.donations-box .db-total b { color: var(--accent); font-size: 15px; }
+.donations-box .db-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.donations-box .db-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 2px; border-bottom: 1px solid #222;
+}
+.donations-box .db-list li:last-child { border-bottom: 0; }
+.donations-box .db-list span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.donations-box .db-list b { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.donations-box .db-list small { font-size: 11.5px; color: var(--text-dim); }
+.donations-box .db-list em { font-style: normal; font-size: 13px; color: var(--accent); white-space: nowrap; }

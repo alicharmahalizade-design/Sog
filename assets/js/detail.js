@@ -245,6 +245,7 @@
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
     root.appendChild(charityCard(d));
+    if (ownerMode(d)) root.appendChild(donationsBox(d));
     root.appendChild(reportError(d));
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
@@ -374,6 +375,31 @@
     return card;
   }
 
+  /* فقط برای ثبت‌کننده‌ی سوگ: فهرست و جمع خیرات‌هایی که به نیت درگذشته شده */
+  function donationsBox(d) {
+    var box = el("section", "donations-box");
+    box.innerHTML = '<h3 class="db-title">خیرات‌های به نیت ' + esc(d.deceased_name) + "</h3>" +
+      '<p class="db-sub">این فهرست فقط برای شما (ثبت‌کننده‌ی سوگ) نمایش داده می‌شود.</p>' +
+      '<div class="db-body"><p class="db-empty">در حال بارگذاری…</p></div>';
+    var body = box.querySelector(".db-body");
+    var token = SogStore.ownerToken ? SogStore.ownerToken(String(d.id)) : "";
+    var load = DB && token
+      ? DB.rpc("my_listing_donations", { p_items: [{ id: String(d.id), token: token }] })
+      : Promise.resolve([]);
+    load.catch(function () { return []; }).then(function (rows) {
+      rows = rows || [];
+      if (!rows.length) { body.innerHTML = '<p class="db-empty">هنوز خیراتی ثبت نشده است.</p>'; return; }
+      var total = rows.reduce(function (s, r) { return s + (+r.amount || 0); }, 0);
+      body.innerHTML =
+        '<div class="db-total"><span>جمع خیرات (' + faNum(rows.length) + " مورد)</span><b>" + toman(total) + "</b></div>" +
+        '<ul class="db-list">' + rows.map(function (r) {
+          return "<li><span><b>" + esc(r.donor_name || "نیکوکار ناشناس") + "</b><small>" + esc(r.charity_name) + "</small></span>" +
+            "<em>" + toman(r.amount) + "</em></li>";
+        }).join("") + "</ul>";
+    });
+    return box;
+  }
+
   function openCharitySheet(d) {
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "report-sheet charity-sheet");
@@ -431,6 +457,9 @@
       try { localStorage.setItem("sog:donations", JSON.stringify(all)); } catch (e) {}
       /* اگر قبلاً همدردی نوشته، نشان «خیرات کرده» کنارش می‌آید */
       var mineC = SogStore.getMyCondolence(id);
+      /* برای ثبت‌کننده‌ی سوگ: نام خیّر، مؤسسه و مبلغ */
+      var donor = (mineC && mineC.name) || ((SogStore.getUser && SogStore.getUser()) || {}).name || "";
+      if (DB) DB.rpc("add_donation", { p_listing: String(id), p_name: donor, p_charity: pick.charity.name, p_amount: pick.amount }).catch(function () {});
       if (mineC) {
         mineC.donated = true; SogStore.setMyCondolence(id, mineC);
         if (DB && mineC.db_id && mineC.token) DB.rpc("mark_condolence_donated", { p_id: mineC.db_id, p_token: mineC.token }).catch(function () {});
