@@ -124,7 +124,7 @@
       q("listings", "select=id,data,status,created_at&order=created_at.desc&limit=2000"),
       q("businesses", "select=id,data,status,created_at&order=created_at.desc&limit=2000"),
       q("submissions", "select=*&order=created_at.desc&limit=1000"),
-      q("condolences", "select=id,listing_id,name,message,kind,org_melli,verified,status,created_at&order=created_at.desc&limit=3000"),
+      q("condolences", "select=id,listing_id,name,message,kind,org_melli,verified,status,review_note,created_at&order=created_at.desc&limit=3000"),
       q("reports", "select=*&order=created_at.desc&limit=1000"),
       q("support_messages", "select=*&order=id.asc&limit=5000"),
       q("messages", "select=*&order=id.desc&limit=500")
@@ -271,7 +271,7 @@
       D.db.conds.forEach(function (c) {
         out.unshift({ key: "db:" + c.id, dbId: c.id, listingId: c.listing_id, listing: names[c.listing_id] || "آگهی " + fa(c.listing_id),
                       name: c.name, message: c.message, date: faDate(c.created_at), kind: c.kind, melli: c.org_melli,
-                      verified: c.verified, status: c.status, live: true });
+                      verified: c.verified, status: c.status, botNote: c.review_note || "", live: true });
       });
       return out;
     }
@@ -806,7 +806,7 @@
 
   /* با Supabase: آگهی‌ها و کسب‌وکارهای فرستاده‌شده از همه‌ی کاربران */
   function pendingDB() {
-    main.appendChild(el("p", "ad-intro", "آگهی‌ها و کسب‌وکارهایی که کاربران از فرم‌های «ثبت سوگ» و «ثبت کسب‌وکار» فرستاده‌اند. پس از تأیید برای همه منتشر می‌شوند."));
+    main.appendChild(el("p", "ad-intro", "ربات بررسی، آگهی‌ها و اطلاعیه‌های سالم را خودکار منتشر می‌کند. اینجا فقط موارد مشکوک (با دلیل) و کسب‌وکارها برای بررسی کارشناس می‌مانند."));
     var list = el("div", "ad-list");
     main.appendChild(list);
     var subs = drafts();
@@ -830,7 +830,8 @@
         " · " + faDate(sub.created_at) + " " + faTime(sub.created_at) + "</div>" + pill("pending") + "</div></div>" +
         '<dl class="ad-dl">' + rows.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1] || "—") + "</dd>"; }).join("") + "</dl>" +
         (isBiz && biz.description ? '<p class="ad-msg">' + esc(biz.description) + "</p>" : "") +
-        (!isBiz && (f.quick_note || f.brief) ? '<p class="ad-msg">' + esc(f.quick_note || f.brief) + "</p>" : "");
+        (!isBiz && (f.quick_note || f.brief) ? '<p class="ad-msg">' + esc(f.quick_note || f.brief) + "</p>" : "") +
+        (sub.review_note ? '<p class="ad-bot"><b>ربات بررسی:</b> ' + esc(sub.review_note) + "</p>" : "");
       var acts = el("div", "ad-form-actions");
       var title = isBiz ? biz.name : (ad.deceased_name || f.name);
       acts.appendChild(actBtn("رد", "is-danger", function () {
@@ -925,7 +926,8 @@
           (c.local ? ' <span class="ad-pill is-info">این دستگاه</span>' : "") + (c.live ? ' <span class="ad-pill is-info">کاربر</span>' : "") + "</div>" +
           (c.kind === "org" && c.melli ? '<div class="ad-row-sub">کد ملی مسئول ثبت: ' + esc(fa(c.melli)) + "</div>" : "") +
           '<div class="ad-row-sub">برای ' + esc(c.listing) + (c.date ? " · " + esc(c.date) : "") + "</div>" +
-          '<p class="ad-msg">' + esc(c.message) + "</p>";
+          '<p class="ad-msg">' + esc(c.message) + "</p>" +
+          (c.botNote && c.status === "hidden" ? '<p class="ad-bot"><b>ربات بررسی:</b> ' + esc(c.botNote) + " — تا تأیید شما نمایش داده نمی‌شود.</p>" : "");
         var acts = el("div", "ad-row-acts");
         var setC = function (patch, msg) {
           if (c.live) {

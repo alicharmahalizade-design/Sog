@@ -485,3 +485,249 @@ notify pgrst, 'reload schema';
 --
 --  insert into public.admins (email) values ('ایمیل-شما@example.com') on conflict do nothing;
 -- =====================================================================
+
+-- =====================================================================
+-- ---------- ربات بررسی خودکار ----------
+-- هر آگهی سوگ / اطلاعیه‌ی فوری که ثبت می‌شود و هر همدردی که نوشته می‌شود
+-- همان لحظه در خود پایگاه داده بررسی می‌شود:
+--   • اگر مشکلی نداشت، خودکار منتشر می‌شود (و به ثبت‌کننده پیام می‌رسد)؛
+--   • اگر مشکوک بود، برای «بررسی کارشناس» در پنل مدیریت می‌ماند و دلیلش کنارش نوشته می‌شود.
+-- کسب‌وکارها همیشه توسط کارشناس بررسی می‌شوند (اشتراک پولی و احراز هویت دارند).
+-- خاموش/روشن کردن:  update public.bot_settings set enabled = false;
+-- =====================================================================
+create table if not exists public.bot_settings (
+  id               int primary key default 1 check (id = 1),
+  enabled          boolean not null default true,
+  auto_listings    boolean not null default true,
+  auto_condolences boolean not null default true
+);
+insert into public.bot_settings (id) values (1) on conflict (id) do nothing;
+alter table public.bot_settings enable row level security;
+revoke all on public.bot_settings from anon;
+drop policy if exists "bot_settings: admin manages" on public.bot_settings;
+create policy "bot_settings: admin manages" on public.bot_settings
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- واژه‌های ممنوع/مشکوک؛ مدیر می‌تواند از SQL Editor اضافه یا حذف کند
+create table if not exists public.bot_words (
+  word   text primary key,
+  reason text not null default 'واژه‌ی نامناسب'
+);
+alter table public.bot_words enable row level security;
+revoke all on public.bot_words from anon;
+drop policy if exists "bot_words: admin manages" on public.bot_words;
+create policy "bot_words: admin manages" on public.bot_words
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+insert into public.bot_words (word, reason) values
+  ('کثافت', 'توهین'), ('احمق', 'توهین'), ('الاغ', 'توهین'), ('بیشعور', 'توهین'), ('بی‌شعور', 'توهین'),
+  ('حرومزاده', 'توهین'), ('حرامزاده', 'توهین'), ('جنده', 'توهین'), ('کونی', 'توهین'), ('کسکش', 'توهین'),
+  ('کس کش', 'توهین'), ('مادرجنده', 'توهین'), ('پدرسگ', 'توهین'), ('پدر سگ', 'توهین'), ('گوه', 'توهین'),
+  ('خفه شو', 'توهین'), ('گمشو', 'توهین'), ('لعنت بر', 'توهین'), ('حقش بود', 'توهین'), ('خوشحالم که مرد', 'توهین'),
+  ('شرط بندی', 'تبلیغ'), ('شرط‌بندی', 'تبلیغ'), ('کازینو', 'تبلیغ'), ('بت فوروارد', 'تبلیغ'), ('وام فوری', 'تبلیغ'),
+  ('خرید فالوور', 'تبلیغ'), ('فالوور', 'تبلیغ'), ('کسب درآمد', 'تبلیغ'), ('درآمد دلاری', 'تبلیغ'), ('ارز دیجیتال', 'تبلیغ'),
+  ('تخفیف ویژه', 'تبلیغ'), ('سفارش دهید', 'تبلیغ'), ('عضو کانال', 'تبلیغ'), ('کانال تلگرام', 'تبلیغ'), ('پیج اینستاگرام', 'تبلیغ')
+on conflict (word) do nothing;
+
+alter table public.submissions add column if not exists review_note text;
+alter table public.submissions add column if not exists reviewed_by text;
+alter table public.condolences add column if not exists review_note text;
+
+-- کد ملی ایران (۱۰ رقم با رقم کنترل)
+create or replace function public.bot_melli_ok(p text) returns boolean
+language plpgsql immutable as $$
+declare s int := 0; i int; c int; d text;
+begin
+  d := translate(coalesce(p, ''), '۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789');
+  if d !~ '^[0-9]{10}$' or d ~ '^(\d)\1{9}$' then return false; end if;
+  for i in 1..9 loop s := s + substr(d, i, 1)::int * (11 - i); end loop;
+  s := s % 11; c := substr(d, 10, 1)::int;
+  return (s < 2 and c = s) or (s >= 2 and c = 11 - s);
+end $$;
+
+-- متن را بررسی می‌کند و فهرست دلیل‌های مشکوک‌بودن را برمی‌گرداند (خالی = سالم)
+create or replace function public.bot_text_flags(p_text text, p_allow_phone boolean default false)
+returns text[]
+language plpgsql stable security definer set search_path = public as $$
+declare
+  t text := lower(coalesce(p_text, ''));
+  r text[] := '{}';
+  w record;
+begin
+  -- نشانی فایل‌های خود سایت (عکس‌ها در Supabase Storage) لینک حساب نمی‌شود
+  t := regexp_replace(t, 'https?://[a-z0-9.-]*supabase\.co[^"\s]*', '', 'g');
+  t := translate(t, '۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩يك', '01234567890123456789یک');
+  for w in select word, reason from public.bot_words loop
+    if position(lower(w.word) in t) > 0 then r := r || (w.reason || ': «' || w.word || '»'); end if;
+  end loop;
+  if t ~ '(https?://|www\.|t\.me/|telegram\.me|instagram\.com|wa\.me/|bit\.ly)' or t ~ '[a-z0-9-]+\.(ir|com|net|org|me|io|xyz)\b' then
+    r := r || 'لینک بیرونی'::text;
+  end if;
+  if not p_allow_phone and t ~ '(\+98|0098|\m0)9[0-9]{9}' then r := r || 'شماره تلفن در متن'::text; end if;
+  if t ~ '(.)\1{7,}' then r := r || 'حروف تکراری'::text; end if;
+  return r;
+end $$;
+
+-- بررسی و (در صورت سالم بودن) انتشار یک ارسال
+create or replace function public.bot_review_submission(p_id bigint) returns text
+language plpgsql security definer set search_path = public as $$
+declare
+  s     public.submissions%rowtype;
+  cfg   public.bot_settings%rowtype;
+  f     jsonb; ad jsonb;
+  r     text[] := '{}';
+  nm    text; phone text; pub_id text; title text; d_y int; d_m int; d_d int;
+  n     int; jy int;
+begin
+  select * into s from public.submissions where id = p_id for update;
+  if not found or s.status <> 'pending' then return 'skip'; end if;
+  select * into cfg from public.bot_settings where id = 1;
+  if cfg.id is null or not cfg.enabled or not cfg.auto_listings then return 'off'; end if;
+  if s.kind <> 'listing' then
+    update public.submissions set review_note = 'کسب‌وکار: همیشه بررسی کارشناس', reviewed_by = 'bot' where id = p_id;
+    return 'manual';
+  end if;
+
+  f  := coalesce(s.payload -> 'form', '{}'::jsonb);
+  ad := coalesce(s.payload -> 'ad', '{}'::jsonb);
+  nm := trim(coalesce(nullif(ad ->> 'deceased_name', ''), f ->> 'name', ''));
+  phone := translate(coalesce(f ->> 'phone', ''), '۰۱۲۳۴۵۶۷۸۹', '0123456789');
+
+  if char_length(nm) < 3 or char_length(nm) > 80 then r := r || 'نام درگذشته نامعتبر'::text; end if;
+  if nm ~ '[0-9۰-۹@#$%^&*<>{}]' then r := r || 'نماد یا عدد در نام درگذشته'::text; end if;
+
+  -- متن‌های آزاد آگهی (نام‌ها، توضیح، متن اطلاعیه، توضیح مراسم‌ها)
+  r := r || public.bot_text_flags(concat_ws(' ', nm, ad ->> 'subtitle', ad ->> 'notice_text', ad ->> 'father', ad ->> 'mother',
+             ad ->> 'location', f ->> 'brief', f ->> 'quick_note', f ->> 'applicant_name', f ->> 'relation', (f -> 'events')::text), true);
+
+  -- تاریخ درگذشت در آینده
+  begin
+    d_y := nullif(translate(f -> 'death' ->> 'y', '۰۱۲۳۴۵۶۷۸۹', '0123456789'), '')::int;
+    d_m := nullif(translate(f -> 'death' ->> 'm', '۰۱۲۳۴۵۶۷۸۹', '0123456789'), '')::int;
+    d_d := nullif(translate(f -> 'death' ->> 'd', '۰۱۲۳۴۵۶۷۸۹', '0123456789'), '')::int;
+    -- سال شمسی امروز ≈ سال میلادی − ۶۲۱ (از نوروز) ؛ فقط سال‌های آشکارا آینده رد می‌شوند
+    jy := extract(year from now())::int - (case when extract(doy from now()) >= 80 then 621 else 622 end);
+    if d_y is not null and d_y > jy then
+      r := r || 'تاریخ درگذشت در آینده'::text;
+    end if;
+    if d_y is not null and d_y < 1300 then r := r || 'تاریخ درگذشت نامعتبر'::text; end if;
+  exception when others then null;
+  end;
+
+  -- کد ملی ثبت‌کننده
+  if coalesce(f ->> 'melli', '') <> '' and not public.bot_melli_ok(f ->> 'melli') then
+    r := r || 'کد ملی ثبت‌کننده نامعتبر'::text;
+  end if;
+
+  -- ارسال پشت‌سرهم از یک شماره
+  if phone <> '' then
+    select count(*) into n from public.submissions
+     where kind = 'listing' and id <> p_id and created_at > now() - interval '24 hours'
+       and translate(coalesce(payload -> 'form' ->> 'phone', ''), '۰۱۲۳۴۵۶۷۸۹', '0123456789') = phone;
+    if n >= 3 then r := r || ('ارسال زیاد از یک شماره (' || n + 1 || ' آگهی در ۲۴ ساعت)'); end if;
+  end if;
+
+  -- آگهی تکراری: همین نام و نام پدر در ۶۰ روز اخیر منتشر شده (ویرایش همان آگهی مستثناست)
+  select count(*) into n from public.listings l
+   where l.status = 'published' and l.created_at > now() - interval '60 days'
+     and trim(l.data ->> 'deceased_name') = nm
+     and coalesce(l.data ->> 'father', '') = coalesce(ad ->> 'father', '')
+     and l.id <> coalesce(ad ->> 'id', '');
+  if n > 0 then r := r || 'احتمال آگهی تکراری'::text; end if;
+
+  if array_length(r, 1) > 0 then
+    update public.submissions set review_note = array_to_string(r, ' · '), reviewed_by = 'bot' where id = p_id;
+    if coalesce(s.payload ->> 'owner_token', '') ~ '^[0-9a-f-]{36}$' then
+      pub_id := coalesce(nullif(ad ->> 'id', ''), 's' || p_id);
+      insert into public.listing_owners (listing_id, token) values (pub_id, (s.payload ->> 'owner_token')::uuid)
+        on conflict (listing_id) do update set token = excluded.token;
+      insert into public.messages (title, body, kind, target_listing)
+      values ('آگهی «' || nm || '» در حال بررسی است',
+              'آگهی شما برای بررسی بیشتر به کارشناس سپرده شد و پس از تأیید منتشر می‌شود.', 'admin', pub_id);
+    end if;
+    return 'review';
+  end if;
+
+  -- سالم: انتشار خودکار (همان کاری که دکمه‌ی «تأیید و انتشار» پنل می‌کند)
+  pub_id := coalesce(nullif(ad ->> 'id', ''), 's' || p_id);
+  insert into public.listings (id, data, status)
+  values (pub_id, ad - 'id' - 'pending' - 'is_mine' - 'mine', 'published')
+  on conflict (id) do update set data = excluded.data, status = 'published';
+  update public.submissions
+     set status = 'approved', published_id = pub_id, reviewed_at = now(), reviewed_by = 'bot', review_note = null
+   where id = p_id;
+  if coalesce(s.payload ->> 'owner_token', '') ~ '^[0-9a-f-]{36}$' then
+    insert into public.listing_owners (listing_id, token) values (pub_id, (s.payload ->> 'owner_token')::uuid)
+      on conflict (listing_id) do update set token = excluded.token;
+    title := case when (ad ->> 'is_notice')::boolean is true then 'اطلاعیه‌ی درگذشت' else 'آگهی' end;
+    insert into public.messages (title, body, kind, target_listing)
+    values (title || ' «' || nm || '» منتشر شد',
+            'آگهی شما به‌صورت خودکار بررسی و برای همه منتشر شد. از «آگهی‌های من» می‌توانید آن را ببینید.', 'admin', pub_id);
+  end if;
+  return 'approved';
+end $$;
+revoke all on function public.bot_review_submission(bigint) from public;
+
+create or replace function public.bot_on_submission() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  begin
+    perform public.bot_review_submission(new.id);
+  exception when others then
+    -- خطای ربات نباید ثبت آگهی را خراب کند؛ آگهی برای کارشناس می‌ماند
+    update public.submissions set review_note = 'ربات نتوانست بررسی کند: ' || left(sqlerrm, 200), reviewed_by = 'bot' where id = new.id;
+  end;
+  return null;
+end $$;
+drop trigger if exists bot_on_submission on public.submissions;
+create trigger bot_on_submission after insert on public.submissions
+  for each row execute function public.bot_on_submission();
+
+-- همدردی: پیش از ذخیره بررسی می‌شود؛ مشکوک‌ها پنهان می‌مانند تا کارشناس ببیند
+create or replace function public.bot_on_condolence() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  cfg public.bot_settings%rowtype;
+  r   text[] := '{}';
+  n   int;
+begin
+  select * into cfg from public.bot_settings where id = 1;
+  if cfg.id is null or not cfg.enabled or not cfg.auto_condolences then return new; end if;
+  r := public.bot_text_flags(new.name || ' ' || new.message, false);
+  if new.message !~ '[آ-یa-zA-Z]' then r := r || 'متن بدون حروف'::text; end if;
+  -- یک متن در ۱۰ دقیقه بیش از ۳ بار (اسپم)
+  select count(*) into n from public.condolences
+   where message = new.message and created_at > now() - interval '10 minutes';
+  if n >= 3 then r := r || 'متن تکراری (اسپم)'::text; end if;
+  -- همدردی‌های پشت‌سرهم با یک نام برای یک آگهی
+  select count(*) into n from public.condolences
+   where listing_id = new.listing_id and name = new.name and created_at > now() - interval '5 minutes';
+  if n >= 2 then r := r || 'ارسال پشت‌سرهم'::text; end if;
+  if array_length(r, 1) > 0 then
+    new.status := 'hidden';
+    new.review_note := array_to_string(r, ' · ');
+  end if;
+  return new;
+end $$;
+drop trigger if exists bot_on_condolence on public.condolences;
+create trigger bot_on_condolence before insert on public.condolences
+  for each row execute function public.bot_on_condolence();
+
+-- ویرایش همدردی هم دوباره بررسی می‌شود
+create or replace function public.bot_on_condolence_edit() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare cfg public.bot_settings%rowtype; r text[];
+begin
+  if new.message is not distinct from old.message and new.name is not distinct from old.name then return new; end if;
+  if public.is_admin() then return new; end if;
+  select * into cfg from public.bot_settings where id = 1;
+  if cfg.id is null or not cfg.enabled or not cfg.auto_condolences then return new; end if;
+  r := public.bot_text_flags(new.name || ' ' || new.message, false);
+  if array_length(r, 1) > 0 and new.status = 'published' then
+    new.status := 'hidden';
+    new.review_note := array_to_string(r, ' · ');
+  end if;
+  return new;
+end $$;
+drop trigger if exists bot_on_condolence_edit on public.condolences;
+create trigger bot_on_condolence_edit before update on public.condolences
+  for each row execute function public.bot_on_condolence_edit();

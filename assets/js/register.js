@@ -1015,6 +1015,9 @@
       is_notice: data.mode === "quick",
       notice_text: data.quick_note || "",
       death_year: parseInt(toEnNum(ev).split("/")[0], 10) || null,
+      /* تاریخ کامل درگذشت: مبنای دوره‌های همدردی (ختم، چهلم، سالگرد) */
+      death_date: data.death && data.death.y && data.death.m && data.death.d
+        ? faNum(+toEnNum(data.death.y)) + "/" + pad2(+toEnNum(data.death.m)) + "/" + pad2(+toEnNum(data.death.d)) : "",
       event_date_jalali: ev,
       event_weekday: "",
       city: data.city || "",

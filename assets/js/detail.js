@@ -191,7 +191,9 @@
       subtitle: city,
       photos: [l.photo],
       birth: null,
-      death: deathYear ? { date: deathYear, place: city } : null,
+      death: l.death_date ? { date: l.death_date, place: city } : deathYear ? { date: deathYear, place: city } : null,
+      /* بدون تاریخ کامل درگذشت: روز تشییع یا اطلاعیه‌ی فوری، نزدیک‌ترین تاریخ به درگذشت */
+      period_base: l.death_date || (l.ceremony_type === "khaksepari" || l.is_notice ? l.event_date_jalali : ""),
       // نامِ پدر/مادر در داده‌ی آگهی نیست؛ فقط طایفه و ایل نمایش داده می‌شود.
       family: (l.tayefe || l.il) ? { father: { tayefe: l.tayefe, il: l.il }, mother: null } : null,
       biography: {
@@ -1905,19 +1907,33 @@
 
   /* دوره‌ی همدردی برای یک تاریخ شمسی (یا امروز): ختم تا روز چهلم، چهلم تا سالگرد اول، سپس سالگردها */
   var YEAR_ORD = ["", "", "دوم", "سوم", "چهارم", "پنجم", "ششم", "هفتم", "هشتم", "نهم", "دهم"];
+  var J_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  /* «۱۴۰۴/۱۰/۱۳» یا «پنج‌شنبه ۱۷ مرداد ۱۴۰۴» → تاریخ */
   function jDate(str) {
-    var p = toEnNum(str || "").match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
-    if (!p || !window.SogUtil) return null;
-    var g = SogUtil.jalaliToGregorian(+p[1], +p[2], +p[3]);
-    return { y: +p[1], m: +p[2], d: +p[3], t: new Date(g.y, g.m - 1, g.d).getTime() };
+    if (!str || !window.SogUtil) return null;
+    var t = toEnNum(str), y, m, dd;
+    var p = t.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (p) { y = +p[1]; m = +p[2]; dd = +p[3]; }
+    else {
+      var q = t.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
+      if (!q || J_MONTHS.indexOf(q[2]) === -1) return null;
+      y = +q[3]; m = J_MONTHS.indexOf(q[2]) + 1; dd = +q[1];
+    }
+    if (!(m >= 1 && m <= 12 && dd >= 1 && dd <= 31)) return null;
+    var g = SogUtil.jalaliToGregorian(y, m, dd);
+    return { y: y, m: m, d: dd, t: new Date(g.y, g.m - 1, g.d).getTime() };
   }
   function condPeriod(d, dateStr) {
-    var death = jDate(d.death && d.death.date);
+    /* مبنا: تاریخ کامل درگذشت؛ در نبودش روز تشییع / اطلاعیه */
+    var death = jDate(d.death && d.death.date) || jDate(d.period_base);
     if (!death) return null;
     var t;
     if (dateStr == null) { var n = new Date(); t = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(); }
     else { var j = jDate(dateStr); if (!j) return null; t = j.t; }
     var fortieth = death.t + 39 * 86400000;   /* روز چهلم، با احتساب روز درگذشت */
+    /* اگر خانواده تاریخ مراسم چهلم را ثبت کرده (چند روز زودتر یا دیرتر)، همان مبنا است */
+    var ch = jDate(d.chehelom && !d.chehelom.empty && d.chehelom.date);
+    if (ch && ch.t > death.t + 30 * 86400000 && ch.t < death.t + 50 * 86400000) fortieth = ch.t;
     if (t < fortieth) return { key: "khatm", order: 0, title: "همدردی‌های مراسم ختم", short: "مراسم ختم" };
     var years = 0;
     while (years < 200) {
