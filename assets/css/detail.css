@@ -430,6 +430,7 @@
   display: grid; place-items: center; color: var(--accent);
 }
 .cond-tile .ct-ic svg { width: 26px; height: 26px; }
+.cond-tile .ct-note { margin-top: -6px; font-size: 11px; color: var(--text-dim); }
 .cond-more .chev { color: var(--text-dim); }
 .cond-actions { display: flex; justify-content: center; gap: 60px; margin: 22px 0 6px; }
 /* ثبت همدردی: دایره‌ی نارنجیِ پررنگ و کمی بزرگ‌تر */

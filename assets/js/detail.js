@@ -2055,7 +2055,9 @@
     var tiles = el("div", "cond-tiles");
     var charity = el("button", "cond-tile");
     charity.type = "button";
-    charity.innerHTML = '<span class="ct-ic">' + SogIcon("charity", 26) + "</span><span>خیریه</span>";
+    var given = myDonations().filter(function (x) { return String(x.listing) === String(id); }).length;
+    charity.innerHTML = '<span class="ct-ic">' + SogIcon("charity", 26) + "</span><span>خیریه</span>" +
+      (given ? '<small class="ct-note">شما ' + faNum(given) + " بار خیرات کرده‌اید</small>" : "");
     charity.addEventListener("click", function () { loadCharities().then(function () { openCharitySheet(d); }); });
     var reg = el("button", "cond-tile");
     reg.type = "button";
