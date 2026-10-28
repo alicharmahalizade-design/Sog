@@ -466,7 +466,8 @@
       var mineC = SogStore.getMyCondolence(id);
       /* برای ثبت‌کننده‌ی سوگ: نام خیّر، مؤسسه و مبلغ */
       var donor = (mineC && mineC.name) || ((SogStore.getUser && SogStore.getUser()) || {}).name || "";
-      if (DB) DB.rpc("add_donation", { p_listing: String(id), p_name: donor, p_charity: pick.charity.name, p_amount: pick.amount }).catch(function () {});
+      if (DB) DB.rpc("add_donation", { p_listing: String(id), p_name: donor, p_charity: pick.charity.name, p_amount: pick.amount,
+                                       p_deceased: d.deceased_name || "" }).catch(function () {});
       if (mineC) {
         mineC.donated = true; SogStore.setMyCondolence(id, mineC);
         if (DB && mineC.db_id && mineC.token) DB.rpc("mark_condolence_donated", { p_id: mineC.db_id, p_token: mineC.token }).catch(function () {});
@@ -2014,7 +2015,11 @@
     head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + (cd.donated ? DONOR_BADGE : "") + ICON.chevron;
     var body = el("div", "cond-body");
     var inner = el("div");
-    var msg = el("div", "cond-message", "<p>" + fmtDesc(cd.message) + "</p>");
+    var msg = el("div", "cond-message no-copy", "<p>" + fmtDesc(cd.message) + "</p>");
+    /* متن همدردی دیگران قابل انتخاب و کپی نیست */
+    ["copy", "cut", "contextmenu", "selectstart"].forEach(function (ev) {
+      msg.addEventListener(ev, function (e) { e.preventDefault(); });
+    });
 
     var tools = el("div", "mine-tools");
 

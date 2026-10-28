@@ -380,16 +380,28 @@ drop policy if exists "donations: admin reads" on public.donations;
 create policy "donations: admin reads" on public.donations
   for select to authenticated using (public.is_admin());
 
-create or replace function public.add_donation(p_listing text, p_name text, p_charity text, p_amount bigint)
+drop function if exists public.add_donation(text, text, text, bigint);
+-- ثبت خیرات + پیام در صندوق پیام ثبت‌کننده‌ی سوگ (my_inbox)
+create or replace function public.add_donation(p_listing text, p_name text, p_charity text, p_amount bigint,
+                                               p_deceased text default null)
 returns boolean
 language plpgsql security definer set search_path = public as $$
+declare
+  v_name  text := nullif(left(trim(coalesce(p_name, '')), 120), '');
+  v_dead  text := nullif(left(trim(coalesce(p_deceased, '')), 120), '');
+  v_money text := translate(to_char(p_amount, 'FM999,999,999,999'), '0123456789,', '۰۱۲۳۴۵۶۷۸۹٬') || ' تومان';
 begin
   insert into public.donations (listing_id, donor_name, charity_name, amount)
-  values (left(p_listing, 80), nullif(left(trim(coalesce(p_name, '')), 120), ''), left(trim(p_charity), 120), p_amount);
+  values (left(p_listing, 80), v_name, left(trim(p_charity), 120), p_amount);
+  insert into public.messages (title, body, kind, target_listing)
+  values ('خیرات به نیت ' || coalesce(v_dead, 'درگذشته‌ی شما'),
+          coalesce(v_name, 'یک نیکوکار') || ' مبلغ ' || v_money || ' به ' || left(trim(p_charity), 120) ||
+            ' به نیت ' || coalesce(v_dead, 'درگذشته‌ی شما') || ' خیرات کرد.',
+          'admin', left(p_listing, 80));
   return true;
 end $$;
-revoke all on function public.add_donation(text, text, text, bigint) from public;
-grant execute on function public.add_donation(text, text, text, bigint) to anon, authenticated;
+revoke all on function public.add_donation(text, text, text, bigint, text) from public;
+grant execute on function public.add_donation(text, text, text, bigint, text) to anon, authenticated;
 
 create or replace function public.my_listing_donations(p_items jsonb default '[]'::jsonb)
 returns table (id bigint, listing_id text, donor_name text, charity_name text, amount bigint, created_at timestamptz)

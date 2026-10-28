@@ -914,3 +914,8 @@
 .donations-box .db-list b { font-size: 13.5px; font-weight: 500; color: var(--text); }
 .donations-box .db-list small { font-size: 11.5px; color: var(--text-dim); }
 .donations-box .db-list em { font-style: normal; font-size: 13px; color: var(--accent); white-space: nowrap; }
+
+/* متن همدردی دیگران: بدون انتخاب و کپی */
+.cond-message.no-copy, .cond-message.no-copy * {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
