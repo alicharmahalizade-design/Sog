@@ -45,6 +45,10 @@
     var ico = it.key === "account" ? (avatarIcon() || ICON[it.key]) : ICON[it.key];
     a.innerHTML = '<span class="bn-ico">' + ico + '</span><span class="bn-label">' + it.label + '</span>';
     if (it.key === "account") accountTab = a;
+    /* در خود صفحه‌ی پروفایل، «ذخیره‌ها» بدون بارگذاری دوباره همان‌جا باز می‌شود */
+    if (it.key === "saved") a.addEventListener("click", function (e) {
+      if (typeof window.SogOpenSaved === "function") { e.preventDefault(); window.SogOpenSaved(); }
+    });
     nav.appendChild(a);
   });
 

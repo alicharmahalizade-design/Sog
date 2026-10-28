@@ -87,22 +87,30 @@
   ]).then(function () {
     render();
     /* از تب «ذخیره‌ها»ی نوار پایین: آکاردئون ذخیره‌شده‌ها باز و در دید */
-    if (/[?&]open=saved\b/.test(location.search)) {
-      Array.prototype.forEach.call(root.querySelectorAll(".acc-item"), function (it) {
-        var lbl = it.querySelector(".ar-label");
-        if (lbl && lbl.textContent === "ذخیره‌شده‌ها") {
-          it.classList.add("is-open");
-          var h = it.querySelector(".acc-row"); if (h) h.setAttribute("aria-expanded", "true");
-          setTimeout(function () { it.scrollIntoView({ block: "center", behavior: "smooth" }); }, 150);
-        }
-      });
-    }
+    if (/[?&]open=saved\b/.test(location.search)) openSaved();
     /* اگر از نوار پایینِ صفحه‌ی دیگری با نگه‌داشتن آمده‌ایم، فهرست حساب‌ها باز شود */
     if (location.hash === "#accounts") {
       try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
       if (SogStore.getUser()) openAccounts();
     }
   });
+
+  function openSaved() {
+    closeSheet();
+    Array.prototype.forEach.call(root.querySelectorAll(".acc-item"), function (it) {
+      var lbl = it.querySelector(".ar-label");
+      if (lbl && lbl.textContent === "ذخیره‌شده‌ها") {
+        it.classList.add("is-open");
+        var h = it.querySelector(".acc-row"); if (h) h.setAttribute("aria-expanded", "true");
+        setTimeout(function () { it.scrollIntoView({ block: "center", behavior: "smooth" }); }, 150);
+      }
+    });
+    /* تب «ذخیره‌ها» در نوار پایین روشن شود */
+    Array.prototype.forEach.call(document.querySelectorAll(".bottom-nav .bn-item"), function (a) {
+      a.classList.toggle("is-active", /open=saved/.test(a.getAttribute("href") || ""));
+    });
+  }
+  window.SogOpenSaved = openSaved;
 
   /* بخش‌های باز و محل اسکرول پس از هر به‌روزرسانی حفظ می‌شوند (مثلاً حذف یک ذخیره‌شده) */
   var OPEN_ROWS = [];
