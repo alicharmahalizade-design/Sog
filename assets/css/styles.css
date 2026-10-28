@@ -981,7 +981,10 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
   background: #161616; border-radius: 16px; padding: 6px 6px; margin-bottom: 14px;
 }
 .arc-line { position: absolute; inset-inline: 30px; top: 50%; height: 1px; background: #3a3a3a; }
-.arc-grid { position: relative; flex: 1 1 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.arc-grid {
+  position: relative; flex: 1 1 auto; display: grid; grid-template-columns: repeat(5, 1fr);
+  touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab;
+}
 .arc-col { display: flex; flex-direction: column; align-items: center; padding: 8px 0; border-radius: 10px; border: 1px solid transparent; }
 .arc-y, .arc-m { background: none; border: 0; font-family: inherit; padding: 4px 2px; cursor: pointer; }
 .arc-y { font-size: 19px; font-weight: 700; color: var(--text-dim); margin-bottom: 14px; }

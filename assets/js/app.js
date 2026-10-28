@@ -1269,6 +1269,7 @@
     pick.appendChild(el("span", "arc-line"));
     pick.appendChild(newer); pick.appendChild(grid); pick.appendChild(older);
     feed.appendChild(pick);
+    bindArchiveSwipe(grid, all, top);
 
     var list = sortItems(all.filter(function (it) { return it.death_year === state.year && monthOf(it) === state.month; }));
     if (!list.length) {
@@ -1279,6 +1280,48 @@
     list.forEach(function (it) { box.appendChild(archiveCard(it)); });
     feed.appendChild(box);
   }
+  /* کشیدن افقی با لمس/ماوس: ردیف بالا سال را، ردیف پایین ماه را جابه‌جا می‌کند.
+     در راست‌چین، کشیدن به راست موارد قدیمی‌تر (سمت چپ) را به وسط می‌آورد. */
+  function bindArchiveSwipe(grid, all, top) {
+    var start = null, row = null, dx = 0, moved = false;
+    function cells() { return grid.querySelectorAll(row === "y" ? ".arc-y" : ".arc-m"); }
+    function shift(px) {
+      Array.prototype.forEach.call(cells(), function (n) { n.style.transform = px ? "translateX(" + px + "px)" : ""; });
+    }
+    grid.addEventListener("pointerdown", function (e) {
+      var r = grid.getBoundingClientRect();
+      start = e.clientX; dx = 0; moved = false;
+      row = e.clientY < r.top + r.height / 2 ? "y" : "m";
+    });
+    grid.addEventListener("pointermove", function (e) {
+      if (start == null) return;
+      dx = e.clientX - start;
+      if (!moved && Math.abs(dx) > 8) { moved = true; try { grid.setPointerCapture(e.pointerId); } catch (x) {} }
+      if (moved) shift(dx);
+    });
+    function end() {
+      if (start == null) return;
+      var colW = grid.getBoundingClientRect().width / 5;
+      var n = Math.round(dx / colW);
+      start = null;
+      if (!moved || !n) { shift(0); return; }
+      if (row === "y") {
+        var y = Math.min(top, state.year - n);
+        state.year = y;
+        if (!all.some(function (it) { return it.death_year === y && monthOf(it) === state.month; })) state.month = latestMonth(all, y);
+      } else {
+        var idx = state.year * 12 + (state.month - 1) - n;
+        idx = Math.min(idx, top * 12 + 11);
+        state.year = Math.floor(idx / 12); state.month = idx % 12 + 1;
+      }
+      renderFeed();
+    }
+    grid.addEventListener("pointerup", end);
+    grid.addEventListener("pointercancel", function () { start = null; shift(0); });
+    /* بعد از کشیدن، کلیک روی سال/ماه زیر انگشت اجرا نشود */
+    grid.addEventListener("click", function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  }
+
   /* کارت فشرده‌ی آرشیو: عکس سمت راست، نام و نام خانوادگی/طایفه، نشانک سمت چپ */
   function archiveCard(it) {
     var a = el("div", "arc-card");
