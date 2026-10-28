@@ -75,8 +75,8 @@
       var a = el("a", "login-btn inbox-go", "مشاهده‌ی آگهی"); a.href = "listing.html?id=" + encodeURIComponent(m.listing);
       box.appendChild(a);
     }
-    var ok = el("button", "login-back", "بستن"); ok.type = "button";
-    ok.addEventListener("click", function () { closeSheet(); render(); });
+    var ok = el("button", "login-back", "بازگشت به صندوق پیام"); ok.type = "button";
+    ok.addEventListener("click", function () { render(); openMailbox("inbox"); });
     box.appendChild(ok);
     openSheet(box);
   }
@@ -137,19 +137,6 @@
   /* ---------- فعالیت‌های من: چهار ردیف آکاردئونی با شمارنده ---------- */
   function activityList() {
     var box = el("div", "acc-menu");
-
-    var read = readIds();
-    var unread = INBOX.filter(function (m) { return read.indexOf(m.id) === -1; }).length;
-    box.appendChild(accRow("صندوق پیام", INBOX, function (m) {
-      var isNew = read.indexOf(m.id) === -1;
-      return { title: (isNew ? "● " : "") + m.title, sub: faDate(m.at) + (m.body ? " • " + m.body.slice(0, 50) : ""),
-        icon: m.kind === "admin" ? "bell" : "sms", onClick: function () { openMessage(m); } };
-    }, "پیامی ندارید.", unread));
-
-    box.appendChild(accRow("گزارش‌های آگهی‌های من", MYREPORTS, function (r) {
-      return { title: r.name || "آگهی", sub: (r.kind === "condolence" ? "همدردی: " : "") + (r.type || "گزارش خطا") +
-        (r.note ? " — " + r.note : "") + " • " + faDate(r.at), icon: "report", href: "listing.html?id=" + encodeURIComponent(r.id) };
-    }, "برای آگهی‌های شما گزارش خطایی ثبت نشده است."));
 
     box.appendChild(accRow("ذخیره‌شده‌ها", savedItems(), function (it) {
       return { title: it.deceased_name, sub: it.city, photo: it.photo, href: "listing.html?id=" + it.id,
@@ -417,7 +404,65 @@
       info.appendChild(login);
     }
     card.appendChild(avatar); card.appendChild(info);
+    card.appendChild(mailButton());
     return card;
+  }
+
+  /* ---------- پاکت نامه: صندوق پیام + گزارش‌های آگهی‌های من (گوشه‌ی بالا-چپ کارت پروفایل) ---------- */
+  function mailButton() {
+    var read = readIds();
+    var unread = INBOX.filter(function (m) { return read.indexOf(m.id) === -1; }).length;
+    var b = el("button", "profile-mail", SogIcon("mail", 22) +
+      (unread ? '<span class="pm-badge">' + faNum(unread) + "</span>" : ""));
+    b.type = "button";
+    b.setAttribute("aria-label", "صندوق پیام و گزارش‌ها" + (unread ? " (" + unread + " پیام تازه)" : ""));
+    b.addEventListener("click", function (e) { e.stopPropagation(); openMailbox("inbox"); });
+    return b;
+  }
+  function openMailbox(tab) {
+    var read = readIds();
+    var box = el("div", "mailbox");
+    box.appendChild(el("div", "login-title", "صندوق پیام"));
+    var tabs = el("div", "mb-tabs");
+    var unread = INBOX.filter(function (m) { return read.indexOf(m.id) === -1; }).length;
+    [["inbox", "پیام‌ها", unread || INBOX.length, !!unread], ["reports", "گزارش آگهی‌ها", MYREPORTS.length, false]].forEach(function (t) {
+      var tb = el("button", "mb-tab" + (tab === t[0] ? " is-on" : ""),
+        esc(t[1]) + ' <span class="mb-count' + (t[3] ? " is-new" : "") + '">' + faNum(t[2]) + "</span>");
+      tb.type = "button";
+      tb.addEventListener("click", function () { openMailbox(t[0]); });
+      tabs.appendChild(tb);
+    });
+    box.appendChild(tabs);
+    var list = el("div", "mb-list");
+    function row(it) {
+      var r = it.href ? el("a", "acc-sub") : el("button", "acc-sub");
+      if (it.href) r.href = it.href; else { r.type = "button"; r.addEventListener("click", it.onClick); }
+      var ph = el("span", "acc-sub-photo is-icon"); ph.innerHTML = SogIcon(it.icon, 18); r.appendChild(ph);
+      var info = el("span", "acc-sub-info");
+      info.appendChild(el("span", "acc-sub-title", esc(it.title)));
+      if (it.sub) info.appendChild(el("span", "acc-sub-meta", esc(it.sub)));
+      r.appendChild(info);
+      return r;
+    }
+    if (tab === "inbox") {
+      if (!INBOX.length) list.appendChild(el("p", "acc-empty-row", "پیامی ندارید."));
+      INBOX.forEach(function (m) {
+        var isNew = read.indexOf(m.id) === -1;
+        list.appendChild(row({ title: (isNew ? "● " : "") + m.title, sub: faDate(m.at) + (m.body ? " • " + m.body.slice(0, 50) : ""),
+          icon: m.kind === "admin" ? "bell" : "sms", onClick: function () { openMessage(m); } }));
+      });
+    } else {
+      if (!MYREPORTS.length) list.appendChild(el("p", "acc-empty-row", "برای آگهی‌های شما گزارش خطایی ثبت نشده است."));
+      MYREPORTS.forEach(function (r) {
+        list.appendChild(row({ title: r.name || "آگهی", sub: (r.kind === "condolence" ? "همدردی: " : "") + (r.type || "گزارش خطا") +
+          (r.note ? " — " + r.note : "") + " • " + faDate(r.at), icon: "report", href: "listing.html?id=" + encodeURIComponent(r.id) }));
+      });
+    }
+    box.appendChild(list);
+    var ok = el("button", "login-back", "بستن"); ok.type = "button";
+    ok.addEventListener("click", function () { closeSheet(); render(); });
+    box.appendChild(ok);
+    openSheet(box);
   }
 
   /* آمار */
