@@ -909,6 +909,8 @@ option { direction: rtl; text-align: right; }
 .notice-sheet .nt-text {
   margin: 16px 0 0; font-size: 13.5px; line-height: 2; color: var(--text);
   text-align: start; white-space: pre-line;
+  /* حداکثر سه خط؛ متن بلندتر داخل همین کادر اسکرول می‌شود (مثل متن‌های آماده) */
+  max-height: 6em; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: 4px;
 }
 
 /* دو کاشیِ هم‌اندازه: اطلاع‌رسانی و استوری */
