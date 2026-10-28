@@ -811,6 +811,14 @@
     });
   }
 
+  /* روز هفته: اگر ذخیره نشده (مثل اطلاعیه‌ی فوری)، از خود تاریخ حساب می‌شود */
+  function weekdayOf(item) {
+    if (item.event_weekday) return item.event_weekday;
+    var p = toEn(item.event_date_jalali || "").split("/");
+    if (p.length !== 3 || !window.SogUtil || !SogUtil.jalaliWeekday) return "";
+    return SogUtil.jalaliWeekday(+p[0], +p[1], +p[2]) || "";
+  }
+
   /* ---------- کارت آگهی ---------- */
   function listingCard(item) {
     var card = el("article", "listing-card");
@@ -868,7 +876,7 @@
     var meta = el("div", "listing-meta");
     meta.innerHTML = '<span class="mq-inner">' +
       '<span class="meta-date">' +
-      (item.event_weekday ? item.event_weekday + " " : "") + item.event_date_jalali + '</span>' +
+      (weekdayOf(item) ? weekdayOf(item) + " " : "") + item.event_date_jalali + '</span>' +
       '<span class="sep"></span>' +
       '<span class="meta-city">' + item.city + '</span></span>';
     marquee(name); marquee(meta);

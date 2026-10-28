@@ -1022,7 +1022,7 @@
       death_date: data.death && data.death.y && data.death.m && data.death.d
         ? faNum(+toEnNum(data.death.y)) + "/" + pad2(+toEnNum(data.death.m)) + "/" + pad2(+toEnNum(data.death.d)) : "",
       event_date_jalali: ev,
-      event_weekday: "",
+      event_weekday: (function () { var q = toEnNum(ev).split("/"); return q.length === 3 ? SogUtil.jalaliWeekday(+q[0], +q[1], +q[2]) : ""; })(),
       city: data.city || "",
       village: data.place && data.place.type === "village" ? data.place.name : "",
       province: data.province || "",
