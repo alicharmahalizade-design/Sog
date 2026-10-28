@@ -142,7 +142,11 @@
     return true;
   }
   function sortItems(items) {
+    /* با انتخاب شهر، سوگ‌های فوری (اطلاعیه درگذشت) اول می‌آیند؛ در «کل ایران» ترتیب عادی است */
+    var urgentFirst = state.sel.length > 0;
     return items.slice().sort(function (a, b) {
+      var ua = urgentFirst && isNotice(a), ub = urgentFirst && isNotice(b);
+      if (ua !== ub) return ua ? -1 : 1;
       return state.sort === "soonest" ? jalaliNum(a) - jalaliNum(b) : jalaliNum(b) - jalaliNum(a);
     });
   }
@@ -826,7 +830,10 @@
     if (item.pending) tags.appendChild(el("span", "tag is-review", "در انتظار تأیید"));
     /* اطلاعیه‌ی سوگ سریع: چیپ ردیف خودش را می‌گیرد تا یک‌خطی جا شود */
     var noticeTag = notice
-      ? el("div", "notice-line", '<span class="tag is-pending">جزئیات مراسم متعاقباً اعلام خواهد شد</span>')
+      ? el("div", "notice-line", '<span class="tag is-pending">' +
+          '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">' +
+          '<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z" fill="currentColor"/></svg>' +
+          '<span class="notice-shine">اطلاعیه درگذشت</span></span>')
       : null;
     if (!notice) {
       (item.ceremony_labels || []).forEach(function (lbl) {

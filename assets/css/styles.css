@@ -794,6 +794,33 @@ option { direction: rtl; text-align: right; }
   white-space: nowrap; padding-inline: 9px;
   font-size: clamp(9px, 2.9vw, 12px);
 }
+/* «اطلاعیه درگذشت»: ستاره می‌چرخد و نور یک بار از روی متن رد می‌شود و مکث می‌کند */
+.tag.is-pending { display: inline-flex; align-items: center; gap: 5px; }
+.tag.is-pending svg {
+  flex: none;
+  filter: drop-shadow(0 0 3px rgba(217,154,91,.6));
+  animation: notice-star 2.6s ease-in-out infinite;
+}
+.notice-shine {
+  background: linear-gradient(90deg, #d9a96b 40%, transparent 50%, #d9a96b 60%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: notice-sweep 2.6s ease-in-out infinite;
+}
+@keyframes notice-star {
+  0%, 100% { transform: rotate(0) scale(1); opacity: 1; }
+  50%      { transform: rotate(90deg) scale(.8); opacity: .75; }
+}
+@keyframes notice-sweep {
+  0%, 45%   { background-position: 100% 0; }
+  75%, 100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tag.is-pending svg { animation: none; }
+  .notice-shine { animation: none; background: none; color: #d9a96b; }
+}
 .bell-btn.is-saved { color: var(--accent); }
 
 /* کادر پایین‌آمدنی «خبرم کنید» */
