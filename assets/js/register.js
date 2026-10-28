@@ -16,7 +16,7 @@
     { key: "shame-ghariban", name: "شام غریبان" },
     { key: "sevom", name: "سوم" },
     { key: "haftom", name: "هفتم" },
-    { key: "sevom-haftom", name: "سوم/هفتم" },
+    { key: "sevom-haftom", name: "سوم/هفتم", note: "برگزاری در یک روز" },
     { key: "khatm", name: "ختم" },
     { key: "sevom-haftom-khatm", name: "سوم/هفتم/ختم" },
     { key: "bozorgdasht", name: "بزرگداشت", on: true, multi: true },
@@ -594,7 +594,8 @@
         var row = el("div", "cer-row" + (data.picked[c.key] ? " is-on" : ""));
         var chk = el("button", "cer-check"); chk.type = "button";
         chk.setAttribute("aria-pressed", data.picked[c.key] ? "true" : "false");
-        chk.innerHTML = '<span class="box">✓</span><span class="lbl">' + esc(c.name) + "</span>";
+        chk.innerHTML = '<span class="box">✓</span><span class="lbl">' + esc(c.name) +
+          (c.note ? ' <span class="lbl-note">(' + esc(c.note) + ")</span>" : "") + "</span>";
         var count = null, num = null;
         if (c.multi) {
           /* فقط بزرگداشت می‌تواند چند نوبت داشته باشد */

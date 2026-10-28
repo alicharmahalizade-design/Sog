@@ -508,3 +508,4 @@
 .music-row.is-on .music-radio::after {
   content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent);
 }
+.lbl-note { color: var(--text-mute); font-size: .86em; font-weight: 400; }
