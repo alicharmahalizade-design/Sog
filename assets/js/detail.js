@@ -360,7 +360,13 @@
     if (CHARITY) return Promise.resolve(CHARITY);
     return fetch("data/charities.json").then(function (r) { return r.json(); }).then(function (j) { CHARITY = j; return j; });
   }
-  function myDonations() { try { return JSON.parse(localStorage.getItem("sog:donations")) || []; } catch (e) { return []; } }
+  /* خیرات‌ها با شناسه‌ی حساب ذخیره می‌شوند تا روی دستگاهی با چند حساب، هر حساب فقط خیرات خودش را ببیند */
+  function acctId() { return (SogStore.getActiveId && SogStore.getUser && SogStore.getUser()) ? SogStore.getActiveId() : ""; }
+  function allDonations() { try { return JSON.parse(localStorage.getItem("sog:donations")) || []; } catch (e) { return []; } }
+  function myDonations() {
+    var me = acctId();
+    return allDonations().filter(function (x) { return (x.acct || "") === me; });
+  }
   function toman(n) { return faNum(String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "٬")) + " تومان"; }
 
   function charityCard(d) {
@@ -453,7 +459,8 @@
     }
     pay.addEventListener("click", function () {
       var rec = { listing: id, name: d.deceased_name, charity: pick.charity.id, charityName: pick.charity.name, amount: pick.amount, at: Date.now() };
-      var all = myDonations(); all.push(rec);
+      rec.acct = acctId();
+      var all = allDonations(); all.push(rec);
       try { localStorage.setItem("sog:donations", JSON.stringify(all)); } catch (e) {}
       /* اگر قبلاً همدردی نوشته، نشان «خیرات کرده» کنارش می‌آید */
       var mineC = SogStore.getMyCondolence(id);
@@ -1669,7 +1676,7 @@
     head.innerHTML = (av ? '<img class="cond-logo" src="' + esc(av) + '" alt="">'
       : '<span class="cond-logo mine-avatar">' + SogIcon("user", 22) + '</span>') +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
-      (entry.donated || iDonated() ? DONOR_BADGE : "") +
+      (iDonated() ? DONOR_BADGE : "") +
       '<span class="mine-badge">شما</span>';
     var body = el("div", "cond-body");
     var innerB = el("div");
