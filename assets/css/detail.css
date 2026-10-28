@@ -1,5 +1,5 @@
 /* ===== صفحه جزئیات آگهی ===== */
-.detail { padding-bottom: 30px; --gap-y: 36px; }
+.detail { padding-bottom: 30px; --gap-y: 24px; }
 .has-bottom-nav .detail { padding-bottom: 96px; }   /* جا برای نوار پایین */
 
 /* ---- هدر قهرمان ---- */
@@ -366,7 +366,7 @@
 
 /* ---- ارتباط با خانواده ---- */
 /* فاصله‌ی بالا و پایینِ عنوان و ردیف آیکون‌ها برابر است */
-.section-title { text-align: start; color: var(--accent); font-weight: 700; font-size: 16px; margin: var(--gap-y) 30px 24px; }
+.section-title { text-align: start; color: var(--accent); font-weight: 700; font-size: 16px; margin: var(--gap-y) 30px 16px; }
 .contact-row {
   display: flex; gap: 14px; overflow-x: auto; padding: 0 30px 4px;
   scrollbar-width: none; justify-content: flex-start;
@@ -526,7 +526,7 @@
   border-radius: 999px; padding: 2px 9px;
   margin-inline-start: 8px; flex: 0 0 auto;   /* کنار نام و نشان‌ها */
 }
-.mine-tools { display: flex; align-items: center; gap: 8px; margin-top: 30px; }
+.mine-tools { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
 /* دکمه‌ها سمت راست، تاریخ سمت چپ */
 .mine-date { font-size: 12px; color: var(--text-mute); order: 2; margin-inline-start: auto; }
 .mine-btn {
