@@ -741,7 +741,6 @@
       paintLinks();
       wrap.appendChild(grid); wrap.appendChild(links);
       p.appendChild(field("پیام‌رسان‌ها", false, wrap));
-      p.appendChild(field("ارتباط خویشاوندی با درگذشته", false, textInput("relation", "مثال : فرزند")));
 
       /* آیکون جفت: ثبت همدردی و سپاسگزاری در پایان ثبت آگهی */
       var pair = el("div", "final-pair");

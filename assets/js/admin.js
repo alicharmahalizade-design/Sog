@@ -822,7 +822,7 @@
         ? [["دسته", biz.category_name], ["شهر", biz.city], ["مدیر", biz.manager], ["تلفن", fa(biz.phone || "")],
            ["نشانی", biz.address], ["قیمت", biz.price_from], ["تصاویر", fa((biz.gallery || []).length)], ["صدا", fa((biz.audio || []).length)]]
         : [["تولد", dateTxt(f.birth)], ["وفات", dateTxt(f.death)], ["پدر", f.father], ["مادر", f.mother],
-           ["ثبت‌کننده", f.applicant_name], ["تلفن", fa(f.phone || "")], ["کد ملی", fa(f.melli || "")], ["نسبت", f.relation],
+           ["ثبت‌کننده", f.applicant_name], ["تلفن", fa(f.phone || "")], ["کد ملی", fa(f.melli || "")],
            ["نوع", f.mode === "quick" ? "اطلاعیه‌ی سریع" : "آگهی کامل"], ["مراسم‌ها", fa(Object.keys(f.picked || {}).length)]];
       card.innerHTML = '<div class="ad-row"><span class="ad-thumb is-lg' + (isBiz ? " is-logo" : "") + '" style="background-image:url(\'' + esc(photo) + '\')"></span>' +
         '<div class="ad-row-main"><div class="ad-row-title">' + esc(isBiz ? biz.name : (ad.deceased_name || f.name)) + "</div>" +
