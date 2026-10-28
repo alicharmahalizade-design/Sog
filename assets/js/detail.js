@@ -246,7 +246,6 @@
     if (d.birth || d.death || d.age) root.appendChild(infoBox(d));
     if (d.family) { var fam = familyGrid(d.family); if (fam) root.appendChild(fam); }
     root.appendChild(actionRow(d));
-    root.appendChild(charityCard(d));
     if (ownerMode(d)) root.appendChild(donationsBox(d));
     root.appendChild(reportError(d));
 
@@ -2052,16 +2051,23 @@
         });
     }
 
-    var actions = el("div", "cond-actions");
-    var reg = el("div", "cond-action");
-    var rb = el("button", "ca-btn is-primary", ICON.plus);
-    rb.type = "button";
-    rb.setAttribute("aria-label", "ثبت همدردی");
-    rb.addEventListener("click", function () { openCondolenceSheet(d); });
-    reg.appendChild(rb); reg.appendChild(el("span", null, "ثبت همدردی"));
-    actions.appendChild(reg);
-    if (!LATER.candle) actions.appendChild(candleAction(d));
-    inner.appendChild(actions);
+    /* پایین بخش: دو کاشی «خیریه» و «ثبت همدردی» */
+    var tiles = el("div", "cond-tiles");
+    var charity = el("button", "cond-tile");
+    charity.type = "button";
+    charity.innerHTML = '<span class="ct-ic">' + SogIcon("charity", 26) + "</span><span>خیریه</span>";
+    charity.addEventListener("click", function () { loadCharities().then(function () { openCharitySheet(d); }); });
+    var reg = el("button", "cond-tile");
+    reg.type = "button";
+    reg.innerHTML = '<span class="ct-ic">' + ICON.plus + "</span><span>ثبت همدردی</span>";
+    reg.addEventListener("click", function () { openCondolenceSheet(d); });
+    tiles.appendChild(charity); tiles.appendChild(reg);
+    inner.appendChild(tiles);
+    if (!LATER.candle) {
+      var actions = el("div", "cond-actions");
+      actions.appendChild(candleAction(d));
+      inner.appendChild(actions);
+    }
 
     return accordion("همدردی با خانواده سوگوار", inner, { open: true });
   }
