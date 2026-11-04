@@ -774,3 +774,30 @@ option { direction: rtl; text-align: right; }
   background: rgba(255,255,255,.12); color: #fff;
   display: inline-grid; place-items: center; font-size: 12px; line-height: 1;
 }
+
+/* ===== مراسمات برگزار شده چهل روز گذشته ===== */
+.forty-section {
+  margin: 0 -14px; padding: 14px 14px 18px;
+  background: #15171a;
+}
+.forty-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.forty-head .collection-title { margin: 0; flex: 0 0 auto; white-space: nowrap; }
+.forty-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; }
+.forty-tabs::-webkit-scrollbar { display: none; }
+.forty-tab {
+  flex: 0 0 auto; font: inherit; font-size: 12px;
+  padding: 4px 12px; border-radius: 999px;
+  background: #0b0c0e; color: #9a9a9a; border: 1px solid #262626; cursor: pointer;
+}
+.forty-tab.is-on { color: #111; background: var(--accent); border-color: var(--accent); }
+.forty-track { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.forty-track::-webkit-scrollbar { display: none; }
+.forty-card {
+  flex: 0 0 43%; border-radius: 14px; overflow: hidden;
+  background: #1f2226; cursor: pointer;
+}
+.forty-photo { aspect-ratio: 1/1; background: #222 center/cover no-repeat; }
+.forty-body { padding: 10px 10px 12px; text-align: center; }
+.forty-tag { display: block; font-size: 12px; color: #c98b4f; margin-bottom: 6px; }
+.forty-tag[data-type="sepas"] { color: #4caf50; }
+.forty-name { font-size: 15px; font-weight: 700; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }
