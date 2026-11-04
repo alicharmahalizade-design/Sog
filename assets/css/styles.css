@@ -334,7 +334,7 @@ option { direction: rtl; text-align: right; }
 }
 .year-label {
   display: block; text-align: center;
-  color: #fff; font-weight: 700; font-size: 20px; line-height: 32px;
+  color: #fff; font-weight: 700; font-size: 17px; line-height: 32px;
 }
 
 /* ===== اسکلتون لودینگ ===== */
