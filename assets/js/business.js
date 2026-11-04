@@ -306,6 +306,13 @@
   }
 
   function renderHome(main) {
+    /* سرصفحه: عنوان و خلاصه‌ی پوشش */
+    var all = pool();
+    var intro = el("div", "sv-intro");
+    intro.innerHTML = '<b>خدمات مراسم</b><small>' + faNum(all.length) + " کسب‌وکار در " +
+      faNum(GROUPS.filter(function (g) { return groupItems(g).length; }).length) + " حوزه" +
+      (state.city !== "all" ? " · " + esc(currentCityName()) : " · کل ایران") + "</small>";
+    main.appendChild(intro);
     var wrap = el("div", "sv-list");
     wrap.setAttribute("role", "list");
     var nodes = {};
@@ -321,11 +328,12 @@
       head.type = "button";
       head.setAttribute("aria-expanded", "false");
       head.setAttribute("aria-controls", panelId);
-      head.innerHTML = '<span class="sv-ic' + (g.icon ? "" : " is-blank") + '" aria-hidden="true">' + g.icon + "</span>" +
-        '<span class="sv-tx"><b>' + esc(g.title) + "</b>" + (g.sub ? "<small>" + esc(g.sub) + "</small>" : "") + "</span>" +
-        (items.length ? '<span class="sv-count" aria-label="' + faNum(items.length) + ' کسب‌وکار">' + faNum(items.length) + "</span>"
-                      : '<span class="sv-soon">به‌زودی</span>') +
+      head.innerHTML = '<span class="sv-ic' + (g.icon ? "" : " is-blank") + '" aria-hidden="true">' + g.icon +
+          (items.length ? '<span class="sv-count">' + faNum(items.length) + "</span>" : "") + "</span>" +
+        '<span class="sv-tx"><b>' + esc(g.title) + "</b>" +
+          (g.sub || !items.length ? "<small>" + (items.length ? "" : '<span class="sv-soon">به‌زودی</span>') + esc(g.sub || "") + "</small>" : "") + "</span>" +
         '<span class="sv-chev" aria-hidden="true">' + CHEV + "</span>";
+      head.setAttribute("aria-label", g.title + "، " + (items.length ? faNum(items.length) + " کسب‌وکار" : "به‌زودی"));
       head.addEventListener("click", function () { toggle(g.key); });
       card.appendChild(head);
 
@@ -387,7 +395,7 @@
       var shown = items.filter(function (b) { return chipMatch(b, c); });
       if (!shown.length) {
         var e = el("div", "sv-empty");
-        e.innerHTML = "<p>" + (items.length ? "برای این زیرشاخه کسب‌وکاری پیدا نشد." :
+        e.innerHTML = '<span class="sv-empty-ic">' + SogIcon("biz", 22) + "</span><p>" + (items.length ? "برای این زیرشاخه کسب‌وکاری پیدا نشد." :
           "هنوز کسب‌وکاری در این بخش" + (state.city !== "all" ? " در " + esc(currentCityName()) : "") + " ثبت نشده است.") + "</p>";
         var reg = el("a", "sv-empty-cta", "کسب‌وکار این حوزه را دارید؟ ثبت رایگان");
         reg.href = "biz-register.html";
@@ -395,7 +403,7 @@
         box.appendChild(e);
         return;
       }
-      shown.forEach(function (b) { box.appendChild(svItem(b)); });
+      shown.forEach(function (b, i) { var r = svItem(b); r.style.setProperty("--i", Math.min(i, 8)); box.appendChild(r); });
     }
 
     function setOpen(n, open, animate) {
