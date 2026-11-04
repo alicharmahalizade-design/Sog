@@ -205,7 +205,11 @@
     var main = document.getElementById("bzMain");
     if (!main) return;
     main.innerHTML = "";
-    if (state.category || state.query) renderResults(main); else renderHome(main);
+    var home = !(state.category || state.query);
+    var rail = document.getElementById("bhCats"), sb = document.getElementById("storyBar");
+    if (rail) rail.hidden = home;
+    if (home && sb) sb.hidden = true;
+    if (home) renderHome(main); else renderResults(main);
   }
 
   /* انتخاب شهر فقط در هدر است (چسبان و هم‌جا با صفحه‌ی آگهی‌ها) */
@@ -255,34 +259,89 @@
     return h;
   }
 
+  /* ---------- خانه: فهرست بازشونده‌ی گروه‌های خدمات (طبق طرح) ---------- */
+  function svg(d) {
+    return '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + "</svg>";
+  }
+  var GROUPS = [
+    { key: "music", title: "موسیقی مراسم", sub: "خواننده ، قاری قرآن ، خواندن نماز میت", cats: ["qari", "maddah", "khanande"],
+      icon: svg('<circle cx="9" cy="7" r="3.2"/><path d="M3.5 20c0-4 2.6-6.5 5.5-6.5 1.6 0 2.9.6 3.9 1.7"/><path d="M12.5 17.5c1.6-1.9 3.6-2.2 5-1.2 1.6 1.1 1.4 3.5-.6 4.2-1.7.6-3.3-.3-3.1-1.6"/>') },
+    { key: "food", title: "پک میوه ، کترینگ غذا", sub: "حلوا ، خرما ، چای قهوه نسکافه", cats: ["halva", "catering"],
+      icon: svg('<path d="M5 3v6a2.5 2.5 0 005 0V3M7.5 3v18"/><path d="M19 3c-2.2 1.2-3.5 3.8-3.5 6.5V13H19v8"/><path d="M4 20L20 4"/>') },
+    { key: "print", title: "چاپ بنر ، قاب عکس فوری", sub: "استند ، تراکت کاغذی ، کارت دعوت", cats: ["chap"],
+      icon: svg('<path d="M7 8V4h10v4"/><rect x="3" y="8" width="18" height="9" rx="3"/><path d="M7 14h10v6H7z"/>') },
+    { key: "rent", title: "اجاره تجهیزات مراسم", sub: "میز ، صندلی ، سیستم صوتی ، بخاری ، کولر ، پنکه مه پاش", cats: ["tashrifat"],
+      icon: svg('<path d="M7 11V6a5 5 0 0110 0v5"/><path d="M10 6v5M14 6v5"/><rect x="5" y="11" width="14" height="4" rx="1.5"/><path d="M7 15v6M17 15v6"/>') },
+    { key: "hall", title: "رزرو مسجد ، تالار پذیرایی ، رستوران", sub: "سالن پذیرایی ( با مهماندار )", cats: [],
+      icon: svg('<path d="M4 21V11h16v10"/><path d="M8 11a4 4 0 018 0"/><path d="M12 4v3M2 21h20"/><path d="M10 21v-4a2 2 0 014 0v4"/><path d="M20 11V6"/>') },
+    { key: "transport", title: "آمبولانس ، سرویس رفت و برگشت میهمانان", sub: "ون تشریفات ، اتوبوس ، مینی بوس", cats: ["taxi"],
+      icon: svg('<path d="M3 17V9a2 2 0 012-2h9l5 4h0a2 2 0 012 2v4"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/><path d="M9 10v4M7 12h4"/>') },
+    { key: "photo", title: "فیلمبرداری ، عکسبرداری", sub: "فیلمبرداری با هلی شات", cats: [],
+      icon: svg('<circle cx="8" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><rect x="4" y="10" width="12" height="9" rx="2"/><path d="M16 13l4-2v7l-4-2"/>') },
+    { key: "flower", title: "تاج گل", sub: "گل آرایی مزار ، میز یادبود", cats: ["gol", "hejle"],
+      icon: svg('<path d="M12 4c2 2 2 5 0 7-2-2-2-5 0-7z"/><path d="M5 8c3 0 5 2 7 5-3 0-6-1-7-5zM19 8c-3 0-5 2-7 5 3 0 6-1 7-5z"/><path d="M6 15h12l-2 5H8z"/>') },
+    { key: "all", title: "برگزاری کلیه خدمات مراسم ( یکجا )", sub: "", cats: [], icon: "" },
+    { key: "law", title: "وکیل ، مشاور حقوقی ، خدمات نیابتی", sub: "ترخیص از فرودگاه ، مجوز های اداره آرامستان ، دفترخانه", cats: [],
+      icon: svg('<circle cx="10" cy="7" r="3.2"/><path d="M4 21c0-4 2.7-7 6-7 1.4 0 2.6.4 3.6 1.2"/><path d="M14 16h7M17.5 14v7M15 18l-1 2h3zM20 18l-1 2h3z"/>') },
+    { key: "stone", title: "سنگ مزار", sub: "طراحی و اجرا با حکاکی لیزری ، ساخت سایبان", cats: ["sang"],
+      icon: svg('<path d="M6 21V10a6 6 0 0112 0v11z"/><path d="M4 21h16"/>') },
+    { key: "other", title: "سایر خدمات مراسم", sub: "خودرو یخ", cats: ["misc"],
+      icon: svg('<circle cx="7" cy="5" r="2.2"/><path d="M5 21v-6l-1-4 3-2 2 4h3"/><path d="M14 9h6v6h-6zM17 9V7"/><path d="M15 21l2-6 2 6"/>') }
+  ];
+  var CHEV = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  var openGroup = null, groupChip = {};
+
   function renderHome(main) {
     var list = pool();
-    if (!list.length) return emptyState(main, "در " + currentCityName() + " هنوز کسب‌وکاری ثبت نشده است.");
+    var wrap = el("div", "sv-list");
+    GROUPS.forEach(function (g) {
+      var items = list.filter(function (b) { return g.cats.indexOf(b.category_slug) !== -1; }).sort(rank);
+      var open = openGroup === g.key;
+      var card = el("section", "sv-group" + (open ? " is-open" : ""));
+      var head = el("button", "sv-head");
+      head.type = "button";
+      head.innerHTML = '<span class="sv-ic' + (g.icon ? "" : " is-blank") + '">' + g.icon + "</span>" +
+        '<span class="sv-tx"><b>' + esc(g.title) + "</b>" + (g.sub ? "<small>" + esc(g.sub) + "</small>" : "") + "</span>" +
+        (open ? "" : '<span class="sv-chev">' + CHEV + "</span>");
+      head.addEventListener("click", function () { openGroup = open ? null : g.key; render(); });
+      card.appendChild(head);
 
-    /* منتخب سوگ: همکاران رسمی و ویژه‌ها */
-    var spot = list.filter(function (b) { return b.partner || b.featured; }).sort(rank).slice(0, 8);
-    if (spot.length) {
-      var s1 = el("section", "bh-sec");
-      s1.appendChild(secHead("منتخب سوگ", "همکاران رسمی و کسب‌وکارهای ویژه"));
-      var tr = el("div", "bh-spot-track");
-      spot.forEach(function (b) { tr.appendChild(spotCard(b)); });
-      s1.appendChild(tr);
-      main.appendChild(s1);
-    }
-
-    main.appendChild(joinBanner());
-
-    /* یک ردیف افقی برای هر دسته */
-    DATA.categories.forEach(function (c) {
-      var items = list.filter(function (b) { return b.category_slug === c.slug; }).sort(rank);
-      if (!items.length) return;
-      var sec = el("section", "bh-sec");
-      sec.appendChild(secHead(c.name, faNum(items.length) + " کسب‌وکار", function () { setCategory(c.slug); }, CAT_ICON[c.icon]));
-      var row = el("div", "bh-row-track" + (items.length <= 2 ? " is-fill" : ""));
-      items.slice(0, 10).forEach(function (b) { row.appendChild(tileCard(b)); });
-      sec.appendChild(row);
-      main.appendChild(sec);
+      if (open) {
+        /* زیرشاخه‌ها: برچسب‌های گروه + خدمات کسب‌وکارها */
+        var chipsList = g.sub ? g.sub.split("،").map(function (x) { return x.trim(); }).filter(Boolean) : [];
+        items.forEach(function (b) { (b.services || []).forEach(function (sv) { if (chipsList.indexOf(sv) === -1) chipsList.push(sv); }); });
+        var cur = groupChip[g.key] || null;
+        if (chipsList.length) {
+          var chips = el("div", "sv-chips");
+          chipsList.forEach(function (c) {
+            var ch = el("button", "sv-chip" + (cur === c ? " is-on" : ""), esc(c));
+            ch.type = "button";
+            ch.addEventListener("click", function () { groupChip[g.key] = cur === c ? null : c; render(); });
+            chips.appendChild(ch);
+          });
+          card.appendChild(chips);
+        }
+        var shown = items.filter(function (b) {
+          if (!cur) return true;
+          var hay = (b.services || []).join(" ") + " " + b.name + " " + (b.description || "");
+          return hay.indexOf(cur) !== -1;
+        });
+        var box = el("div", "sv-items");
+        if (!shown.length) box.appendChild(el("p", "sv-empty", "در " + esc(currentCityName()) + " هنوز کسب‌وکاری در این بخش ثبت نشده است."));
+        shown.forEach(function (b) {
+          var row = el("button", "sv-item");
+          row.type = "button";
+          row.innerHTML = '<span class="sv-av" style="' + bg(b.logo) + '"></span>' +
+            '<span class="sv-tx"><b>' + esc(b.name) + "</b><small>" + esc((b.services || []).join(" ، ")) + "</small></span>" +
+            '<span class="sv-chev">' + CHEV + "</span>";
+          row.addEventListener("click", function () { goBiz(b); });
+          box.appendChild(row);
+        });
+        card.appendChild(box);
+      }
+      wrap.appendChild(card);
     });
+    main.appendChild(wrap);
   }
 
   /* کارت بزرگ «منتخب»: کاور با اطلاعات روی تصویر و دکمه‌های تماس زیرش */
