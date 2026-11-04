@@ -1092,9 +1092,13 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
   background: #0d0e13;
 }
 .forty-section + .year-collection { margin-top: 22px; }
-.forty-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.forty-head {
+  display: flex; align-items: center; gap: 10px; margin: 0 -14px 18px; padding: 0 14px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.forty-head::-webkit-scrollbar { display: none; }
 .forty-head .collection-title { margin: 0; flex: 0 0 auto; white-space: nowrap; }
-.forty-tabs { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; }
+.forty-tabs { display: flex; gap: 5px; flex: 0 0 auto; }
 .forty-tabs::-webkit-scrollbar { display: none; }
 .forty-tab {
   flex: 0 0 auto; font: inherit; font-size: 11px; line-height: 1;
