@@ -274,6 +274,189 @@
       ],
       "event_date_jalali": "۱۴۰۵/۰۷/۲۵",
       "event_weekday": "جمعه"
+    },
+    {
+      "id": 116,
+      "deceased_name": "سید امان‌الله آسترکی",
+      "photo": "assets/img/portrait-2.svg",
+      "ceremony_type": "khaksepari",
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۱۵",
+      "event_weekday": "پنجشنبه",
+      "city": "رامهرمز",
+      "city_slug": "ramhormoz",
+      "tayefe": "",
+      "il": "",
+      "location": "رامهرمز",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 117,
+      "deceased_name": "سیده صنوبر آسترکی",
+      "photo": "assets/img/portrait-3.svg",
+      "ceremony_type": "bozorgdasht",
+      "ceremony_labels": [
+        "بزرگداشت"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۱۴",
+      "event_weekday": "چهارشنبه",
+      "city": "رامهرمز",
+      "city_slug": "ramhormoz",
+      "tayefe": "",
+      "il": "",
+      "location": "رامهرمز",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 118,
+      "deceased_name": "حاج علی‌اکبر نوروزی",
+      "photo": "assets/img/portrait-4.svg",
+      "ceremony_type": "chehelom",
+      "ceremony_labels": [
+        "چهلم"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۱۲",
+      "event_weekday": "دوشنبه",
+      "city": "اصفهان",
+      "city_slug": "isfahan",
+      "tayefe": "",
+      "il": "",
+      "location": "اصفهان",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 119,
+      "deceased_name": "مرحومه فاطمه کریمی",
+      "photo": "assets/img/portrait-5.svg",
+      "ceremony_type": "khatm",
+      "ceremony_labels": [
+        "ختم"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۱۱",
+      "event_weekday": "یکشنبه",
+      "city": "تهران",
+      "city_slug": "tehran",
+      "tayefe": "",
+      "il": "",
+      "location": "تهران",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 120,
+      "deceased_name": "کربلایی رضا موسوی",
+      "photo": "assets/img/portrait-6.svg",
+      "ceremony_type": "khaksepari",
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۱۰",
+      "event_weekday": "شنبه",
+      "city": "اهواز",
+      "city_slug": "ahvaz",
+      "tayefe": "",
+      "il": "",
+      "location": "اهواز",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 121,
+      "deceased_name": "استاد حسین شریفی",
+      "photo": "assets/img/portrait-2.svg",
+      "ceremony_type": "bozorgdasht",
+      "ceremony_labels": [
+        "بزرگداشت"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۰۹",
+      "event_weekday": "جمعه",
+      "city": "شیراز",
+      "city_slug": "shiraz",
+      "tayefe": "",
+      "il": "",
+      "location": "شیراز",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 122,
+      "deceased_name": "حاج قاسم جعفری",
+      "photo": "assets/img/portrait-3.svg",
+      "ceremony_type": "chehelom",
+      "ceremony_labels": [
+        "چهلم"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۰۸",
+      "event_weekday": "پنجشنبه",
+      "city": "اصفهان",
+      "city_slug": "isfahan",
+      "tayefe": "",
+      "il": "",
+      "location": "اصفهان",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 123,
+      "deceased_name": "بانو مریم احمدی",
+      "photo": "assets/img/portrait-4.svg",
+      "ceremony_type": "khatm",
+      "ceremony_labels": [
+        "ختم"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۰۷",
+      "event_weekday": "چهارشنبه",
+      "city": "تهران",
+      "city_slug": "tehran",
+      "tayefe": "",
+      "il": "",
+      "location": "تهران",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 124,
+      "deceased_name": "مشهدی عباس رحیمی",
+      "photo": "assets/img/portrait-5.svg",
+      "ceremony_type": "khaksepari",
+      "ceremony_labels": [
+        "تشییع",
+        "خاکسپاری"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۰۶",
+      "event_weekday": "سه‌شنبه",
+      "city": "بهبهان",
+      "city_slug": "behbahan",
+      "tayefe": "",
+      "il": "",
+      "location": "بهبهان",
+      "created_at": "2026-10-28"
+    },
+    {
+      "id": 125,
+      "deceased_name": "حاج مهدی صالحی",
+      "photo": "assets/img/portrait-6.svg",
+      "ceremony_type": "bozorgdasht",
+      "ceremony_labels": [
+        "بزرگداشت"
+      ],
+      "death_year": 1405,
+      "event_date_jalali": "۱۴۰۵/۰۸/۰۵",
+      "event_weekday": "دوشنبه",
+      "city": "اهواز",
+      "city_slug": "ahvaz",
+      "tayefe": "",
+      "il": "",
+      "location": "اهواز",
+      "created_at": "2026-10-28"
     }
   ]
 }

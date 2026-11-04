@@ -12,7 +12,7 @@
   state.tayefe = PARAMS.get("tayefe") || null;
   state.il = PARAMS.get("il") || null;
 
-  var CARDS_BEFORE_COLLECTION = 1; // بعد از اولین کارت، بخش چهل روز
+  var CARDS_BEFORE_COLLECTION = 10; // بعد از ۱۰ کارت، بخش چهل روز
   var CARDS_BETWEEN_SECTIONS = 5;  // بعد از ۵ کارت دیگر، سوگ‌های سال‌های گذشته
 
   var CEREMONY_TYPES = [
