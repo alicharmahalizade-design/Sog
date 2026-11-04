@@ -233,7 +233,7 @@ option { direction: rtl; text-align: right; }
 .listing-card {
   position: relative;
   display: flex;
-  background: var(--card);
+  background: #171b1e;   /* هم‌رنگ بدنه‌ی کارت‌های چهل روز */
   border: none;                      /* بدون استروک */
   border-radius: var(--radius);
   overflow: hidden;
