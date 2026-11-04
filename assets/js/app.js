@@ -12,7 +12,8 @@
   state.tayefe = PARAMS.get("tayefe") || null;
   state.il = PARAMS.get("il") || null;
 
-  var CARDS_BEFORE_COLLECTION = 1; // بعد از اولین کارت، بخش چهل روز و سال‌ها
+  var CARDS_BEFORE_COLLECTION = 1; // بعد از اولین کارت، بخش چهل روز
+  var CARDS_BETWEEN_SECTIONS = 5;  // بعد از ۵ کارت دیگر، سوگ‌های سال‌های گذشته
 
   var CEREMONY_TYPES = [
     { type: "khaksepari", label: "تشییع و خاکسپاری" },
@@ -1452,20 +1453,20 @@
 
     // بخش‌های چهل روز و سال‌ها فقط در نمای پیش‌فرض (بعد از اولین کارت، طبق طرح)
     var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
-    var sections = [];
-    if (showCollection) {
-      var f = buildFortySection(); if (f) sections.push(f);
-      var y = buildYearCollection(); if (y) sections.push(y);
-    }
-    if (!items.length && !sections.length) { empty.hidden = false; return; }
+    /* ترتیب: ۱ کارت ← چهل روز گذشته ← ۵ کارت ← سوگ‌های سال‌های گذشته ← بقیه */
+    var forty = showCollection ? buildFortySection() : null;
+    var years = showCollection ? buildYearCollection() : null;
+    if (!items.length && !forty && !years) { empty.hidden = false; return; }
     empty.hidden = true;
-    function flush() { sections.forEach(function (n) { feed.appendChild(n); }); sections = []; }
+    var yearsAt = forty ? CARDS_BEFORE_COLLECTION + CARDS_BETWEEN_SECTIONS : CARDS_BEFORE_COLLECTION;
 
     items.forEach(function (item, i) {
-      if (i === CARDS_BEFORE_COLLECTION) flush();
+      if (i === CARDS_BEFORE_COLLECTION && forty) { feed.appendChild(forty); forty = null; }
+      if (i === yearsAt && years) { feed.appendChild(years); years = null; }
       feed.appendChild(listingCard(item));
     });
-    flush();
+    if (forty) feed.appendChild(forty);
+    if (years) feed.appendChild(years);
   }
 
   /* ---------- جستجو ---------- */
