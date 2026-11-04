@@ -289,59 +289,169 @@
       icon: svg('<circle cx="7" cy="5" r="2.2"/><path d="M5 21v-6l-1-4 3-2 2 4h3"/><path d="M14 9h6v6h-6zM17 9V7"/><path d="M15 21l2-6 2 6"/>') }
   ];
   var CHEV = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
-  var openGroup = null, groupChip = {};
+  /* وضعیت آکاردئون در sessionStorage می‌ماند تا برگشت از صفحه‌ی کسب‌وکار همان‌جا باز شود */
+  var SV_KEY = "sog_sv_state";
+  var sv = (function () { try { return JSON.parse(sessionStorage.getItem(SV_KEY)) || {}; } catch (e) { return {}; } })();
+  sv.chip = sv.chip || {};
+  function saveSv() { try { sessionStorage.setItem(SV_KEY, JSON.stringify(sv)); } catch (e) {} }
+  var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function groupItems(g) {
+    return pool().filter(function (b) { return g.cats.indexOf(b.category_slug) !== -1; }).sort(rank);
+  }
+  function chipMatch(b, c) {
+    if (!c) return true;
+    var hay = normalize((b.services || []).join(" ") + " " + b.name + " " + (b.description || ""));
+    return hay.indexOf(normalize(c)) !== -1;
+  }
 
   function renderHome(main) {
-    var list = pool();
     var wrap = el("div", "sv-list");
+    wrap.setAttribute("role", "list");
+    var nodes = {};
+
     GROUPS.forEach(function (g) {
-      var items = list.filter(function (b) { return g.cats.indexOf(b.category_slug) !== -1; }).sort(rank);
-      var open = openGroup === g.key;
-      var card = el("section", "sv-group" + (open ? " is-open" : ""));
+      var items = groupItems(g);
+      var card = el("section", "sv-group" + (items.length ? "" : " is-soon"));
+      card.setAttribute("role", "listitem");
+      card.dataset.key = g.key;
+      var panelId = "sv-panel-" + g.key;
+
       var head = el("button", "sv-head");
       head.type = "button";
-      head.innerHTML = '<span class="sv-ic' + (g.icon ? "" : " is-blank") + '">' + g.icon + "</span>" +
+      head.setAttribute("aria-expanded", "false");
+      head.setAttribute("aria-controls", panelId);
+      head.innerHTML = '<span class="sv-ic' + (g.icon ? "" : " is-blank") + '" aria-hidden="true">' + g.icon + "</span>" +
         '<span class="sv-tx"><b>' + esc(g.title) + "</b>" + (g.sub ? "<small>" + esc(g.sub) + "</small>" : "") + "</span>" +
-        (open ? "" : '<span class="sv-chev">' + CHEV + "</span>");
-      head.addEventListener("click", function () { openGroup = open ? null : g.key; render(); });
+        (items.length ? '<span class="sv-count" aria-label="' + faNum(items.length) + ' کسب‌وکار">' + faNum(items.length) + "</span>"
+                      : '<span class="sv-soon">به‌زودی</span>') +
+        '<span class="sv-chev" aria-hidden="true">' + CHEV + "</span>";
+      head.addEventListener("click", function () { toggle(g.key); });
       card.appendChild(head);
 
-      if (open) {
-        /* زیرشاخه‌ها: برچسب‌های گروه + خدمات کسب‌وکارها */
-        var chipsList = g.sub ? g.sub.split("،").map(function (x) { return x.trim(); }).filter(Boolean) : [];
-        items.forEach(function (b) { (b.services || []).forEach(function (sv) { if (chipsList.indexOf(sv) === -1) chipsList.push(sv); }); });
-        var cur = groupChip[g.key] || null;
-        if (chipsList.length) {
-          var chips = el("div", "sv-chips");
-          chipsList.forEach(function (c) {
-            var ch = el("button", "sv-chip" + (cur === c ? " is-on" : ""), esc(c));
-            ch.type = "button";
-            ch.addEventListener("click", function () { groupChip[g.key] = cur === c ? null : c; render(); });
-            chips.appendChild(ch);
-          });
-          card.appendChild(chips);
-        }
-        var shown = items.filter(function (b) {
-          if (!cur) return true;
-          var hay = (b.services || []).join(" ") + " " + b.name + " " + (b.description || "");
-          return hay.indexOf(cur) !== -1;
-        });
-        var box = el("div", "sv-items");
-        if (!shown.length) box.appendChild(el("p", "sv-empty", "در " + esc(currentCityName()) + " هنوز کسب‌وکاری در این بخش ثبت نشده است."));
-        shown.forEach(function (b) {
-          var row = el("button", "sv-item");
-          row.type = "button";
-          row.innerHTML = '<span class="sv-av" style="' + bg(b.logo) + '"></span>' +
-            '<span class="sv-tx"><b>' + esc(b.name) + "</b><small>" + esc((b.services || []).join(" ، ")) + "</small></span>" +
-            '<span class="sv-chev">' + CHEV + "</span>";
-          row.addEventListener("click", function () { goBiz(b); });
-          box.appendChild(row);
-        });
-        card.appendChild(box);
-      }
+      var panel = el("div", "sv-panel");
+      panel.id = panelId;
+      panel.setAttribute("role", "region");
+      panel.setAttribute("aria-label", g.title);
+      var inner = el("div", "sv-panel-in");
+      panel.appendChild(inner);
+      card.appendChild(panel);
+      nodes[g.key] = { card: card, head: head, panel: panel, inner: inner, g: g, built: false };
       wrap.appendChild(card);
     });
     main.appendChild(wrap);
+    main.appendChild(joinBanner());
+
+    /* محتوای پنل فقط هنگام اولین باز شدن ساخته می‌شود */
+    function build(n) {
+      var g = n.g, items = groupItems(g);
+      n.inner.innerHTML = "";
+      var chipsList = g.sub ? g.sub.split("،").map(function (x) { return x.trim(); }).filter(Boolean) : [];
+      items.forEach(function (b) { (b.services || []).forEach(function (x) { if (chipsList.indexOf(x) === -1) chipsList.push(x); }); });
+      /* فقط زیرشاخه‌هایی که دست‌کم یک کسب‌وکار دارند قابل انتخاب‌اند */
+      var cur = sv.chip[g.key] || null;
+      if (cur && !items.some(function (b) { return chipMatch(b, cur); })) cur = sv.chip[g.key] = null;
+
+      if (items.length && chipsList.length) {
+        var chips = el("div", "sv-chips");
+        chips.setAttribute("role", "group");
+        chips.setAttribute("aria-label", "زیرشاخه‌های " + g.title);
+        [null].concat(chipsList).forEach(function (c) {
+          var n2 = items.filter(function (b) { return chipMatch(b, c); }).length;
+          var ch = el("button", "sv-chip" + (cur === c ? " is-on" : "") + (n2 ? "" : " is-empty"),
+            esc(c || "همه") + (c && n2 ? '<span class="sv-chip-n">' + faNum(n2) + "</span>" : ""));
+          ch.type = "button";
+          ch.setAttribute("aria-pressed", cur === c ? "true" : "false");
+          if (!n2) ch.disabled = true;
+          ch.addEventListener("click", function () {
+            sv.chip[g.key] = c; saveSv();
+            paintItems(n, items, c);
+            Array.prototype.forEach.call(chips.children, function (x) {
+              var on = x === ch; x.classList.toggle("is-on", on); x.setAttribute("aria-pressed", on ? "true" : "false");
+            });
+          });
+          chips.appendChild(ch);
+        });
+        n.inner.appendChild(chips);
+      }
+      var box = el("div", "sv-items");
+      n.inner.appendChild(box);
+      n.box = box;
+      paintItems(n, items, cur);
+      n.built = true;
+    }
+
+    function paintItems(n, items, c) {
+      var box = n.box;
+      box.innerHTML = "";
+      var shown = items.filter(function (b) { return chipMatch(b, c); });
+      if (!shown.length) {
+        var e = el("div", "sv-empty");
+        e.innerHTML = "<p>" + (items.length ? "برای این زیرشاخه کسب‌وکاری پیدا نشد." :
+          "هنوز کسب‌وکاری در این بخش" + (state.city !== "all" ? " در " + esc(currentCityName()) : "") + " ثبت نشده است.") + "</p>";
+        var reg = el("a", "sv-empty-cta", "کسب‌وکار این حوزه را دارید؟ ثبت رایگان");
+        reg.href = "biz-register.html";
+        e.appendChild(reg);
+        box.appendChild(e);
+        return;
+      }
+      shown.forEach(function (b) { box.appendChild(svItem(b)); });
+    }
+
+    function setOpen(n, open, animate) {
+      n.card.classList.toggle("is-open", open);
+      n.head.setAttribute("aria-expanded", open ? "true" : "false");
+      n.panel.style.transition = animate && !reduceMotion ? "" : "none";
+      n.panel.inert = !open;
+    }
+
+    function toggle(key) {
+      var n = nodes[key];
+      var willOpen = !n.card.classList.contains("is-open");
+      /* فقط یک گروه باز می‌ماند تا فهرست کوتاه و قابل پیمایش بماند */
+      Object.keys(nodes).forEach(function (k) { if (k !== key && nodes[k].card.classList.contains("is-open")) setOpen(nodes[k], false, true); });
+      if (willOpen && !n.built) build(n);
+      setOpen(n, willOpen, true);
+      sv.open = willOpen ? key : null; saveSv();
+      if (willOpen) setTimeout(function () { revealHead(n.head); }, reduceMotion ? 0 : 260);
+    }
+
+    /* سرِ گروه بازشده زیر هدر چسبان دیده شود */
+    function revealHead(h) {
+      var hh = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--header-h"), 10) || 62;
+      var top = h.getBoundingClientRect().top;
+      if (top < hh + 8 || top > window.innerHeight * 0.45) {
+        window.scrollTo({ top: window.scrollY + top - hh - 12, behavior: reduceMotion ? "auto" : "smooth" });
+      }
+    }
+
+    Object.keys(nodes).forEach(function (k) { setOpen(nodes[k], false, false); });
+    if (sv.open && nodes[sv.open]) {
+      build(nodes[sv.open]); setOpen(nodes[sv.open], true, false);
+      if (sv.y != null) { var y = sv.y; sv.y = null; saveSv(); requestAnimationFrame(function () { window.scrollTo(0, y); }); }
+    }
+  }
+
+  /* ردیف کسب‌وکار: لوگو، نام + نشان، امتیاز و شهر، خدمات؛ تماس مستقیم و ورود به صفحه */
+  function svItem(b) {
+    var row = el("div", "sv-item");
+    var go = el("a", "sv-go");
+    go.href = "business-detail.html?id=" + encodeURIComponent(b.id);
+    go.innerHTML = '<span class="sv-av" style="' + bg(b.logo) + '"></span>' +
+      '<span class="sv-tx"><b><span class="sv-nm">' + esc(b.name) + "</span>" + SogUtil.badge(b) + "</b>" +
+      '<span class="sv-meta">' + (b.rating ? '<span class="sv-rate">' + STAR + esc(b.rating) + "</span>" : "") +
+        (b.reviews ? '<span class="sv-rev">(' + esc(b.reviews) + ")</span>" : "") +
+        '<span class="sv-dot"></span><span>' + esc(b.city || "") + "</span></span>" +
+      "<small>" + esc((b.services || []).join(" ، ")) + "</small></span>";
+    go.addEventListener("click", function () { sv.y = window.scrollY; saveSv(); });
+    row.appendChild(go);
+    if (b.phone) {
+      var call = el("a", "sv-call", SogIcon("call", 18));
+      call.href = "tel:" + toEn(b.phone);
+      call.setAttribute("aria-label", "تماس با " + b.name);
+      row.appendChild(call);
+    }
+    return row;
   }
 
   /* کارت بزرگ «منتخب»: کاور با اطلاعات روی تصویر و دکمه‌های تماس زیرش */

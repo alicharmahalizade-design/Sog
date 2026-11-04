@@ -591,35 +591,73 @@
 
 /* ===== فهرست بازشونده‌ی خدمات مراسم (طرح جدید) ===== */
 .sv-list { display: flex; flex-direction: column; gap: 9px; padding: 20px 14px 0; }
-.sv-group { background: #262626; border-radius: 9px; overflow: hidden; }
-.sv-head, .sv-item {
+.sv-group { background: #262626; border-radius: 9px; overflow: hidden; transition: background .2s; }
+.sv-head {
   width: 100%; display: flex; align-items: center; gap: 12px;
+  min-height: 58px; padding: 9px 12px 9px 14px;
   background: none; border: 0; font: inherit; color: inherit; text-align: start; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.sv-head { min-height: 58px; padding: 9px 12px 9px 14px; }
+.sv-head:focus-visible, .sv-go:focus-visible, .sv-chip:focus-visible, .sv-call:focus-visible { outline: 2px solid #e0a465; outline-offset: -2px; border-radius: 9px; }
+.sv-head:active { background: rgba(255,255,255,.03); }
 .sv-ic {
   flex: 0 0 34px; width: 34px; height: 34px; display: grid; place-items: center;
-  color: #cf9c63; border-radius: 7px;
+  color: #cf9c63; border-radius: 7px; transition: background .2s;
 }
 .sv-ic.is-blank { border: 1px solid #5a4630; }
-.sv-group.is-open .sv-ic { background: #000; flex-basis: 34px; }
-.sv-group.is-open .sv-ic svg { width: 24px; height: 24px; }
+.sv-group.is-open .sv-ic { background: #000; }
 .sv-tx { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.sv-tx b { font-size: 14.5px; font-weight: 700; color: #e0a465; line-height: 1.4; }
+.sv-tx > b { font-size: 14.5px; font-weight: 700; color: #e0a465; line-height: 1.4; display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sv-tx small { font-size: 11.5px; color: #9a9a9a; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sv-chev { flex: 0 0 auto; color: #fff; display: grid; place-items: center; margin-inline-start: 4px; }
-.sv-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 10px 6px; }
-.sv-chip {
-  font: inherit; font-size: 11px; color: #a8a8a8; background: none;
-  border: 1px solid #4a4a4a; border-radius: 999px; padding: 6px 13px; cursor: pointer;
+.sv-count {
+  flex: 0 0 auto; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: grid; place-items: center; font-size: 11px; color: #cf9c63; background: rgba(207,156,99,.12);
 }
-.sv-chip.is-on { color: #e0a465; border-color: #e0a465; }
-.sv-items { margin: 14px 10px 14px; background: #2b2b2b; border-radius: 12px; overflow: hidden; }
-.sv-item { padding: 10px 12px; min-height: 53px; border-bottom: 1px solid #222; }
+.sv-soon { flex: 0 0 auto; font-size: 10.5px; color: #777; }
+.sv-group.is-soon .sv-tx > b { color: #b98a58; }
+.sv-chev { flex: 0 0 auto; color: #fff; display: grid; place-items: center; transition: transform .25s ease; }
+.sv-group.is-open > .sv-head .sv-chev { transform: rotate(180deg); }
+
+/* باز و بسته شدن نرم با grid-rows */
+.sv-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
+.sv-group.is-open > .sv-panel { grid-template-rows: 1fr; }
+.sv-panel-in { min-height: 0; overflow: hidden; }
+
+.sv-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px 0; }
+.sv-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font: inherit; font-size: 11px; color: #a8a8a8; background: none;
+  border: 1px solid #4a4a4a; border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 30px;
+}
+.sv-chip-n { font-size: 10px; color: #777; }
+.sv-chip.is-on { color: #e0a465; border-color: #e0a465; background: rgba(224,164,101,.08); }
+.sv-chip.is-on .sv-chip-n { color: #e0a465; }
+.sv-chip.is-empty { opacity: .4; cursor: default; }
+.sv-items { margin: 14px 10px; background: #2b2b2b; border-radius: 12px; overflow: hidden; }
+.sv-item { display: flex; align-items: center; border-bottom: 1px solid #222; }
 .sv-item:last-child { border-bottom: 0; }
-.sv-item .sv-tx b { font-size: 13.5px; }
+.sv-go {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+.sv-go:active { background: rgba(255,255,255,.03); }
+.sv-item .sv-tx > b { font-size: 13.5px; }
+.sv-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sv-item .sv-tx > b .sog-badge { flex: 0 0 auto; font-size: 9.5px; }
+.sv-meta { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #9a9a9a; }
+.sv-rate { display: inline-flex; align-items: center; gap: 3px; color: #e7b56a; }
+.sv-rate svg { width: 11px; height: 11px; fill: currentColor; }
+.sv-rev { color: #777; }
+.sv-dot { width: 3px; height: 3px; border-radius: 50%; background: #555; }
 .sv-item .sv-tx small { font-size: 10.5px; }
-.sv-item .sv-chev { color: #bbb; }
-.sv-item .sv-chev svg { width: 18px; height: 18px; }
-.sv-av { flex: 0 0 37px; width: 37px; height: 37px; border-radius: 50%; background: #3a3a3a center/cover no-repeat; }
-.sv-empty { margin: 0; padding: 18px 14px; text-align: center; font-size: 12px; color: #8a8a8a; }
+.sv-av { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: #3a3a3a center/cover no-repeat; }
+.sv-call {
+  flex: 0 0 auto; width: 38px; height: 38px; margin-inline-end: 10px; border-radius: 50%;
+  display: grid; place-items: center; color: #e0a465; border: 1px solid #45392b;
+}
+.sv-call:active { background: rgba(224,164,101,.12); }
+.sv-empty { padding: 18px 14px; text-align: center; }
+.sv-empty p { margin: 0 0 10px; font-size: 12px; color: #8a8a8a; }
+.sv-empty-cta { font-size: 12px; color: #e0a465; text-decoration: none; border-bottom: 1px dashed #6a5236; }
+.sv-list + .bh-join { margin-top: 18px; }
+@media (prefers-reduced-motion: reduce) { .sv-panel, .sv-chev, .sv-group, .sv-ic { transition: none; } }
