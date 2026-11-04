@@ -318,6 +318,22 @@
     return wrap;
   }
 
+  /* سن کامل بین دو تاریخ شمسی: «۸۵ سال»، برای کمتر از یک سال «۷ ماه» یا «۱۲ روز».
+     null = هنوز قابل محاسبه نیست (تولد همان روز درگذشت/پیش‌فرض)، false = تولد بعد از درگذشت */
+  function calcAge(b, d) {
+    if (!b || !d || !b.y || !d.y) return null;
+    var bn = b.y * 10000 + b.m * 100 + b.d, dn = d.y * 10000 + d.m * 100 + d.d;
+    if (bn > dn) return false;
+    if (bn === dn) return null;
+    var years = d.y - b.y - ((d.m * 100 + d.d) < (b.m * 100 + b.d) ? 1 : 0);
+    if (years >= 1) return faNum(years) + " سال";
+    var months = (d.y - b.y) * 12 + (d.m - b.m) - (d.d < b.d ? 1 : 0);
+    if (months >= 1) return faNum(months) + " ماه";
+    var g1 = SogUtil.jalaliToGregorian(b.y, b.m, b.d), g2 = SogUtil.jalaliToGregorian(d.y, d.m, d.d);
+    var days = Math.round((Date.UTC(g2.y, g2.m - 1, g2.d) - Date.UTC(g1.y, g1.m - 1, g1.d)) / 86400000);
+    return faNum(days) + " روز";
+  }
+
   /* کادر تاریخ شمسی (و در صورت نیاز ساعت) */
   function dateBox(getter, setter, withTime) {
     var box = el("div", "datetime-box");
@@ -562,9 +578,24 @@
     /* ۲) تاریخ‌ها و مکان */
     steps.push({ title: "تاریخ‌ها و زادگاه", build: function () {
       var p = el("section", "reg-panel");
-      p.appendChild(field("تاریخ تولد", true, dateBox(function () { return data.birth; }, function (v) { data.birth = v; })));
-      p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; })));
-      p.appendChild(field("سن درگذشته", true, textInput("age", "مثال : ۸۵ سال")));
+      /* سن از روی تاریخ تولد و درگذشت خودکار پر می‌شود (قابل ویرایش دستی) */
+      var ageInp = textInput("age", "مثال : ۸۵ سال");
+      var ageHint = el("p", "age-hint");
+      function autoAge() {
+        var r = calcAge(data.birth, data.death);
+        ageInp.classList.toggle("is-invalid", r === false);
+        if (r === false) { ageHint.textContent = "تاریخ تولد نمی‌تواند بعد از تاریخ درگذشت باشد."; ageHint.className = "age-hint is-err"; return; }
+        if (r == null) { ageHint.textContent = ""; return; }
+        data.age = r; ageInp.value = r;
+        ageHint.textContent = "به‌صورت خودکار از تاریخ تولد و درگذشت محاسبه شد.";
+        ageHint.className = "age-hint";
+      }
+      p.appendChild(field("تاریخ تولد", true, dateBox(function () { return data.birth; }, function (v) { data.birth = v; autoAge(); })));
+      p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; autoAge(); })));
+      var ageWrap = el("div", "age-wrap");
+      ageWrap.appendChild(ageInp); ageWrap.appendChild(ageHint);
+      p.appendChild(field("سن درگذشته", true, ageWrap));
+      autoAge();
       p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
       p.appendChild(field("شهر محل سکونت", false, placeInput()));
       return p;
