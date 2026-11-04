@@ -12,7 +12,7 @@
   state.tayefe = PARAMS.get("tayefe") || null;
   state.il = PARAMS.get("il") || null;
 
-  var CARDS_BEFORE_COLLECTION = 10; // بعد از ۱۰ کارت، کالکشن سال‌ها
+  var CARDS_BEFORE_COLLECTION = 1; // بعد از اولین کارت، بخش چهل روز و سال‌ها
 
   var CEREMONY_TYPES = [
     { type: "khaksepari", label: "تشییع و خاکسپاری" },
@@ -1126,13 +1126,82 @@
     });
   }
 
-  /* آیا هنوز باید در صفحه‌ی اول باشد؟ */
-  function isCurrent(item) {
+  /* سه مرحله بر اساس روزهای گذشته از مراسم:
+     ۰ تا ۱۰ روز → کارت افقی صفحه‌ی اول
+     ۱۰ تا ۴۰ روز → «مراسمات برگزار شده چهل روز گذشته»
+     بیش از ۴۰ روز → «سوگ‌های سال‌های گذشته» */
+  var RECENT_DAYS = 10, FORTY_DAYS = 40;
+  function daysPast(item) {
     var ev = eventDateOf(item);
-    if (!ev) return true;                       /* بدون تاریخ، در صفحه‌ی اول می‌ماند */
-    var end = new Date(ev.getTime());
-    end.setDate(end.getDate() + (isAnniversary(item) ? 1 : 40));   /* ساعت ۱۲ شبِ همان روز */
-    return Date.now() < end.getTime();
+    if (!ev) return -1;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.floor((today.getTime() - ev.getTime()) / 86400000);
+  }
+  function stageOf(item) {
+    var d = daysPast(item);
+    if (d < RECENT_DAYS) return "recent";
+    if (d < FORTY_DAYS) return "forty";
+    return "past";
+  }
+  function isCurrent(item) { return stageOf(item) === "recent"; }
+
+  /* ---------- مراسمات چهل روز گذشته (اسکرولی + تب) ---------- */
+  var fortyTab = null;
+  function fortyCard(item) {
+    var c = el("article", "forty-card");
+    var ph = el("div", "forty-photo");
+    if (item.photo) ph.style.backgroundImage = 'url("' + item.photo + '")';
+    var lbl = (item.ceremony_labels || []).join("/");
+    var t = el("span", "forty-tag", esc(lbl));
+    t.dataset.type = item.ceremony_type;
+    var nm = el("h3", "forty-name", '<span class="mq-inner">' + esc(item.deceased_name) + '</span>');
+    var b = el("div", "forty-body");
+    b.appendChild(t); b.appendChild(nm);
+    c.appendChild(ph); c.appendChild(b);
+    marquee(nm);
+    c.addEventListener("click", function () {
+      SogStore.markSeen(item.id);
+      location.href = "listing.html?id=" + encodeURIComponent(item.id);
+    });
+    return c;
+  }
+  function buildFortySection() {
+    var items = DATA.listings.filter(function (it) {
+      if (stageOf(it) !== "forty") return false;
+      if (state.sel.length && !state.sel.some(function (sel) { return chipMatches(sel, it); })) return false;
+      return true;
+    }).sort(function (a, b) { return jalaliNum(b) - jalaliNum(a); });
+    if (!items.length) return null;
+
+    var tabs = [];
+    items.forEach(function (it) {
+      (it.ceremony_labels || []).forEach(function (l) { if (tabs.indexOf(l) === -1) tabs.push(l); });
+    });
+    if (fortyTab && tabs.indexOf(fortyTab) === -1) fortyTab = null;
+
+    var wrap = el("section", "forty-section");
+    var head = el("div", "forty-head");
+    head.appendChild(el("h2", "collection-title", "مراسمات برگزار شده چهل روز گذشته"));
+    var tabBar = el("div", "forty-tabs");
+    head.appendChild(tabBar);
+    wrap.appendChild(head);
+    var track = el("div", "forty-track");
+    wrap.appendChild(track);
+
+    function paint() {
+      tabBar.innerHTML = ""; track.innerHTML = "";
+      tabs.forEach(function (l) {
+        var b = el("button", "forty-tab" + (fortyTab === l ? " is-on" : ""), esc(l));
+        b.type = "button";
+        b.addEventListener("click", function () { fortyTab = fortyTab === l ? null : l; paint(); });
+        tabBar.appendChild(b);
+      });
+      items.filter(function (it) {
+        return !fortyTab || (it.ceremony_labels || []).indexOf(fortyTab) !== -1;
+      }).forEach(function (it) { track.appendChild(fortyCard(it)); });
+    }
+    paint();
+    return wrap;
   }
 
   /* ---------- کالکشن سال‌های گذشته (خودکار) ---------- */
@@ -1140,7 +1209,7 @@
     /* فقط آگهی‌هایی که دوره‌شان تمام شده در کالکشن می‌آیند */
     var counts = {};
     DATA.listings.forEach(function (it) {
-      if (it.death_year == null || isCurrent(it)) return;
+      if (it.death_year == null || stageOf(it) !== "past") return;
       counts[it.death_year] = (counts[it.death_year] || 0) + 1;
     });
     var pastYears = Object.keys(counts).map(Number).sort(function (a, b) { return b - a; });
@@ -1376,25 +1445,23 @@
 
     var items = sortItems(DATA.listings.filter(matchesFilters));
 
-    if (items.length === 0) {
-      empty.hidden = false;
-      return;
-    }
-    empty.hidden = true;
 
-    // آیا کالکشن سال را نشان بدهیم؟ فقط در نمای پیش‌فرض
+    // بخش‌های چهل روز و سال‌ها فقط در نمای پیش‌فرض (بعد از اولین کارت، طبق طرح)
     var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
-    var collection = showCollection ? buildYearCollection() : null;
+    var sections = [];
+    if (showCollection) {
+      var f = buildFortySection(); if (f) sections.push(f);
+      var y = buildYearCollection(); if (y) sections.push(y);
+    }
+    if (!items.length && !sections.length) { empty.hidden = false; return; }
+    empty.hidden = true;
+    function flush() { sections.forEach(function (n) { feed.appendChild(n); }); sections = []; }
 
     items.forEach(function (item, i) {
-      if (collection && i === CARDS_BEFORE_COLLECTION) {
-        feed.appendChild(collection);
-        collection = null;
-      }
+      if (i === CARDS_BEFORE_COLLECTION) flush();
       feed.appendChild(listingCard(item));
     });
-    // اگر آگهی‌ها کمتر از حد بودند، کالکشن را انتهای فهرست بگذار
-    if (collection) feed.appendChild(collection);
+    flush();
   }
 
   /* ---------- جستجو ---------- */
