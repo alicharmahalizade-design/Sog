@@ -306,41 +306,35 @@ option { direction: rtl; text-align: right; }
 
 /* ===== کالکشن سال‌های گذشته ===== */
 .year-collection {
-  margin: 6px 0;
+  margin: 8px -14px 0; padding: 16px 14px 20px;
+  background: #0d0e13;
 }
 .collection-title {
   text-align: start;
-  color: var(--accent);
-  font-size: 17px; font-weight: 700;
-  margin: 8px 0 14px;
+  color: #cf9c63;
+  font-size: 18px; font-weight: 700;
+  margin: 0 0 18px;
 }
 .year-track {
-  display: flex; gap: 12px;
+  display: flex; gap: 7px;
   overflow-x: auto;
-  padding: 2px 2px 8px;
   scrollbar-width: none;
 }
 .year-track::-webkit-scrollbar { display: none; }
 .year-card {
-  position: relative;
-  flex: 0 0 40%;
-  aspect-ratio: 2/3;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid #262626;
-  /* کادر عکس کمی به چپ منتقل می‌شود تا شمع در جای درست بیفتد */
-  background: #000 left center/cover no-repeat;
-  display: grid; place-items: end center;
+  flex: 0 0 calc((100% - 7px) / 2.2);
+  display: flex; flex-direction: column;
+  padding: 0; border: none; border-radius: 13px;
+  overflow: hidden; cursor: pointer;
+  background: #171b1e; font: inherit;
 }
-.year-card::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,0) 60%);
+.year-photo {
+  display: block; aspect-ratio: 175/192;
+  background: #000 left center/cover no-repeat;
 }
 .year-label {
-  position: relative; z-index: 1;
-  color: #fff; font-weight: 700; font-size: 20px;
-  padding-bottom: 14px;
-  text-shadow: 0 1px 6px rgba(0,0,0,.7);
+  display: block; text-align: center;
+  color: #fff; font-weight: 700; font-size: 20px; line-height: 32px;
 }
 
 /* ===== اسکلتون لودینگ ===== */
@@ -1094,27 +1088,28 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .sheet-backdrop.story-back { z-index: 95; }
 /* ===== مراسمات برگزار شده چهل روز گذشته ===== */
 .forty-section {
-  margin: 0 -14px; padding: 14px 14px 18px;
-  background: #15171a;
+  margin: 8px -14px 0; padding: 16px 14px 20px;
+  background: #0d0e13;
 }
-.forty-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.forty-section + .year-collection { margin-top: 22px; }
+.forty-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .forty-head .collection-title { margin: 0; flex: 0 0 auto; white-space: nowrap; }
-.forty-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; }
+.forty-tabs { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; flex: 1 1 auto; }
 .forty-tabs::-webkit-scrollbar { display: none; }
 .forty-tab {
-  flex: 0 0 auto; font: inherit; font-size: 12px;
-  padding: 4px 12px; border-radius: 999px;
-  background: #0b0c0e; color: #9a9a9a; border: 1px solid #262626; cursor: pointer;
+  flex: 0 0 auto; font: inherit; font-size: 11px; line-height: 1;
+  padding: 5px 13px; border-radius: 999px;
+  background: #000; color: #848484; border: none; cursor: pointer;
 }
-.forty-tab.is-on { color: #111; background: var(--accent); border-color: var(--accent); }
-.forty-track { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.forty-tab.is-on { color: #cf9c63; }
+.forty-track { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
 .forty-track::-webkit-scrollbar { display: none; }
 .forty-card {
-  flex: 0 0 43%; border-radius: 14px; overflow: hidden;
-  background: #1f2226; cursor: pointer;
+  flex: 0 0 calc((100% - 7px) / 2.2); border-radius: 13px; overflow: hidden;
+  background: #171b1e; cursor: pointer;
 }
-.forty-photo { aspect-ratio: 1/1; background: #222 center/cover no-repeat; }
-.forty-body { padding: 10px 10px 12px; text-align: center; }
-.forty-tag { display: block; font-size: 12px; color: #c98b4f; margin-bottom: 6px; }
-.forty-tag[data-type="sepas"] { color: #4caf50; }
-.forty-name { font-size: 15px; font-weight: 700; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }
+.forty-photo { aspect-ratio: 175/163; background: #222 center/cover no-repeat; }
+.forty-body { padding: 13px 8px 14px; text-align: center; }
+.forty-tag { display: block; font-size: 11px; line-height: 14px; color: #b08356; margin-bottom: 8px; }
+.forty-tag[data-type="sepas"] { color: #7fd468; }
+.forty-name { font-size: 15px; line-height: 20px; font-weight: 500; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }

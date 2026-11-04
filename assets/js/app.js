@@ -1221,7 +1221,9 @@
     pastYears.forEach(function (y) {
       var yc = el("button", "year-card");
       yc.type = "button";
-      yc.style.backgroundImage = 'url("assets/img/candles.jpg")';
+      var yp = el("span", "year-photo");
+      yp.style.backgroundImage = 'url("assets/img/candles.jpg")';
+      yc.appendChild(yp);
       yc.appendChild(el("span", "year-label", toFa(y)));
       yc.addEventListener("click", function () {
         state.year = (state.year === y ? null : y);
