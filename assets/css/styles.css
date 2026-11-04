@@ -277,7 +277,7 @@ option { direction: rtl; text-align: right; }
 }
 
 .listing-name {
-  font-size: 19px; font-weight: 700;
+  font-size: 17px; font-weight: 500;
   margin: 0; color: var(--text);
   line-height: 1.5;
 }
@@ -312,7 +312,7 @@ option { direction: rtl; text-align: right; }
 .collection-title {
   text-align: start;
   color: #cf9c63;
-  font-size: 18px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
   margin: 0 0 18px;
 }
 .year-track {
@@ -1116,4 +1116,4 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .forty-body { padding: 13px 8px 14px; text-align: center; }
 .forty-tag { display: block; font-size: 11px; line-height: 14px; color: #b08356; margin-bottom: 8px; }
 .forty-tag[data-type="sepas"] { color: #7fd468; }
-.forty-name { font-size: 15px; line-height: 20px; font-weight: 500; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }
+.forty-name { font-size: 14px; line-height: 20px; font-weight: 500; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }
