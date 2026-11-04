@@ -13,7 +13,7 @@
   state.il = PARAMS.get("il") || null;
 
   var CARDS_BEFORE_COLLECTION = 10; // بعد از ۱۰ کارت، بخش چهل روز
-  var CARDS_BETWEEN_SECTIONS = 5;  // بعد از ۵ کارت دیگر، سوگ‌های سال‌های گذشته
+  var CARDS_BETWEEN_SECTIONS = 0;  // سوگ‌های سال‌های گذشته بلافاصله بعد از بخش چهل روز
 
   var CEREMONY_TYPES = [
     { type: "khaksepari", label: "تشییع و خاکسپاری" },
@@ -1453,7 +1453,7 @@
 
     // بخش‌های چهل روز و سال‌ها فقط در نمای پیش‌فرض (بعد از اولین کارت، طبق طرح)
     var showCollection = (state.year == null && !state.query && !state.ceremony && !state.followOnly && !state.savedOnly && !state.tayefe && !state.il);
-    /* ترتیب: ۱ کارت ← چهل روز گذشته ← ۵ کارت ← سوگ‌های سال‌های گذشته ← بقیه */
+    /* ترتیب: ۱۰ کارت ← چهل روز گذشته ← سوگ‌های سال‌های گذشته ← بقیه */
     var forty = showCollection ? buildFortySection() : null;
     var years = showCollection ? buildYearCollection() : null;
     if (!items.length && !forty && !years) { empty.hidden = false; return; }
