@@ -1227,7 +1227,7 @@
       yc.appendChild(el("span", "year-label", toFa(y)));
       yc.addEventListener("click", function () {
         state.year = (state.year === y ? null : y);
-        state.month = null;
+        state.month = 0;   /* پیش‌فرض: «همه»ی آگهی‌های آن سال */
         state.sel = []; state.city = "all";
         renderCities();
         renderFeed();
@@ -1310,31 +1310,33 @@
   function renderArchive(feed) {
     var all = archiveItems();
     var top = thisJYear();
-    if (state.month == null) state.month = latestMonth(all, state.year);
+    if (state.month == null) state.month = 0;
+    /* نوار زمان: هر سال ۱۳ خانه دارد: «همه» (۰) و بعد فروردین تا اسفند */
+    function mLabel(m) { return m === 0 ? "همه" : MONTHS[m - 1]; }
+    function inMonth(it, y, m) { return it.death_year === y && (m === 0 || monthOf(it) === m); }
     setArchiveMode(true);
 
     /* نوار زمان: سال‌ها بالا، ماه‌ها پایین، وسط انتخاب‌شده در کادر؛ فلش‌ها ماه به ماه جابه‌جا می‌کنند */
     var pick = el("div", "arc-picker");
     var grid = el("div", "arc-grid");
     function step(delta) {
-      var m = state.month + delta, y = state.year;
-      if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
-      if (y > top || (y === top && m > 12)) return;
-      state.year = y; state.month = m; renderFeed();
+      var idx = state.year * 13 + state.month + delta;
+      if (idx > top * 13 + 12) return;
+      state.year = Math.floor(idx / 13); state.month = idx % 13; renderFeed();
     }
     for (var off = 2; off >= -2; off--) (function (o) {
       var col = el("div", "arc-col" + (o === 0 ? " is-on" : "") + " d" + Math.abs(o));
-      var yy = state.year + o, mm = ((state.month - 1 + o) % 12 + 12) % 12 + 1;
+      var ci = state.year * 13 + state.month + o;
+      var yy = state.year + o, mm = ((ci % 13) + 13) % 13;
       var yb = el("button", "arc-y", toFa(yy)); yb.type = "button";
       if (yy > top) { yb.disabled = true; yb.classList.add("is-hidden"); }
       else yb.addEventListener("click", function () {
         state.year = yy;
-        var has = all.some(function (it) { return it.death_year === yy && monthOf(it) === state.month; });
-        if (!has) state.month = latestMonth(all, yy);
+        if (!all.some(function (it) { return inMonth(it, yy, state.month); })) state.month = 0;
         renderFeed();
       });
-      var mb = el("button", "arc-m", MONTHS[mm - 1]); mb.type = "button";
-      mb.addEventListener("click", function () { state.month = mm; renderFeed(); });
+      var mb = el("button", "arc-m", mLabel(mm)); mb.type = "button";
+      mb.addEventListener("click", function () { state.year = Math.floor(ci / 13); state.month = mm; renderFeed(); });
       col.appendChild(yb); col.appendChild(mb);
       grid.appendChild(col);
     })(off);
@@ -1344,15 +1346,15 @@
     var older = el("button", "arc-arrow is-older", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); older.type = "button";
     older.setAttribute("aria-label", "ماه قبل");
     older.addEventListener("click", function () { step(-1); });
-    if (state.year >= top && state.month >= 12) newer.disabled = true;
+    if (state.year * 13 + state.month >= top * 13 + 12) newer.disabled = true;
     pick.appendChild(el("span", "arc-line"));
     pick.appendChild(newer); pick.appendChild(grid); pick.appendChild(older);
     feed.appendChild(pick);
-    bindArchiveSwipe(grid, all, top);
+    bindArchiveSwipe(grid, all, top, inMonth);
 
-    var list = sortItems(all.filter(function (it) { return it.death_year === state.year && monthOf(it) === state.month; }));
+    var list = sortItems(all.filter(function (it) { return inMonth(it, state.year, state.month); }));
     if (!list.length) {
-      feed.appendChild(el("p", "arc-empty", "در " + MONTHS[state.month - 1] + " " + toFa(state.year) + " آگهی‌ای ثبت نشده است."));
+      feed.appendChild(el("p", "arc-empty", "در " + (state.month === 0 ? "سال" : MONTHS[state.month - 1]) + " " + toFa(state.year) + " آگهی‌ای ثبت نشده است."));
       return;
     }
     var box = el("div", "arc-list");
@@ -1361,7 +1363,7 @@
   }
   /* کشیدن افقی با لمس/ماوس: ردیف بالا سال را، ردیف پایین ماه را جابه‌جا می‌کند.
      در راست‌چین، کشیدن به راست موارد قدیمی‌تر (سمت چپ) را به وسط می‌آورد. */
-  function bindArchiveSwipe(grid, all, top) {
+  function bindArchiveSwipe(grid, all, top, inMonth) {
     var start = null, row = null, dx = 0, moved = false;
     function cells() { return grid.querySelectorAll(row === "y" ? ".arc-y" : ".arc-m"); }
     function shift(px) {
@@ -1387,11 +1389,11 @@
       if (row === "y") {
         var y = Math.min(top, state.year - n);
         state.year = y;
-        if (!all.some(function (it) { return it.death_year === y && monthOf(it) === state.month; })) state.month = latestMonth(all, y);
+        if (!all.some(function (it) { return inMonth(it, y, state.month); })) state.month = 0;
       } else {
-        var idx = state.year * 12 + (state.month - 1) - n;
-        idx = Math.min(idx, top * 12 + 11);
-        state.year = Math.floor(idx / 12); state.month = idx % 12 + 1;
+        var idx = state.year * 13 + state.month - n;
+        idx = Math.min(idx, top * 13 + 12);
+        state.year = Math.floor(idx / 13); state.month = idx % 13;
       }
       renderFeed();
     }
