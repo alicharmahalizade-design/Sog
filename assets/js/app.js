@@ -1222,7 +1222,7 @@
       var yc = el("button", "year-card");
       yc.type = "button";
       var yp = el("span", "year-photo");
-      yp.style.backgroundImage = 'url("assets/img/candles.jpg")';
+      yp.style.backgroundImage = 'url("assets/img/candles-year.jpg")';
       yc.appendChild(yp);
       yc.appendChild(el("span", "year-label", toFa(y)));
       yc.addEventListener("click", function () {

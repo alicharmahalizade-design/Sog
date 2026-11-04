@@ -330,7 +330,7 @@ option { direction: rtl; text-align: right; }
 }
 .year-photo {
   display: block; aspect-ratio: 175/192;
-  background: #000 left center/cover no-repeat;
+  background: #000 center 70%/cover no-repeat;
 }
 .year-label {
   display: block; text-align: center;
