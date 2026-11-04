@@ -894,7 +894,7 @@
       SogStore.markSeen(item.id);
       /* اطلاعیه هنوز صفحه‌ی کاملی ندارد؛ همان چیزی که ثبت شده را نشان می‌دهیم */
       if (notice) { openNoticeSheet(item); return; }
-      location.href = "listing.html?id=" + encodeURIComponent(item.id);
+      openListingSheet(item);
     });
 
     return card;
@@ -930,6 +930,129 @@
   /* ---------- کادر اطلاعیه‌ی سوگ ----------
      کلیک روی کارتِ ثبت سریع، به‌جای صفحه‌ی تکی، همین کادر را باز می‌کند و
      دقیقاً همان چیزی را نشان می‌دهد که هنگام ثبت پر شده است. */
+  /* ---------- نمایش سریع آگهی عادی (پاپ‌آپ پایین) ----------
+     اطلاعات مهم: مراسم پیش رو، زمان و مکان، خانواده؛ «جزئیات کامل» به صفحه‌ی تکی می‌رود.
+     جزئیات تکمیلی (اگر در data/details.json باشد) یک‌بار و تنبل بارگذاری می‌شود. */
+  var DETAILS = null;
+  function loadDetails() {
+    if (DETAILS) return Promise.resolve(DETAILS);
+    return fetch("data/details.json").then(function (r) { return r.json(); })
+      .then(function (d) { DETAILS = d || {}; return DETAILS; })
+      .catch(function () { DETAILS = {}; return DETAILS; });
+  }
+  function openListingSheet(item) {
+    var url = "listing.html?id=" + encodeURIComponent(item.id);
+    var back = el("div", "sheet-backdrop");
+    var sheet = el("div", "notify-sheet notice-sheet ls-sheet");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-label", item.deceased_name);
+    var closed = false;
+
+    function done(viaPop) {
+      if (closed) return; closed = true;
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPop);
+      if (!viaPop && (history.state || {}).ls) history.back();
+      sheet.classList.remove("is-in"); back.classList.remove("is-in");
+      setTimeout(function () { sheet.remove(); back.remove(); document.body.style.overflow = ""; }, 200);
+    }
+    function onPop() { done(true); }
+    function onKey(e) { if (e.key === "Escape") done(); }
+
+    function paint(det) {
+      det = det || {};
+      var fam = det.family || {};
+      var father = (fam.father && fam.father.name) || item.father || "";
+      var tayefe = (fam.father && fam.father.tayefe) || item.tayefe || "";
+      var facts = [["فرزند", father], ["طایفه", tayefe], ["سن", det.age], [null, item.city]]
+        .filter(function (f) { return f[1]; })
+        .map(function (f) { return "<li>" + (f[0] ? esc(f[0]) + '<i class="nt-sep" aria-hidden="true"></i>' : "") + esc(f[1]) + "</li>"; }).join("");
+      var tags = (item.ceremony_labels || []).map(function (l) {
+        return '<span class="tag" data-type="' + esc(item.ceremony_type) + '">' + esc(l) + "</span>";
+      }).join("");
+
+      /* مراسم پیش رو: از جزئیات (اگر هست) وگرنه از خود آگهی */
+      /* تاریخ همیشه از خود آگهی؛ ساعت و مکان از مراسمِ هم‌نوع در جزئیات */
+      var cer = (det.ceremonies || []).filter(function (c) { return c.type === item.ceremony_type; })[0] || null;
+      var when = (weekdayOf(item) ? weekdayOf(item) + " " : "") + item.event_date_jalali;
+      var time = cer && cer.time_from ? "ساعت " + cer.time_from + (cer.time_to ? " تا " + cer.time_to : "") : "";
+      var where = (cer && cer.location) || item.location || item.city || "";
+      var chips = (cer && cer.chips || []).slice(0, 3).map(function (c) { return '<span class="ls-chip">' + esc(c) + "</span>"; }).join("");
+      var count = det.condolence_count ? '<span class="ls-cnt">' + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>' + esc(det.condolence_count) + " پیام تسلیت</span>" : "";
+
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<div class="nt-card">' +
+          '<div class="nt-top">' +
+            '<span class="nt-head">' +
+              (tags ? '<span class="ls-tags">' + tags + "</span>" : "") +
+              '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
+              (det.subtitle ? '<span class="ls-sub">' + esc(det.subtitle) + "</span>" : "") +
+              (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
+            "</span>" +
+            '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+          "</div>" +
+        "</div>" +
+        '<div class="ls-event">' +
+          '<div class="ls-ev-head">' + esc((cer && cer.title) || (item.ceremony_labels || []).join(" و ") || "مراسم") + "</div>" +
+          '<div class="ls-row">' + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>' + "<span>" + esc(when) + (time ? '<small>' + esc(time) + "</small>" : "") + "</span></div>" +
+          (where ? '<div class="ls-row">' + SogIcon("pin", 16) + "<span>" + esc(where) + "</span></div>" : "") +
+          (chips ? '<div class="ls-chips">' + chips + "</div>" : "") +
+        "</div>" +
+        (count ? '<div class="ls-meta">' + count + "</div>" : "") +
+        '<div class="ls-actions"></div>';
+
+      var acts = sheet.querySelector(".ls-actions");
+      var saved = SogStore.isSaved(item.id);
+      var bm = el("button", "ls-act" + (saved ? " is-on" : ""), bookmarkSvg(saved) + "<span>" + (saved ? "ذخیره شد" : "ذخیره") + "</span>");
+      bm.type = "button";
+      bm.addEventListener("click", function () {
+        var now = SogStore.toggleSaved(item.id);
+        bm.classList.toggle("is-on", now);
+        bm.innerHTML = bookmarkSvg(now) + "<span>" + (now ? "ذخیره شد" : "ذخیره") + "</span>";
+        renderFeed();
+      });
+      acts.appendChild(bm);
+      var sh = el("button", "ls-act", SogIcon("share", 18) + "<span>اشتراک</span>");
+      sh.type = "button";
+      sh.addEventListener("click", function () {
+        var full = new URL(url, location.href).href;
+        if (navigator.share) navigator.share({ title: item.deceased_name, url: full }).catch(function () {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(full).then(function () { toast("پیوند آگهی کپی شد."); });
+      });
+      acts.appendChild(sh);
+      var more = el("a", "ls-more", "<span>جزئیات کامل</span>" + SogIcon("chevLeft", 18));
+      more.href = url;
+      acts.appendChild(more);
+    }
+
+    paint(null);
+    loadDetails().then(function (d) { if (!closed && d[item.id]) paint(d[item.id]); });
+
+    back.addEventListener("click", function () { done(); });
+    var y0 = null;
+    sheet.addEventListener("touchstart", function (e) { y0 = sheet.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+    sheet.addEventListener("touchmove", function (e) {
+      if (y0 == null) return;
+      var dy = e.touches[0].clientY - y0;
+      if (dy > 0) sheet.style.transform = "translateY(" + dy + "px)";
+    }, { passive: true });
+    sheet.addEventListener("touchend", function (e) {
+      if (y0 == null) return;
+      var dy = e.changedTouches[0].clientY - y0; y0 = null;
+      sheet.style.transform = "";
+      if (dy > 90) done();
+    });
+    document.addEventListener("keydown", onKey);
+    /* دکمه‌ی برگشت گوشی پاپ‌آپ را می‌بندد، نه صفحه را */
+    history.pushState({ ls: 1 }, "");
+    window.addEventListener("popstate", onPop);
+    document.body.appendChild(back); document.body.appendChild(sheet);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { sheet.classList.add("is-in"); back.classList.add("is-in"); });
+  }
+
   function openNoticeSheet(item) {
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "notify-sheet notice-sheet");
