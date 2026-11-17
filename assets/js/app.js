@@ -1296,7 +1296,7 @@
     cards: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M12 4v16M18 4v16"/></svg>'
   };
 
-  /* ردیف فهرستی: نام + آخرین مراسم، زیر آن طایفه · شهر یا روستا */
+  /* ردیف فهرستی: نام + آخرین مراسم، زیر آن طایفه · شهر */
   function fortyRow(item) {
     var c = el("article", "forty-row");
     var ph = el("div", "forty-row-photo");
@@ -1309,7 +1309,8 @@
     top.appendChild(nm);
     if (last) top.appendChild(el("span", "forty-row-tag", esc(last)));
     body.appendChild(top);
-    var place = item.location || item.city || "";
+    /* فقط نام شهر (بدون روستا و «شهرستان») */
+    var place = String(item.city || "").replace(/^\s*شهرستان\s+/, "").trim();
     var meta = [item.tayefe, place].filter(Boolean).map(esc).join('<span class="forty-row-dot">·</span>');
     if (meta) body.appendChild(el("p", "forty-row-meta", meta));
     var saved = SogStore.isSaved(item.id);
