@@ -940,6 +940,34 @@
       .then(function (d) { DETAILS = d || {}; return DETAILS; })
       .catch(function () { DETAILS = {}; return DETAILS; });
   }
+  /* ---------- سبک مشترک پاپ‌آپ‌ها ----------
+     پنل شناور با گوشه‌های گرد؛ کارت تیره‌ی اطلاعات (عکس، نام، فهرست «عنوان : مقدار»
+     با خط طلایی)، ردیف دکمه‌های دایره‌ای و دکمه‌ی جدای «بستن» زیر پنل. */
+  function popFacts(list) {
+    var li = list.filter(function (f) { return f[1]; }).map(function (f) {
+      return "<li>" + (f[0] ? '<span class="pf-k">' + esc(f[0]) + "</span> : " : "") + esc(f[1]) + "</li>";
+    }).join("");
+    return li ? '<ul class="pop-facts">' + li + "</ul>" : "";
+  }
+  function popPhoto(item) {
+    return '<span class="nt-photo pop-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' +
+      esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>";
+  }
+  function popAct(icon, label, cls) {
+    var b = el("button", "pop-act" + (cls ? " " + cls : ""),
+      '<span class="pa-ic">' + icon + '</span><span class="pa-lbl">' + label + "</span>");
+    b.type = "button";
+    return b;
+  }
+  var POP_ICON = {
+    share: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M13.5 4.5 21 11.6l-7.5 7.1v-4.2c-5.1 0-8.4 1.6-10.5 5 .8-5.5 3.7-9.6 10.5-10.4V4.5z" fill="currentColor"/></svg>',
+    profile: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="10.5" r="2.6"/><path d="M8 17c.7-1.9 2.2-2.9 4-2.9s3.3 1 4 2.9"/><path d="M10 3.5h4"/></svg>'
+  };
+  function popBookmark(filled) {
+    var svg = SogIcon("bookmark", 24);
+    return filled ? svg.replace('fill="none"', 'fill="currentColor"') : svg;
+  }
+
   /* متن سپاسگزاریِ قابل نمایش: نسخه‌ی ویرایش‌شده‌ی خانواده، متن آگهی یا جزئیات؛ پیش از موعد انتشار پنهان */
   function thanksTextOf(item, det) {
     if (item.thanks_at && Date.now() < new Date(item.thanks_at).getTime()) return "";
@@ -952,7 +980,7 @@
     var past = !!(opts && opts.past);
     var url = "listing.html?id=" + encodeURIComponent(item.id);
     var back = el("div", "sheet-backdrop");
-    var sheet = el("div", "notify-sheet notice-sheet ls-sheet");
+    var sheet = el("div", "notify-sheet pop-sheet ls-sheet");
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
     sheet.setAttribute("aria-label", item.deceased_name);
@@ -974,80 +1002,83 @@
       var fam = det.family || {};
       var father = (fam.father && fam.father.name) || item.father || "";
       var tayefe = (fam.father && fam.father.tayefe) || item.tayefe || "";
-      var facts = [["فرزند", father], ["طایفه", tayefe], ["سن", det.age], [null, item.city]]
-        .filter(function (f) { return f[1]; })
-        .map(function (f) { return "<li>" + (f[0] ? esc(f[0]) + '<i class="nt-sep" aria-hidden="true"></i>' : "") + esc(f[1]) + "</li>"; }).join("");
-      var tags = (item.ceremony_labels || []).map(function (l) {
-        return '<span class="tag" data-type="' + esc(item.ceremony_type) + '">' + esc(l) + "</span>";
-      }).join("");
+      var deathDate = item.death_date || (det.death && det.death.date) || "";
+      var facts = popFacts([["فرزند", father], ["طایفه", tayefe], ["درگذشت", deathDate], [deathDate ? null : "شهر", deathDate ? "" : item.city]]);
 
-      /* مراسم پیش رو: از جزئیات (اگر هست) وگرنه از خود آگهی */
       /* تاریخ همیشه از خود آگهی؛ ساعت و مکان از مراسمِ هم‌نوع در جزئیات */
       var cer = (det.ceremonies || []).filter(function (c) { return c.type === item.ceremony_type; })[0] || null;
       var when = (weekdayOf(item) ? weekdayOf(item) + " " : "") + item.event_date_jalali;
       var time = cer && cer.time_from ? "ساعت " + cer.time_from + (cer.time_to ? " تا " + cer.time_to : "") : "";
       var where = (cer && cer.location) || item.location || item.city || "";
-      var chips = (cer && cer.chips || []).slice(0, 3).map(function (c) { return '<span class="ls-chip">' + esc(c) + "</span>"; }).join("");
-      var count = det.condolence_count ? '<span class="ls-cnt">' + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>' + esc(det.condolence_count) + " پیام تسلیت</span>" : "";
+      var labels = item.ceremony_labels || [];
+      var cerName = (cer && cer.title) || labels.join(" / ") || "مراسم";
+
       var thanks = past ? thanksTextOf(item, det) : "";
-      var eventHtml = past
-        ? (thanks ? '<div class="ls-event ls-thanks">' +
-            '<div class="ls-ev-head">' + SogIcon("thanks", 16) + "<span>سپاسگزاری خانواده</span></div>" +
-            '<p class="ls-thanks-text">' + esc(thanks) + "</p>" +
-            '<div class="ls-thanks-sign">خانواده‌ی سوگوار</div>' +
+      var section = past
+        ? (thanks ? '<div class="pop-sec">' +
+            '<div class="pop-sec-head">' + SogIcon("thanks", 16) + "<span>سپاسگزاری خانواده</span></div>" +
+            '<p class="pop-thanks">' + esc(thanks) + "</p>" +
+            '<div class="pop-sign">خانواده‌ی سوگوار</div>' +
           "</div>" : "")
-        : '<div class="ls-event">' +
-          '<div class="ls-ev-head">' + esc((cer && cer.title) || (item.ceremony_labels || []).join(" و ") || "مراسم") + "</div>" +
-          '<div class="ls-row">' + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>' + "<span>" + esc(when) + (time ? '<small>' + esc(time) + "</small>" : "") + "</span></div>" +
-          (where ? '<div class="ls-row">' + SogIcon("pin", 16) + "<span>" + esc(where) + "</span></div>" : "") +
-          (chips ? '<div class="ls-chips">' + chips + "</div>" : "") +
-        "</div>";
+        : '<div class="pop-sec">' +
+            '<div class="pop-sec-head"><span>آخرین مراسم</span>' + SogIcon("chevLeft", 14) + "<b>" + esc(cerName) + "</b></div>" +
+            '<div class="pop-when">' +
+              '<div class="pw-time"><span>' + esc(when) + "</span>" + (time ? "<span>" + esc(time) + "</span>" : "") + "</div>" +
+              (where ? '<i class="pw-div" aria-hidden="true"></i><div class="pw-place">' + esc(where) + "</div>" : "") +
+            "</div>" +
+          "</div>";
 
       sheet.innerHTML =
-        '<div class="sheet-handle"></div>' +
-        '<div class="nt-card">' +
-          '<div class="nt-top">' +
-            '<span class="nt-head">' +
-              (tags ? '<span class="ls-tags">' + tags + "</span>" : "") +
-              '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
-              (det.subtitle ? '<span class="ls-sub">' + esc(det.subtitle) + "</span>" : "") +
-              (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
-            "</span>" +
-            '<span class="nt-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' + esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>" +
+        '<div class="pop-handle"></div>' +
+        '<div class="pop-panel">' +
+          '<div class="pop-card">' +
+            '<div class="pop-top">' +
+              '<div class="pop-head">' +
+                '<h3 class="pop-name">' + esc(item.deceased_name) + "</h3>" +
+                (det.subtitle ? '<p class="pop-sub">' + esc(det.subtitle) + "</p>" : "") +
+                facts +
+              "</div>" +
+              popPhoto(item) +
+            "</div>" +
+            section +
           "</div>" +
-        "</div>" +
-        eventHtml +
-        (count ? '<div class="ls-meta">' + count + "</div>" : "") +
-        '<div class="ls-actions"></div>';
+          '<div class="pop-acts"></div>' +
+        "</div>";
 
-      /* دکمه‌ی بستن، گوشه‌ی بالا راست */
-      var x = el("button", "ls-close", SogIcon("close", 20, 2));
-      x.type = "button"; x.setAttribute("aria-label", "بستن");
-      x.addEventListener("click", function () { done(); });
-      sheet.appendChild(x);
-
-      var acts = sheet.querySelector(".ls-actions");
-      var saved = SogStore.isSaved(item.id);
-      var bm = el("button", "ls-act" + (saved ? " is-on" : ""), bookmarkSvg(saved) + "<span>" + (saved ? "ذخیره شد" : "ذخیره") + "</span>");
-      bm.type = "button";
-      bm.addEventListener("click", function () {
-        var now = SogStore.toggleSaved(item.id);
-        bm.classList.toggle("is-on", now);
-        bm.innerHTML = bookmarkSvg(now) + "<span>" + (now ? "ذخیره شد" : "ذخیره") + "</span>";
-        renderFeed();
-      });
-      acts.appendChild(bm);
-      var sh = el("button", "ls-act", SogIcon("share", 18) + "<span>اشتراک</span>");
-      sh.type = "button";
+      var acts = sheet.querySelector(".pop-acts");
+      var sh = popAct(POP_ICON.share, "اشتراک / استوری", "is-share");
       sh.addEventListener("click", function () {
         var full = new URL(url, location.href).href;
-        if (navigator.share) navigator.share({ title: item.deceased_name, url: full }).catch(function () {});
+        if (window.SogStoryMaker) {
+          done();
+          SogStoryMaker.open({
+            deceased_name: item.deceased_name, photo: item.photo,
+            family: { father: { name: father, tayefe: tayefe } }
+          }, { label: labels.join(" / ") || "آگهی سوگ", shareLabel: "اشتراک / استوری",
+               text: "آگهی سوگ " + item.deceased_name + " — سایت سوگ", url: full });
+        } else if (navigator.share) navigator.share({ title: item.deceased_name, url: full }).catch(function () {});
         else if (navigator.clipboard) navigator.clipboard.writeText(full).then(function () { toast("پیوند آگهی کپی شد."); });
       });
       acts.appendChild(sh);
-      var more = el("a", "ls-more", "<span>" + (past ? "مشاهده پروفایل" : "جزئیات کامل") + "</span>" + SogIcon("chevLeft", 18));
+      var saved = SogStore.isSaved(item.id);
+      var bm = popAct(popBookmark(saved), saved ? "ذخیره شد" : "ذخیره", saved ? "is-on" : "");
+      bm.addEventListener("click", function () {
+        var now = SogStore.toggleSaved(item.id);
+        bm.classList.toggle("is-on", now);
+        bm.innerHTML = '<span class="pa-ic">' + popBookmark(now) + '</span><span class="pa-lbl">' + (now ? "ذخیره شد" : "ذخیره") + "</span>";
+        renderFeed();
+      });
+      acts.appendChild(bm);
+      var more = el("a", "pop-act",
+        '<span class="pa-ic">' + POP_ICON.profile + '</span><span class="pa-lbl">' +
+        (past ? "مشاهده پروفایل" : "جزئیات بیشتر") + SogIcon("chevLeft", 14) + "</span>");
       more.href = url;
       acts.appendChild(more);
+
+      var x = el("button", "pop-close", "بستن");
+      x.type = "button";
+      x.addEventListener("click", function () { done(); });
+      sheet.appendChild(x);
     }
 
     paint(null);
@@ -1089,40 +1120,29 @@
     }
 
     function paintInfo() {
-      /* یک کارت: تصویر سمت چپ، عنوان و فهرست اطلاعات سمت راست، متن اطلاعیه زیرش */
-      var facts = [["پدر", item.father], ["طایفه", item.tayefe],
-                   ["تاریخ درگذشت", item.event_date_jalali], [null, item.city]]
-        .filter(function (f) { return f[1]; })
-        .map(function (f) {
-          return "<li>" + (f[0] ? esc(f[0]) + '<i class="nt-sep" aria-hidden="true"></i>' : "") + esc(f[1]) + "</li>";
-        }).join("");
+      sheet.classList.add("pop-sheet");
+      var facts = popFacts([["پدر", item.father], ["طایفه", item.tayefe],
+                            ["درگذشت", item.event_date_jalali], ["شهر", item.city]]);
       sheet.innerHTML =
-        '<div class="sheet-handle"></div>' +
-        '<div class="nt-card">' +
-          '<div class="nt-top">' +
-            '<span class="nt-head">' +
-              '<span class="nt-badge">اطلاعیه درگذشت</span>' +
-              '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
-              (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
-            "</span>" +
-            '<span class="nt-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' + esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>" +
+        '<div class="pop-handle"></div>' +
+        '<div class="pop-panel">' +
+          '<div class="pop-card">' +
+            '<div class="pop-top">' +
+              '<div class="pop-head">' +
+                '<span class="pop-badge">اطلاعیه درگذشت</span>' +
+                '<h3 class="pop-name">' + esc(item.deceased_name) + "</h3>" +
+                facts +
+              "</div>" +
+              popPhoto(item) +
+            "</div>" +
+            '<div class="pop-sec"><p class="pop-thanks">' + esc(item.notice_text || "جزئیات مراسم متعاقباً اعلام خواهد شد") + "</p></div>" +
           "</div>" +
-          '<p class="nt-text">' + esc(item.notice_text || "جزئیات مراسم متعاقباً اعلام خواهد شد") + "</p>" +
-        "</div>" +
-        '<div class="nt-tiles"></div>' +
-        '<div class="nt-cta"></div>';
+          '<div class="pop-acts"></div>' +
+        "</div>";
 
-      var tiles = sheet.querySelector(".nt-tiles");
-      var bell = el("button", "nt-tile");
-      bell.type = "button";
-      bell.innerHTML = '<span class="nt-ic">' + bellSvg(false) + "</span><span>به من اطلاع داده شود</span>";
-      bell.addEventListener("click", paintPhone);
-      tiles.appendChild(bell);
-
+      var acts = sheet.querySelector(".pop-acts");
       /* استوری / اشتراک: تصویر استوری همین‌جا ساخته می‌شود (سوگ فوری صفحه‌ی تکی ندارد) */
-      var story = el("button", "nt-tile");
-      story.type = "button";
-      story.innerHTML = '<span class="nt-ic">' + SogIcon("story", 22) + "</span><span>استوری / اشتراک</span>";
+      var story = popAct(POP_ICON.share, "اشتراک / استوری", "is-share");
       story.addEventListener("click", function () {
         done();
         SogStoryMaker.open({
@@ -1134,16 +1154,19 @@
           url: noticeUrl(item.id)
         });
       });
-      tiles.appendChild(story);
+      acts.appendChild(story);
+      var bell = popAct(SogIcon("bell", 24), "به من اطلاع بده");
+      bell.addEventListener("click", paintPhone);
+      acts.appendChild(bell);
 
-      var close = el("button", "nt-close");
+      var close = el("button", "pop-close", "بستن");
       close.type = "button";
-      close.innerHTML = SogIcon("logout", 22) + "<span>بستن</span>";
       close.addEventListener("click", done);
-      sheet.querySelector(".nt-cta").appendChild(close);
+      sheet.appendChild(close);
     }
 
     function paintPhone() {
+      sheet.classList.remove("pop-sheet");
       sheet.innerHTML =
         '<div class="sheet-handle"></div>' +
         '<h3 class="ns-title">خبرم کنید</h3>' +

@@ -1310,3 +1310,78 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 }
 .ls-close:active { background: rgba(255,255,255,.12); }
 .ls-sheet > .nt-card { margin-top: 22px; }
+
+/* ===== سبک مشترک پاپ‌آپ‌ها (پنل شناور + کارت اطلاعات + دکمه‌های دایره‌ای + «بستن») ===== */
+.notify-sheet.pop-sheet {
+  background: transparent; border-radius: 0;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+  max-height: 92vh; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.pop-sheet::-webkit-scrollbar { display: none; }
+.pop-handle { width: 46px; height: 5px; border-radius: 3px; background: #4a4a4a; margin: 0 auto 10px; }
+.pop-panel {
+  background: #1b1d21; border-radius: 26px; padding: 10px 10px 16px;
+  border: 1px solid rgba(255,255,255,.05);
+  box-shadow: 0 -6px 30px rgba(0,0,0,.45);
+}
+.pop-card { background: #121417; border-radius: 22px; padding: 14px 14px 16px; }
+.pop-top { display: flex; align-items: stretch; gap: 14px; }
+.pop-head { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.pop-badge {
+  align-self: flex-start; font-size: 11.5px; color: var(--accent);
+  background: rgba(217,154,91,.12); border-radius: 999px; padding: 4px 10px; margin-bottom: 8px;
+}
+.pop-name { margin: 0; font-size: 19px; line-height: 1.5; font-weight: 800; color: #fff; }
+.pop-sub { margin: 2px 0 0; font-size: 13px; color: #8a8a8a; line-height: 1.7; }
+.pop-facts {
+  list-style: none; margin: 12px 0 0; padding: 2px 12px 2px 0;
+  border-right: 3px solid var(--accent); border-radius: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pop-facts li { font-size: 13.5px; color: #bdbdbd; line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pop-facts .pf-k { color: #8f8f8f; }
+.pop-photo.nt-photo {
+  flex: 0 0 42%; max-width: 168px; min-height: 0; aspect-ratio: 1 / 1.05; align-self: center;
+  border-radius: 18px; background: #222 center/cover no-repeat;
+}
+.pop-sec { margin-top: 16px; }
+.pop-sec-head {
+  display: flex; align-items: center; gap: 4px; margin-bottom: 10px;
+  font-size: 13.5px; color: var(--accent);
+}
+.pop-sec-head b { font-weight: 700; }
+.pop-sec-head svg { opacity: .9; }
+.pop-when { display: flex; align-items: stretch; gap: 14px; }
+.pw-time { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: #e8e8e8; line-height: 1.7; }
+.pw-div { flex: 0 0 2px; background: #3a3d42; border-radius: 2px; }
+.pw-place { flex: 1 1 auto; min-width: 0; font-size: 14px; color: #e8e8e8; line-height: 1.8; }
+.pop-thanks { margin: 0; font-size: 14px; line-height: 2.05; color: #e6e6e6; text-align: justify; white-space: pre-line; }
+.pop-sign { margin-top: 6px; font-size: 12px; color: #8a8a8a; text-align: left; }
+.pop-sec-head + .pop-thanks { margin-top: -2px; }
+/* ردیف دکمه‌های دایره‌ای */
+.pop-acts { display: flex; justify-content: space-around; gap: 6px; padding: 18px 4px 0; }
+.pop-act {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: none; border: 0; font: inherit; cursor: pointer; text-decoration: none; color: var(--accent);
+}
+.pop-act .pa-ic {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+  background: #121417; color: var(--accent); transition: transform .15s, background .2s;
+}
+.pop-act:active .pa-ic { transform: scale(.94); }
+.pop-act.is-on .pa-ic { background: rgba(217,154,91,.16); }
+.pop-act .pa-lbl {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13.5px; font-weight: 600; color: var(--accent); white-space: nowrap;
+}
+/* دکمه‌ی جدای بستن زیر پنل */
+.pop-close {
+  display: block; width: 100%; margin-top: 12px; height: 56px; border-radius: 999px; cursor: pointer;
+  background: #1b1d21; border: 1px solid rgba(255,255,255,.05); color: #eee;
+  font: inherit; font-size: 16px; font-weight: 600;
+}
+.pop-close:active { background: #23262b; }
+.pop-act .pa-ic svg { width: 30px; height: 30px; }
+/* پس‌زمینه‌ی تیره‌تر پشت پاپ‌آپ‌های این سبک */
+.sheet-backdrop:has(+ .pop-sheet) { background: rgba(0,0,0,.82); }
