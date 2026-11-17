@@ -985,7 +985,8 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 .arc-sticky {
   position: fixed; top: var(--header-h); left: 50%; z-index: 49;
   width: 100%; max-width: var(--frame-w); height: 60px;
-  display: flex; align-items: center; gap: 12px;
+  /* متن هم‌راستا با نام درگذشتگان در کارت‌ها: ۱۴ حاشیه + ۵۸ ستون عکس + ۱۴ فاصله */
+  display: flex; align-items: center; gap: 14px;
   padding: 0 14px; font: inherit; text-align: start; cursor: pointer; color: var(--text);
   border-radius: 0 0 24px 24px;
   background: linear-gradient(180deg, rgba(30,30,30,.62), rgba(20,20,20,.5));
@@ -997,7 +998,7 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 }
 .arc-sticky.is-in { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
 .arc-sticky .as-ico {
-  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; margin: 0 9px;
   display: grid; place-items: center; color: var(--accent);
   background: radial-gradient(circle at 50% 35%, rgba(217,154,91,.28), rgba(217,154,91,.06) 70%);
   border: 1px solid rgba(217,154,91,.5);

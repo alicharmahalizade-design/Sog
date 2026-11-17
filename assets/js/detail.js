@@ -1372,8 +1372,40 @@
     img.classList.add("zoomable");
     img.addEventListener("click", function (e) {
       e.preventDefault(); e.stopPropagation();
-      openLightbox([src], 0);
+      popAvatar(img, src);
     });
+  }
+
+  /* بزرگ‌نمایی درجا: تصویر از خودِ آواتار باز می‌شود و روی نام می‌نشیند؛ لمس هر جا می‌بندد */
+  function popAvatar(img, src) {
+    var old = document.querySelector(".av-pop");
+    if (old) old.remove();
+    var SIZE = 156, r = img.getBoundingClientRect();
+    var left = Math.min(Math.max(8, r.right - SIZE), window.innerWidth - SIZE - 8);
+    var top = Math.min(Math.max(8, r.top + r.height / 2 - SIZE / 2), window.innerHeight - SIZE - 8);
+    var pop = el("div", "av-pop");
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+    pop.style.width = pop.style.height = SIZE + "px";
+    pop.style.backgroundImage = 'url("' + src.replace(/"/g, "%22") + '")';
+    /* شروع از اندازه و جای آواتار */
+    pop.style.transformOrigin = (r.left + r.width / 2 - left) + "px " + (r.top + r.height / 2 - top) + "px";
+    pop.style.transform = "scale(" + (r.width / SIZE) + ")";
+    document.body.appendChild(pop);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { pop.classList.add("is-in"); pop.style.transform = ""; }); });
+    function close() {
+      document.removeEventListener("click", close, true);
+      window.removeEventListener("scroll", close, true);
+      document.removeEventListener("keydown", onKey);
+      pop.classList.remove("is-in");
+      pop.style.transform = "scale(" + (r.width / SIZE) + ")";
+      setTimeout(function () { pop.remove(); }, 220);
+    }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    setTimeout(function () {
+      document.addEventListener("click", close, true);
+      window.addEventListener("scroll", close, true);
+      document.addEventListener("keydown", onKey);
+    }, 0);
   }
 
   /* نمایشگر تمام‌صفحه‌ی مشترک (assets/js/lightbox.js) */

@@ -914,3 +914,14 @@
 .managers-sheet .mg-who small { font-size: 11.5px; color: var(--text-dim); }
 .managers-sheet .mg-acts { display: flex; gap: 6px; flex: none; }
 .managers-sheet .mg-rm { color: #e06a6a; }
+
+/* بزرگ‌نمایی درجای تصویر همدردی‌کننده */
+.av-pop {
+  position: fixed; z-index: 120; border-radius: 22px;
+  background: #222 center/cover no-repeat;
+  border: 2px solid rgba(217,154,91,.6);
+  box-shadow: 0 14px 40px rgba(0,0,0,.7);
+  opacity: .4;
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+}
+.av-pop.is-in { opacity: 1; }
