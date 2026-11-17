@@ -1596,44 +1596,35 @@
   function renderArchive(feed) {
     var all = archiveItems();
     var top = thisJYear();
-    if (state.month == null) state.month = 0;
-    /* نوار زمان: هر سال ۱۳ خانه دارد: «همه» (۰) و بعد فروردین تا اسفند */
-    function mLabel(m) { return m === 0 ? "همه" : MONTHS[m - 1]; }
+    state.month = 0;   /* فقط سال؛ انتخاب ماه حذف شد */
+    /* آگهی‌های یک سال (همه‌ی ماه‌ها) */
     function inMonth(it, y, m) { return it.death_year === y && (m === 0 || monthOf(it) === m); }
     setArchiveMode(true);
 
-    /* نوار زمان: سال‌ها بالا، ماه‌ها پایین، وسط انتخاب‌شده در کادر؛ فلش‌ها ماه به ماه جابه‌جا می‌کنند */
+    /* نوار زمان: فقط سال‌ها؛ سال انتخاب‌شده وسط در کادر؛ فلش‌ها سال به سال جابه‌جا می‌کنند */
     var pick = el("div", "arc-picker");
     var grid = el("div", "arc-grid");
     function step(delta) {
-      var idx = state.year * 13 + state.month + delta;
-      if (idx > top * 13 + 12) return;
-      state.year = Math.floor(idx / 13); state.month = idx % 13; renderFeed();
+      var y = state.year + delta;
+      if (y > top) return;
+      state.year = y; renderFeed();
     }
     for (var off = 2; off >= -2; off--) (function (o) {
       var col = el("div", "arc-col" + (o === 0 ? " is-on" : "") + " d" + Math.abs(o));
-      var ci = state.year * 13 + state.month + o;
-      var yy = state.year + o, mm = ((ci % 13) + 13) % 13;
+      var yy = state.year + o;
       var yb = el("button", "arc-y", toFa(yy)); yb.type = "button";
       if (yy > top) { yb.disabled = true; yb.classList.add("is-hidden"); }
-      else yb.addEventListener("click", function () {
-        state.year = yy;
-        if (!all.some(function (it) { return inMonth(it, yy, state.month); })) state.month = 0;
-        renderFeed();
-      });
-      var mb = el("button", "arc-m", mLabel(mm)); mb.type = "button";
-      mb.addEventListener("click", function () { state.year = Math.floor(ci / 13); state.month = mm; renderFeed(); });
-      col.appendChild(yb); col.appendChild(mb);
+      else yb.addEventListener("click", function () { state.year = yy; renderFeed(); });
+      col.appendChild(yb);
       grid.appendChild(col);
     })(off);
     var newer = el("button", "arc-arrow is-newer", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); newer.type = "button";
-    newer.setAttribute("aria-label", "ماه بعد");
+    newer.setAttribute("aria-label", "سال بعد");
     newer.addEventListener("click", function () { step(1); });
     var older = el("button", "arc-arrow is-older", '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); older.type = "button";
-    older.setAttribute("aria-label", "ماه قبل");
+    older.setAttribute("aria-label", "سال قبل");
     older.addEventListener("click", function () { step(-1); });
-    if (state.year * 13 + state.month >= top * 13 + 12) newer.disabled = true;
-    pick.appendChild(el("span", "arc-line"));
+    if (state.year >= top) newer.disabled = true;
     pick.appendChild(newer); pick.appendChild(grid); pick.appendChild(older);
     feed.appendChild(pick);
     arcPickerEl = pick;
@@ -1660,7 +1651,7 @@
     grid.addEventListener("pointerdown", function (e) {
       var r = grid.getBoundingClientRect();
       start = e.clientX; dx = 0; moved = false;
-      row = e.clientY < r.top + r.height / 2 ? "y" : "m";
+      row = "y";   /* فقط ردیف سال‌ها */
     });
     grid.addEventListener("pointermove", function (e) {
       if (start == null) return;
