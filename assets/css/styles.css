@@ -1298,3 +1298,13 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .ls-thanks .ls-ev-head { display: flex; align-items: center; gap: 7px; }
 .ls-thanks-text { margin: 10px 0 0; font-size: 14px; line-height: 2.05; color: var(--text, #eee); text-align: justify; white-space: pre-line; }
 .ls-thanks-sign { margin-top: 8px; font-size: 12px; color: var(--text-mute, #8c8c8c); text-align: left; }
+/* دکمه‌ی بستن پاپ‌آپ آگهی، گوشه‌ی بالا راست */
+.ls-sheet { position: fixed; }
+.ls-close {
+  position: absolute; top: 10px; right: 12px; z-index: 2;
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center; color: #ddd;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+}
+.ls-close:active { background: rgba(255,255,255,.12); }
+.ls-sheet > .nt-card { margin-top: 22px; }

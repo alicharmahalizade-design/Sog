@@ -1020,6 +1020,12 @@
         (count ? '<div class="ls-meta">' + count + "</div>" : "") +
         '<div class="ls-actions"></div>';
 
+      /* دکمه‌ی بستن، گوشه‌ی بالا راست */
+      var x = el("button", "ls-close", SogIcon("close", 20, 2));
+      x.type = "button"; x.setAttribute("aria-label", "بستن");
+      x.addEventListener("click", function () { done(); });
+      sheet.appendChild(x);
+
       var acts = sheet.querySelector(".ls-actions");
       var saved = SogStore.isSaved(item.id);
       var bm = el("button", "ls-act" + (saved ? " is-on" : ""), bookmarkSvg(saved) + "<span>" + (saved ? "ذخیره شد" : "ذخیره") + "</span>");
