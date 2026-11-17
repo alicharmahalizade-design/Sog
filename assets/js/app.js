@@ -1410,6 +1410,12 @@
         b.setAttribute("aria-pressed", on ? "true" : "false");
       });
       track.className = "forty-track" + (fortyView === "list" ? " is-list" : "");
+      /* «همه» اول و پیش‌فرض */
+      var all = el("button", "forty-tab" + (!fortyTab ? " is-on" : ""),
+        'همه<span class="forty-count">' + toFa(items.length) + "</span>");
+      all.type = "button";
+      all.addEventListener("click", function () { fortyTab = null; fortyExpanded = false; paint(); });
+      tabBar.appendChild(all);
       tabs.forEach(function (l) {
         var b = el("button", "forty-tab" + (fortyTab === l ? " is-on" : ""),
           esc(l) + '<span class="forty-count">' + toFa(countOf(l)) + "</span>");
