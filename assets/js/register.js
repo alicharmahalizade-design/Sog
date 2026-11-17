@@ -67,12 +67,21 @@
   })();
 
   /* ویرایشگر برش: جابه‌جایی با کشیدن، بزرگ‌نمایی با اسلایدر، نسبت ۴:۵ */
-  function openCropper(file, onDone) {
-    openCropperSrc(URL.createObjectURL(file), onDone, true);
+  function openCropper(file, onDone, onClose) {
+    openCropperSrc(URL.createObjectURL(file), onDone, true, onClose);
+  }
+
+  /* چند فایل را یکی‌یکی به ویرایشگر برش می‌فرستد؛ canAdd اجازه‌ی افزودن بعدی را می‌دهد */
+  function cropQueue(files, onEach, canAdd) {
+    var list = Array.prototype.slice.call(files || []);
+    (function next() {
+      if (!list.length || (canAdd && !canAdd())) return;
+      openCropper(list.shift(), onEach, next);
+    })();
   }
 
   /* برش تصویر از روی آدرس (برای ویرایش دوباره‌ی تصویرِ ثبت‌شده) */
-  function openCropperSrc(url, onDone, revoke) {
+  function openCropperSrc(url, onDone, revoke, onClose) {
     var img = new Image();
     img.onload = function () {
       var back = el("div", "crop-backdrop");
@@ -151,6 +160,7 @@
         modal.remove(); back.remove();
         document.body.style.overflow = "";
         if (revoke) URL.revokeObjectURL(url);
+        if (onClose) onClose();
       }
       cancel.addEventListener("click", close);
       back.addEventListener("click", close);
@@ -167,7 +177,7 @@
         close();
       });
     };
-    img.onerror = function () { if (revoke) URL.revokeObjectURL(url); };
+    img.onerror = function () { if (revoke) URL.revokeObjectURL(url); if (onClose) onClose(); };
     img.src = url;
   }
 
@@ -447,12 +457,9 @@
     var inp = document.createElement("input");
     inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
     inp.addEventListener("change", function () {
-      Array.prototype.slice.call(inp.files || []).forEach(function (f) {
-        if ((ev.photos || []).length >= max) return;
-        var rd = new FileReader();
-        rd.onload = function () { ev.photos = ev.photos || []; ev.photos.push(rd.result); paint(); };
-        rd.readAsDataURL(f);
-      });
+      cropQueue(inp.files, function (out) {
+        ev.photos = ev.photos || []; ev.photos.push(out); paint();
+      }, function () { return (ev.photos || []).length < max; });
       inp.value = "";
     });
     btn.appendChild(inp);
@@ -493,11 +500,7 @@
     var inp = document.createElement("input");
     inp.type = "file"; inp.accept = "image/png,image/jpeg"; inp.multiple = true; inp.hidden = true;
     inp.addEventListener("change", function () {
-      Array.prototype.slice.call(inp.files || []).forEach(function (f) {
-        var rd = new FileReader();
-        rd.onload = function () { data.bio_photos.push(rd.result); paint(); };
-        rd.readAsDataURL(f);
-      });
+      cropQueue(inp.files, function (out) { data.bio_photos.push(out); paint(); });
       inp.value = "";
     });
     add.appendChild(inp);
