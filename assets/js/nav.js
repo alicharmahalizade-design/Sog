@@ -64,16 +64,14 @@
   document.body.appendChild(nav);
   document.body.classList.add("has-bottom-nav");
 
-  /* هنگام اسکرول، نوار پایین پنهان می‌شود و پس از توقف اسکرول برمی‌گردد */
-  var idleTimer = null;
+  /* اسکرول به پایین: نوار پایین پنهان می‌شود؛ اسکرول به بالا: برمی‌گردد */
   var lastY = window.pageYOffset;
   window.addEventListener("scroll", function () {
     var y = window.pageYOffset;
-    if (Math.abs(y - lastY) > 4) {
-      lastY = y;
-      if (y > 40) nav.classList.add("is-hidden");
-    }
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(function () { nav.classList.remove("is-hidden"); }, 220);
+    if (y <= 40) { nav.classList.remove("is-hidden"); lastY = y; return; }
+    var dy = y - lastY;
+    if (Math.abs(dy) < 8) return;          /* لرزش‌های کوچک انگشت نادیده گرفته می‌شود */
+    nav.classList.toggle("is-hidden", dy > 0);
+    lastY = y;
   }, { passive: true });
 })();
