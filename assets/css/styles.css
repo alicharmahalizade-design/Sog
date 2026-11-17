@@ -981,6 +981,26 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 /* ===== سوگ‌های سال‌های قبل ===== */
 .arc-page-title { margin: 6px 16px 14px; font-size: 21px; font-weight: 700; color: var(--text-dim); }
 .is-archive .page-tabs { display: none; }
+/* نوار ثابت آرشیو (پس از اسکرول از روی نوار زمان) */
+.arc-sticky {
+  position: fixed; top: var(--header-h); left: 50%; z-index: 49;
+  width: 100%; max-width: var(--frame-w);
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border: none; cursor: pointer; font: inherit; text-align: right;
+  background: rgba(18,18,18,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #262626; color: var(--text);
+  transform: translate(-50%, -110%); opacity: 0; pointer-events: none;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+}
+.arc-sticky.is-in { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.arc-sticky .as-title { font-size: 14px; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+.arc-sticky .as-when {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13.5px; font-weight: 700; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+}
+.arc-sticky .as-when i { width: 1px; height: 12px; background: currentColor; opacity: .5; }
+.arc-sticky .as-up { margin-inline-start: auto; color: var(--text-mute); flex: 0 0 auto; }
 
 /* نوار زمان: سال‌ها بالا، ماه‌ها پایین، کادر وسط = انتخاب‌شده */
 .arc-picker {

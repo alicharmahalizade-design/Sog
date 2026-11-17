@@ -1513,6 +1513,42 @@
     document.body.classList.toggle("is-archive", !!on);
     var t = document.getElementById("arcPageTitle");
     if (t) t.hidden = !on;
+    if (!on) { arcPickerEl = null; syncArcSticky(); }
+  }
+
+  /* نوار ثابت بالای صفحه در آرشیو: وقتی نوار زمان از دید خارج شد، نشان می‌دهد
+     کاربر در «سوگ‌های سال‌های قبل» است و آگهی‌های کدام سال (و ماه) را می‌بیند */
+  var arcSticky = null, arcPickerEl = null;
+  function ensureArcSticky() {
+    if (arcSticky) return arcSticky;
+    arcSticky = el("button", "arc-sticky");
+    arcSticky.type = "button";
+    arcSticky.setAttribute("aria-label", "بازگشت به نوار انتخاب سال");
+    arcSticky.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    document.body.appendChild(arcSticky);
+    window.addEventListener("scroll", syncArcSticky, { passive: true });
+    window.addEventListener("resize", syncArcSticky);
+    return arcSticky;
+  }
+  function paintArcSticky() {
+    var bar = ensureArcSticky();
+    var when = state.month ? MONTHS[state.month - 1] + " " + toFa(state.year) : "سال " + toFa(state.year);
+    var cityEl = document.getElementById("cityBtnLabel");
+    var city = state.city !== "all" && cityEl ? cityEl.textContent.trim() : "";
+    bar.innerHTML =
+      '<span class="as-title">سوگ‌های سال‌های قبل</span>' +
+      '<span class="as-when">' + esc(when) + (city ? '<i aria-hidden="true"></i>' + esc(city) : "") + "</span>" +
+      '<svg class="as-up" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+    syncArcSticky();
+  }
+  function syncArcSticky() {
+    if (!arcSticky) return;
+    var head = document.querySelector(".app-header");
+    var hb = head ? head.getBoundingClientRect().bottom : 62;
+    var show = !!(arcPickerEl && document.body.contains(arcPickerEl) &&
+      arcPickerEl.getBoundingClientRect().bottom < hb);
+    arcSticky.style.top = Math.max(0, hb) + "px";
+    arcSticky.classList.toggle("is-in", show);
   }
   /* آخرین ماهِ دارای آگهی در یک سال (برای انتخاب پیش‌فرض) */
   function latestMonth(all, y) {
@@ -1563,6 +1599,8 @@
     pick.appendChild(el("span", "arc-line"));
     pick.appendChild(newer); pick.appendChild(grid); pick.appendChild(older);
     feed.appendChild(pick);
+    arcPickerEl = pick;
+    paintArcSticky();
     bindArchiveSwipe(grid, all, top, inMonth);
 
     var list = sortItems(all.filter(function (it) { return inMonth(it, state.year, state.month); }));
