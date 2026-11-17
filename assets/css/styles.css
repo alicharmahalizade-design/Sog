@@ -1152,9 +1152,11 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
   flex: 0 0 auto; font: inherit; font-size: 12.5px; line-height: 1;
   display: inline-flex; align-items: center; gap: 7px;
   padding: 7px 12px; border-radius: 999px;
-  background: #000; color: #9a9a9a; border: none; cursor: pointer;
+  background: #000; color: #9a9a9a; border: 1px solid transparent; cursor: pointer;
+  transition: border-color .2s, color .2s;
 }
-.forty-tab.is-on { color: #cf9c63; }
+/* تب انتخاب‌شده: استروک باریک طلایی */
+.forty-tab.is-on { color: #cf9c63; border-color: rgba(207,156,99,.75); }
 .forty-count {
   min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px;
   background: #e0242c; color: #fff; font-size: 10.5px; font-weight: 700;
