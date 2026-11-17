@@ -1385,3 +1385,23 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .pop-act .pa-ic svg { width: 30px; height: 30px; }
 /* پس‌زمینه‌ی تیره‌تر پشت پاپ‌آپ‌های این سبک */
 .sheet-backdrop:has(+ .pop-sheet) { background: rgba(0,0,0,.82); }
+
+/* ===== کشیدن بین تب‌های اصلی ===== */
+.tab-shade {
+  position: fixed; inset: 0; z-index: 55; pointer-events: none;
+  background: #000; opacity: 0;
+}
+.tab-ghost {
+  position: fixed; top: 50%; left: 50%; z-index: 56; pointer-events: none;
+  display: none; flex-direction: column; align-items: center; gap: 12px;
+  transform: translate(-50%, -50%); opacity: 0;
+  color: var(--accent);
+}
+.tab-ghost .tg-ico {
+  width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center;
+  background: #17191d; border: 1px solid rgba(217,154,91,.35);
+  box-shadow: 0 10px 30px rgba(0,0,0,.6), 0 0 0 8px rgba(217,154,91,.06);
+}
+.tab-ghost .tg-lbl { font-size: 16px; font-weight: 700; color: #eee; }
+.is-tab-swiping .app-frame { will-change: transform; }
+.is-tab-swiping { overflow-x: hidden; }
