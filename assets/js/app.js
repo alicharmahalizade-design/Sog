@@ -1039,7 +1039,7 @@
         else if (navigator.clipboard) navigator.clipboard.writeText(full).then(function () { toast("پیوند آگهی کپی شد."); });
       });
       acts.appendChild(sh);
-      var more = el("a", "ls-more", "<span>" + (past ? "مشاهده کامل پروفایل" : "جزئیات کامل") + "</span>" + SogIcon("chevLeft", 18));
+      var more = el("a", "ls-more", "<span>" + (past ? "مشاهده پروفایل" : "جزئیات کامل") + "</span>" + SogIcon("chevLeft", 18));
       more.href = url;
       acts.appendChild(more);
     }
