@@ -18,7 +18,7 @@
     { key: "haftom", name: "هفتم" },
     { key: "sevom-haftom", name: "سوم / هفتم", note: "برگزاری در یک روز" },
     { key: "khatm", name: "ختم" },
-    { key: "sevom-haftom-khatm", name: "سوم / هفتم / ختم" },
+    { key: "sevom-haftom-khatm", name: "سوم / هفتم / ختم", note: "برگزاری در یک روز" },
     { key: "bozorgdasht", name: "بزرگداشت", on: true, multi: true },
     { key: "chehelom", name: "چهلم" },
     { key: "salgard", name: "سالگرد" },
@@ -596,7 +596,7 @@
       ageWrap.appendChild(ageInp); ageWrap.appendChild(ageHint);
       p.appendChild(field("سن درگذشته", true, ageWrap));
       autoAge();
-      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
+      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر یا روستای محل تولد را وارد کنید")));
       p.appendChild(field("شهر محل سکونت", false, placeInput()));
       return p;
     }});
