@@ -254,7 +254,7 @@
 .ta-wrap { position: relative; }
 .ta-wrap textarea { width: 100%; }
 .char-count {
-  position: absolute; bottom: 10px; inset-inline-start: 12px;
+  position: absolute; bottom: 10px; left: 12px;
   font-size: 11px; color: var(--text-mute); pointer-events: none;
 }
 
