@@ -1557,9 +1557,13 @@
     var cityEl = document.getElementById("cityBtnLabel");
     var city = state.city !== "all" && cityEl ? cityEl.textContent.trim() : "";
     bar.innerHTML =
-      '<span class="as-title">سوگ‌های سال‌های قبل</span>' +
-      '<span class="as-when">' + esc(when) + (city ? '<i aria-hidden="true"></i>' + esc(city) : "") + "</span>" +
-      '<svg class="as-up" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+      '<span class="as-ico" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M12 3c1.6 2 2.4 3.4 2.4 4.6A2.4 2.4 0 0 1 12 10a2.4 2.4 0 0 1-2.4-2.4C9.6 6.4 10.4 5 12 3z"/><rect x="8.5" y="12" width="7" height="9" rx="1.2"/></svg>' +
+      "</span>" +
+      '<span class="as-text"><b>سوگ‌های سال‌های قبل</b>' +
+        '<small><span class="as-when">' + esc(when) + "</span>" + (city ? '<i aria-hidden="true"></i>' + esc(city) : "") + "</small></span>" +
+      '<span class="as-up" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span>';
     syncArcSticky();
   }
   function syncArcSticky() {
