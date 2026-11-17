@@ -1538,7 +1538,7 @@
   }
 
   /* نوار ثابت بالای صفحه در آرشیو: وقتی نوار زمان از دید خارج شد، نشان می‌دهد
-     کاربر در «سوگ‌های سال‌های قبل» است و آگهی‌های کدام سال (و ماه) را می‌بیند */
+     کاربر در «سوگ‌های سال‌های گذشته» است و آگهی‌های کدام سال (و ماه) را می‌بیند */
   var arcSticky = null, arcPickerEl = null;
   function ensureArcSticky() {
     if (arcSticky) return arcSticky;
@@ -1561,7 +1561,7 @@
         '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
         '<path d="M12 3c1.6 2 2.4 3.4 2.4 4.6A2.4 2.4 0 0 1 12 10a2.4 2.4 0 0 1-2.4-2.4C9.6 6.4 10.4 5 12 3z"/><rect x="8.5" y="12" width="7" height="9" rx="1.2"/></svg>' +
       "</span>" +
-      '<span class="as-text"><b>سوگ‌های سال‌های قبل</b>' +
+      '<span class="as-text"><b>سوگ‌های سال‌های گذشته</b>' +
         '<small><span class="as-when">' + esc(when) + "</span>" + (city ? '<i aria-hidden="true"></i>' + esc(city) : "") + "</small></span>" +
       '<span class="as-up" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span>';
     syncArcSticky();

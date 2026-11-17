@@ -978,7 +978,7 @@ body .report-actions .btn-ghost, body .crop-actions .btn-ghost, body .ack-edit-a
 
 /* ===== آرشیو سوگ‌های سال‌های گذشته =====
    شبکه‌ی ۴ پیکسلی: سال ۳۶، ماه ۲۸، کارت ۸۸ (عکس مربع ۸۸)، برچسب ۲۴، فاصله‌ها ۸ و ۱۲ */
-/* ===== سوگ‌های سال‌های قبل ===== */
+/* ===== سوگ‌های سال‌های گذشته ===== */
 .arc-page-title { margin: 6px 16px 14px; font-size: 21px; font-weight: 700; color: var(--text-dim); }
 .is-archive .page-tabs { display: none; }
 /* نوار ثابت آرشیو (پس از اسکرول از روی نوار زمان): شیشه‌ی مات با گوشه‌های پایین گرد */
