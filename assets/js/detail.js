@@ -305,6 +305,15 @@
       var s = el("div", "hero-slide" + (slides.children.length ? "" : " is-active")); s.style.backgroundImage = 'url("' + src + '")'; slides.appendChild(s);
     });
     photo.appendChild(slides);
+    /* لمس تصویر: نمایش بزرگ (از همان تصویری که الان دیده می‌شود) */
+    var heroImgs = d.photos && d.photos.length ? d.photos.filter(Boolean) : [];
+    if (heroImgs.length) {
+      slides.classList.add("zoomable");
+      slides.addEventListener("click", function () {
+        var on = [].indexOf.call(slides.children, slides.querySelector(".is-active"));
+        openLightbox(heroImgs, on < 0 ? 0 : on);
+      });
+    }
 
     var top = el("div", "hero-top");
     var back = el("button", "round-btn", ICON.back); back.setAttribute("aria-label", "بازگشت");
@@ -1356,93 +1365,19 @@
     return box;
   }
 
-  /* ---------- نمایشگر تمام‌صفحه ----------
-     تصویر بزرگ با نوار بندانگشتی پایین؛ کلیک روی هر بندانگشتی آن را بالا می‌آورد. */
-  function openLightbox(images, start) {
-    var i = start || 0;
-    var lb = el("div", "lb");
-    lb.setAttribute("role", "dialog");
-    lb.setAttribute("aria-modal", "true");
-
-    var bar = el("div", "lb-bar");
-    var close = el("button", "lb-btn", SogIcon("close", 22));
-    close.type = "button"; close.setAttribute("aria-label", "بستن");
-    var share = el("button", "lb-btn", SogIcon("upload", 22));
-    share.type = "button"; share.setAttribute("aria-label", "هم‌رسانی");
-    bar.appendChild(close); bar.appendChild(share);
-
-    var stage = el("div", "lb-stage");
-    var img = el("img", "lb-img"); img.alt = "";
-    var prev = el("button", "lb-nav lb-prev", SogIcon("chevLeft", 24));
-    var next = el("button", "lb-nav lb-next", SogIcon("chevRight", 24));
-    prev.type = next.type = "button";
-    prev.setAttribute("aria-label", "تصویر قبلی"); next.setAttribute("aria-label", "تصویر بعدی");
-    var count = el("span", "lb-count");
-    /* واترمارک سوگ، روی خود تصویر */
-    var mark = el("span", "lb-mark",
-      '<img src="assets/img/logo.png" alt="سوگ">');   /* فقط لوگو */
-    /* شمارنده و واترمارک داخل قابِ خودِ تصویر می‌نشینند، نه گوشه‌ی صفحه */
-    var frame = el("div", "lb-frame");
-    frame.appendChild(img); frame.appendChild(count); frame.appendChild(mark);
-    stage.appendChild(frame); stage.appendChild(prev); stage.appendChild(next);
-
-    var strip = el("div", "lb-strip");
-    images.forEach(function (src, n) {
-      var t = el("button", "lb-thumb"); t.type = "button";
-      t.style.backgroundImage = 'url("' + src + '")';
-      t.setAttribute("aria-label", "تصویر " + faNum(n + 1));
-      t.addEventListener("click", function () { show(n); });
-      strip.appendChild(t);
+  /* تصویر همدردی‌کننده: لمس آن بزرگش می‌کند، بی‌آنکه همدردی باز و بسته شود.
+     تصویر پیش‌فرضِ بی‌چهره بزرگ نمی‌شود. */
+  function zoomAvatar(img, src) {
+    if (!img || !src || /portrait-1\.svg$/.test(src)) return;
+    img.classList.add("zoomable");
+    img.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      openLightbox([src], 0);
     });
-
-    lb.appendChild(bar); lb.appendChild(stage); lb.appendChild(strip);
-
-    function show(n) {
-      i = (n + images.length) % images.length;
-      img.src = images[i];
-      count.textContent = faNum(i + 1) + " از " + faNum(images.length);
-      Array.prototype.forEach.call(strip.children, function (t, k) {
-        t.classList.toggle("is-on", k === i);
-      });
-      var on = strip.children[i];
-      if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
-    }
-    prev.addEventListener("click", function () { show(i - 1); });
-    next.addEventListener("click", function () { show(i + 1); });
-
-    /* کشیدن انگشت چپ و راست */
-    var x0 = null;
-    stage.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
-    stage.addEventListener("touchend", function (e) {
-      if (x0 == null) return;
-      var dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) > 45) show(dx > 0 ? i - 1 : i + 1);   /* RTL: کشیدن به راست = قبلی */
-      x0 = null;
-    });
-
-    function done() {
-      lb.remove();
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    }
-    function onKey(e) {
-      if (e.key === "Escape") done();
-      else if (e.key === "ArrowLeft") show(i + 1);
-      else if (e.key === "ArrowRight") show(i - 1);
-    }
-    close.addEventListener("click", done);
-    document.addEventListener("keydown", onKey);
-    share.addEventListener("click", function () {
-      var url = location.href;
-      if (navigator.share) navigator.share({ title: document.title, url: url }).catch(function () {});
-      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("نشانی کپی شد."); });
-    });
-
-    document.body.appendChild(lb);
-    document.body.style.overflow = "hidden";
-    requestAnimationFrame(function () { lb.classList.add("is-in"); });
-    show(i);
   }
+
+  /* نمایشگر تمام‌صفحه‌ی مشترک (assets/js/lightbox.js) */
+  function openLightbox(images, start) { SogLightbox(images, start); }
 
   /* گالری مراسم؛ برای ثبت‌کننده امکان افزودن و حذف تصویر دارد */
   function eventGallery(c) {
@@ -1831,6 +1766,7 @@
       : '<span class="cond-logo mine-avatar">' + SogIcon("user", 22) + '</span>') +
       '<span class="cond-name">' + esc(entry.name || "همدردی شما") + '</span>' +
       (iDonated() ? DONOR_BADGE : "");
+    if (av) zoomAvatar(head.querySelector(".cond-logo"), av);
     var body = el("div", "cond-body");
     var innerB = el("div");
     var msg = el("div", "cond-message");
@@ -2269,6 +2205,7 @@
       ? '<span class="cond-verified" title="تأییدشده">' + SogIcon("check", 11) + '</span>'
       : "";
     head.innerHTML = logo + '<span class="cond-name">' + esc(cd.name) + verified + '</span>' + (cd.donated ? DONOR_BADGE : "") + ICON.chevron;
+    zoomAvatar(head.querySelector(".cond-logo"), cd.logo);
     var body = el("div", "cond-body");
     var inner = el("div");
     var msg = el("div", "cond-message no-copy", "<p>" + fmtDesc(cd.message) + "</p>");

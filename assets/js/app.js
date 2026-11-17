@@ -991,7 +991,7 @@
               (det.subtitle ? '<span class="ls-sub">' + esc(det.subtitle) + "</span>" : "") +
               (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
             "</span>" +
-            '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+            '<span class="nt-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' + esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>" +
           "</div>" +
         "</div>" +
         '<div class="ls-event">' +
@@ -1082,7 +1082,7 @@
               '<h3 class="nt-name">' + esc(item.deceased_name) + "</h3>" +
               (facts ? '<ul class="nt-facts">' + facts + "</ul>" : "") +
             "</span>" +
-            '<span class="nt-photo"' + (item.photo ? ' style="background-image:url(\'' + item.photo + '\')"' : "") + "></span>" +
+            '<span class="nt-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' + esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>" +
           "</div>" +
           '<p class="nt-text">' + esc(item.notice_text || "جزئیات مراسم متعاقباً اعلام خواهد شد") + "</p>" +
         "</div>" +
@@ -1750,4 +1750,11 @@
         }).catch(function () {});
     });
   }
+  /* تصویر درگذشته در پاپ‌آپ‌ها: لمس آن، تصویر را بزرگ نشان می‌دهد */
+  document.addEventListener("click", function (e) {
+    var ph = e.target.closest && e.target.closest(".nt-photo[data-full]");
+    if (!ph || !window.SogLightbox) return;
+    e.preventDefault(); e.stopPropagation();
+    SogLightbox([ph.getAttribute("data-full")], 0);
+  }, true);
 })();
