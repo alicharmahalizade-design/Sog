@@ -1691,8 +1691,13 @@
     a.appendChild(ph);
     var body = el("span", "arc-body");
     body.appendChild(el("span", "arc-name", esc(it.deceased_name || "")));
-    var sub = it.tayefe || it.father || it.city || "";
-    if (sub) body.appendChild(el("span", "arc-sub", esc(sub)));
+    /* زیر نام: طایفه (نارنجی) | شهر | ماه درگذشت */
+    var dm = toEn(it.death_date || "").split("/")[1];
+    var mon = parseInt(dm, 10) >= 1 && parseInt(dm, 10) <= 12 ? +dm : monthOf(it);
+    var city = String(it.city || "").replace(/^\s*شهرستان\s+/, "").trim();
+    var parts = [it.tayefe ? '<span class="arc-tayefe">' + esc(it.tayefe) + "</span>" : "", esc(city), mon ? MONTHS[mon - 1] : ""]
+      .filter(Boolean);
+    if (parts.length) body.appendChild(el("span", "arc-sub", parts.join('<i class="arc-sep" aria-hidden="true"></i>')));
     a.appendChild(body);
     var saved = SogStore.isSaved(it.id);
     var bm = el("button", "arc-bm" + (saved ? " is-saved" : ""), bookmarkSvg(saved));
