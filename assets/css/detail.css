@@ -348,6 +348,7 @@
 
 /* ---- سپاسگزاری ---- */
 .ack-text { font-size: 14px; line-height: 2.1; text-align: center; color: var(--text); margin-bottom: 16px; }
+.ack-sched { font-size: 12.5px; line-height: 1.9; text-align: center; color: var(--accent); background: rgba(217,154,91,.10); border-radius: 10px; padding: 8px 10px; margin-bottom: 12px; }
 .ack-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .ack-sign { text-align: start; font-size: 14px; color: var(--text); line-height: 1.9; }
 .ack-story { display: flex; flex-direction: column; align-items: center; gap: 6px; }

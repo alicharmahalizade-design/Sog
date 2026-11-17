@@ -50,7 +50,7 @@
     picked: {},                      /* key → تعداد نوبت */
     events: {},                      /* key#i → {date,time,address,lat,lng,map_link,desc,notes[],photos[]} */
     bio: "", bio_photos: [], bio_layout: "one", bio_instagram: "", music: null,
-    phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: "",
+    phone: "", melli: "", messengers: [], messenger_links: {}, relation: "", thanks: "", thanks_delay: 1,
     mode: "", quick_note: ""        /* mode: "" تا وقتی نوع ثبت انتخاب نشده */
   };
   CEREMONIES.forEach(function (c) { if (c.on) data.picked[c.key] = 1; });
@@ -779,17 +779,12 @@
       wrap.appendChild(grid); wrap.appendChild(links);
       p.appendChild(field("پیام‌رسان‌ها", false, wrap));
 
-      /* آیکون جفت: ثبت همدردی و سپاسگزاری در پایان ثبت آگهی */
+      /* سپاسگزاری: متن انتخاب می‌شود و خودکار چند ساعت پس از مراسم ختم منتشر می‌شود */
       var pair = el("div", "final-pair");
       var thanksBtn = el("button", "pair-btn" + (data.thanks ? " is-on" : ""));
       thanksBtn.type = "button";
       thanksBtn.innerHTML = '<span class="pair-ico">' + SogIcon("thanks", 24) + '</span><span>متن سپاسگزاری</span>';
-      var condBtn = el("button", "pair-btn is-off");
-      condBtn.type = "button";
-      condBtn.innerHTML = '<span class="pair-ico">' + SogIcon("condole", 24) + '</span><span>ثبت همدردی</span>';
-      condBtn.disabled = true;
-      condBtn.title = "پس از انتشار آگهی، بازدیدکنندگان می‌توانند همدردی ثبت کنند";
-      pair.appendChild(thanksBtn); pair.appendChild(condBtn);
+      pair.appendChild(thanksBtn);
 
       var thanksBox = el("div", "field thanks-box");   /* همان ظاهر فیلدهای دیگر */
       thanksBox.hidden = !data.thanks;
@@ -814,6 +809,28 @@
         track.appendChild(card);
       });
       thanksBox.appendChild(track);
+
+      /* زمان انتشار خودکار متن سپاسگزاری */
+      var hasKhatm = !!khatmEvent();
+      var when = el("div", "thanks-when");
+      when.appendChild(el("p", "field-hint", hasKhatm
+        ? "متن سپاسگزاری چند ساعت پس از پایان مراسم ختم، خودکار در آگهی نمایش داده شود؟"
+        : "مراسم ختم انتخاب نشده است؛ متن سپاسگزاری همراه آگهی نمایش داده می‌شود."));
+      if (hasKhatm) {
+        var dl = el("div", "check-grid");
+        [1, 2, 3, 6, 12, 24].forEach(function (h) {
+          var b = el("button", "check-chip" + (+data.thanks_delay === h ? " is-checked" : ""), faNum(h) + " ساعت بعد");
+          b.type = "button";
+          b.addEventListener("click", function () {
+            data.thanks_delay = h;
+            Array.prototype.forEach.call(dl.children, function (n) { n.classList.toggle("is-checked", n === b); });
+          });
+          dl.appendChild(b);
+        });
+        when.appendChild(dl);
+        when.appendChild(el("p", "field-hint", "پایان مراسم، دو ساعت پس از ساعت شروعِ ختم در نظر گرفته می‌شود."));
+      }
+      thanksBox.appendChild(when);
 
       thanksBtn.addEventListener("click", function () {
         thanksBox.hidden = !thanksBox.hidden;
@@ -1031,6 +1048,27 @@
 
   /* داده‌ی فرم را به قالب یک آگهی تبدیل می‌کند تا مثل بقیه‌ی آگهی‌ها
      در فهرست‌ها و صفحه‌ی تکی قابل نمایش باشد. */
+  /* مراسم ختم (یا سوم/هفتم/ختم) برای زمان‌بندی متن سپاسگزاری */
+  var CEREMONY_HOURS = 2;
+  function khatmEvent() {
+    var keys = ["khatm", "sevom-haftom-khatm"], best = null;
+    keys.forEach(function (k) {
+      if (!data.picked[k]) return;
+      var e = data.events[k];
+      if (e && e.when && e.when.y) {
+        var g = SogUtil.jalaliToGregorian(e.when.y, e.when.m, e.when.d);
+        var t = new Date(g.y, g.m - 1, g.d, e.when.h || 0, e.when.i || 0).getTime();
+        if (!best || t > best) best = t;
+      } else if (!best) best = -1;    /* انتخاب شده ولی هنوز تاریخ ندارد */
+    });
+    return best;
+  }
+  function thanksAt() {
+    var t = khatmEvent();
+    if (!t || t < 0) return "";
+    return new Date(t + (CEREMONY_HOURS + (+data.thanks_delay || 1)) * 3600000).toISOString();
+  }
+
   function buildAd(id) {
     var labels = [], firstKey = "";
     CEREMONIES.forEach(function (c) {
@@ -1065,6 +1103,8 @@
       tayefe: data.father_tayefe || "",
       il: data.father_il || "",
       music: data.music || "",
+      thanks: String(data.thanks || "").trim(),
+      thanks_at: String(data.thanks || "").trim() ? thanksAt() : "",
       father: data.father || "",
       mother: data.mother || "",
       is_mine: true,

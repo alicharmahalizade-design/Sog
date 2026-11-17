@@ -351,6 +351,8 @@
 }
 .pair-btn.is-on { border-color: var(--accent); color: var(--accent); background: rgba(217,154,91,.10); }
 .pair-btn:disabled { opacity: .45; }
+.thanks-when { margin-top: 14px; }
+.thanks-when .check-grid { grid-template-columns: repeat(3, 1fr); margin: 8px 0; }
 .thanks-box { margin-top: 14px; }
 /* متن‌های آماده: هم در کادر سپاسگزاری و هم در فرم سوگ سریع */
 .thanks-box .ready-track, .ready-picker .ready-track {

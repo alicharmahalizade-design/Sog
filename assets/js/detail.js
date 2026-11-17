@@ -203,12 +203,19 @@
         relatives: []
       },
       ceremonies: ceremonies,
-      acknowledgment: {
+      /* متن سپاسگزاریِ خانواده؛ تا زمان تعیین‌شده (پس از مراسم ختم) پنهان می‌ماند */
+      acknowledgment: !l.is_mine && !("thanks" in l) ? {
         text: "از تمامی عزیزانی که در این مصیبت ما را تنها نگذاشتند و با حضور یا پیام خود موجب تسلی خاطر خانواده شدند، صمیمانه سپاسگزاریم.",
         signature: "خانواده‌ی سوگوار",
         date: when,
         has_story: false
-      },
+      } : l.thanks ? {
+        text: l.thanks,
+        signature: "خانواده‌ی سوگوار",
+        date: when,
+        has_story: false,
+        publish_at: l.thanks_at || ""
+      } : null,
       chehelom: block("chehelom", "چهلم", city + " - آرامستان بهشت رضوان", ["به صرف پذیرایی"],
         "بعد از قرائت فاتحه بر مزار مرحوم، مراسم دعای کمیل نیز همان روز در منزل شخصی برگزار می‌گردد."),
       anniversaries: years,
@@ -251,7 +258,7 @@
 
     if (d.biography) root.appendChild(bioAccordion(d.biography));
     (d.ceremonies || []).forEach(function (c) { root.appendChild(eventAccordion(c)); });
-    if (d.acknowledgment) root.appendChild(ackAccordion(d.acknowledgment));
+    if (d.acknowledgment && ackVisible(d)) root.appendChild(ackAccordion(d.acknowledgment));
     if (d.chehelom) root.appendChild(eventAccordion(d.chehelom));
     var anniv = anniversariesSection(d.anniversaries);
     if (anniv) root.appendChild(anniv);
@@ -1526,6 +1533,13 @@
   }
 
   /* ---------- سپاسگزاری ---------- */
+  /* سپاسگزاریِ زمان‌بندی‌شده: پیش از موعد فقط برای خانواده (صاحب آگهی) دیده می‌شود */
+  function ackVisible(d) {
+    var at = d.acknowledgment.publish_at;
+    if (!at || Date.now() >= new Date(at).getTime()) return true;
+    return ownerMode(d);
+  }
+
   function ackAccordion(ack) {
     var wrap = el("div");
     var owner = currentDetail && ownerMode(currentDetail);
@@ -1539,6 +1553,13 @@
       view.innerHTML = "";
       var live = { text: currentText(), signature: ack.signature, date: ack.date };
 
+      /* پیش از موعد انتشار، فقط خانواده این متن را با زمان انتشار می‌بیند */
+      if (owner && ack.publish_at && Date.now() < new Date(ack.publish_at).getTime()) {
+        var at = new Date(ack.publish_at), j = SogUtil.gregorianToJalali(at.getFullYear(), at.getMonth() + 1, at.getDate());
+        var hm = faNum(("0" + at.getHours()).slice(-2) + ":" + ("0" + at.getMinutes()).slice(-2));
+        view.appendChild(el("p", "ack-sched", "این متن " + faNum(j.d) + " " + JMONTH_NAMES[j.m - 1] + " ساعت " + hm +
+          "، پس از مراسم ختم، خودکار برای همه نمایش داده می‌شود."));
+      }
       view.appendChild(el("p", "ack-text", fmtDesc(live.text)));
       var foot = el("div", "ack-foot");
       var st = el("div", "ack-story");
