@@ -376,7 +376,7 @@ option { direction: rtl; text-align: right; }
   display: flex; align-items: flex-end; justify-content: space-around;
   background: var(--surface); border-top: 1px solid #1a1a1a;
   padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
-  /* بازگشت آرام و نرم؛ رفتن سریع‌تر */
+  /* پنهان‌شدن و بازگشتِ آرام و نرم */
   transition: transform .85s cubic-bezier(.16,.84,.28,1), opacity .7s ease;
 }
 /* پنهان‌شدن نوار پایین در حال اسکرول */
@@ -384,7 +384,7 @@ option { direction: rtl; text-align: right; }
   transform: translateX(-50%) translateY(130%);
   opacity: 0;
   pointer-events: none;
-  transition: transform .24s ease, opacity .2s ease;
+  transition: transform .7s cubic-bezier(.4,0,.2,1), opacity .6s ease;
 }
 @media (prefers-reduced-motion: reduce) { .bottom-nav { transition: none; } }
 .bn-item {
