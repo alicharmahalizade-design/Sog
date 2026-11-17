@@ -835,6 +835,10 @@
       thanksBtn.addEventListener("click", function () {
         thanksBox.hidden = !thanksBox.hidden;
         thanksBtn.classList.toggle("is-on", !thanksBox.hidden);
+        /* با باز شدن، صفحه تا متن‌های آماده پایین می‌رود */
+        if (!thanksBox.hidden) setTimeout(function () {
+          track.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 60);
       });
 
       p.appendChild(field("همدردی و سپاسگزاری", false, pair));
