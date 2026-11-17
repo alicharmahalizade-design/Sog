@@ -1271,6 +1271,50 @@
 
   /* ---------- مراسمات چهل روز گذشته (اسکرولی + تب) ---------- */
   var fortyTab = null;
+  /* نمای فهرستی یا کارتی؛ انتخاب کاربر روی همین دستگاه می‌ماند */
+  var fortyView = "list";
+  try { fortyView = localStorage.getItem("sog:fortyView") === "cards" ? "cards" : "list"; } catch (e) {}
+  var VIEW_ICON = {
+    list: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+    cards: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M12 4v16M18 4v16"/></svg>'
+  };
+
+  /* ردیف فهرستی: نام + آخرین مراسم، زیر آن طایفه · شهر یا روستا */
+  function fortyRow(item) {
+    var c = el("article", "forty-row");
+    var ph = el("div", "forty-row-photo");
+    if (item.photo) ph.style.backgroundImage = 'url("' + item.photo + '")';
+    var labels = item.ceremony_labels || [];
+    var last = labels[labels.length - 1] || "";
+    var body = el("div", "forty-row-body");
+    var top = el("div", "forty-row-top");
+    var nm = el("h3", "forty-row-name", '<span class="mq-inner">' + esc(item.deceased_name) + '</span>');
+    top.appendChild(nm);
+    if (last) top.appendChild(el("span", "forty-row-tag", esc(last)));
+    body.appendChild(top);
+    var place = item.location || item.city || "";
+    var meta = [item.tayefe, place].filter(Boolean).map(esc).join('<span class="forty-row-dot">·</span>');
+    if (meta) body.appendChild(el("p", "forty-row-meta", meta));
+    var saved = SogStore.isSaved(item.id);
+    var bm = el("button", "bookmark-btn forty-row-bm" + (saved ? " is-saved" : ""));
+    bm.type = "button";
+    bm.setAttribute("aria-label", "ذخیره");
+    bm.innerHTML = bookmarkSvg(saved);
+    bm.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var now = SogStore.toggleSaved(item.id);
+      bm.classList.toggle("is-saved", now);
+      bm.innerHTML = bookmarkSvg(now);
+    });
+    c.appendChild(ph); c.appendChild(body); c.appendChild(bm);
+    marquee(nm);
+    c.addEventListener("click", function () {
+      SogStore.markSeen(item.id);
+      location.href = "listing.html?id=" + encodeURIComponent(item.id);
+    });
+    return c;
+  }
+
   function fortyCard(item) {
     var c = el("article", "forty-card");
     var ph = el("div", "forty-photo");
@@ -1306,23 +1350,49 @@
     var wrap = el("section", "forty-section");
     var head = el("div", "forty-head");
     head.appendChild(el("h2", "collection-title", "مراسمات برگزار شده چهل روز گذشته"));
-    var tabBar = el("div", "forty-tabs");
-    head.appendChild(tabBar);
+    /* انتخاب نما: فهرستی (همبرگری) یا کارتی */
+    var views = el("div", "forty-views");
+    ["cards", "list"].forEach(function (v) {
+      var b = el("button", "forty-view-btn", VIEW_ICON[v]);
+      b.type = "button";
+      b.dataset.view = v;
+      b.setAttribute("aria-label", v === "list" ? "نمایش فهرستی" : "نمایش کارتی");
+      b.addEventListener("click", function () {
+        fortyView = v;
+        try { localStorage.setItem("sog:fortyView", v); } catch (e) {}
+        paint();
+      });
+      views.appendChild(b);
+    });
+    head.appendChild(views);
     wrap.appendChild(head);
+    /* زیر عنوان: تب مراسم‌ها با شمار هرکدام */
+    var tabBar = el("div", "forty-tabs");
+    wrap.appendChild(tabBar);
     var track = el("div", "forty-track");
     wrap.appendChild(track);
 
+    function countOf(l) {
+      return items.filter(function (it) { return (it.ceremony_labels || []).indexOf(l) !== -1; }).length;
+    }
     function paint() {
       tabBar.innerHTML = ""; track.innerHTML = "";
+      Array.prototype.forEach.call(views.children, function (b) {
+        var on = b.dataset.view === fortyView;
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      track.className = "forty-track" + (fortyView === "list" ? " is-list" : "");
       tabs.forEach(function (l) {
-        var b = el("button", "forty-tab" + (fortyTab === l ? " is-on" : ""), esc(l));
+        var b = el("button", "forty-tab" + (fortyTab === l ? " is-on" : ""),
+          esc(l) + '<span class="forty-count">' + toFa(countOf(l)) + "</span>");
         b.type = "button";
         b.addEventListener("click", function () { fortyTab = fortyTab === l ? null : l; paint(); });
         tabBar.appendChild(b);
       });
       items.filter(function (it) {
         return !fortyTab || (it.ceremony_labels || []).indexOf(fortyTab) !== -1;
-      }).forEach(function (it) { track.appendChild(fortyCard(it)); });
+      }).forEach(function (it) { track.appendChild(fortyView === "list" ? fortyRow(it) : fortyCard(it)); });
     }
     paint();
     return wrap;

@@ -1092,20 +1092,34 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
   background: #0d0e13;
 }
 .forty-section + .year-collection { margin-top: 22px; }
-.forty-head {
-  display: flex; align-items: center; gap: 10px; margin: 0 -14px 18px; padding: 0 14px;
+.forty-head { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+.forty-head .collection-title { margin: 0; flex: 1 1 auto; min-width: 0; }
+/* انتخاب نما، سمت چپ عنوان */
+.forty-views { display: flex; gap: 4px; flex: 0 0 auto; }
+.forty-view-btn {
+  width: 38px; height: 38px; border: none; border-radius: 10px; cursor: pointer;
+  background: transparent; color: #6b6b6b; display: grid; place-items: center;
+  transition: color .2s, background .2s;
+}
+.forty-view-btn.is-on { color: #cf9c63; background: #17191e; }
+/* تب مراسم‌ها با شمار، زیر عنوان */
+.forty-tabs {
+  display: flex; gap: 6px; margin: 0 -14px 18px; padding: 0 14px;
   overflow-x: auto; scrollbar-width: none;
 }
-.forty-head::-webkit-scrollbar { display: none; }
-.forty-head .collection-title { margin: 0; flex: 0 0 auto; white-space: nowrap; }
-.forty-tabs { display: flex; gap: 5px; flex: 0 0 auto; }
 .forty-tabs::-webkit-scrollbar { display: none; }
 .forty-tab {
-  flex: 0 0 auto; font: inherit; font-size: 11px; line-height: 1;
-  padding: 5px 13px; border-radius: 999px;
-  background: #000; color: #848484; border: none; cursor: pointer;
+  flex: 0 0 auto; font: inherit; font-size: 12.5px; line-height: 1;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px;
+  background: #000; color: #9a9a9a; border: none; cursor: pointer;
 }
 .forty-tab.is-on { color: #cf9c63; }
+.forty-count {
+  min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px;
+  background: #e0242c; color: #fff; font-size: 10.5px; font-weight: 700;
+  display: inline-grid; place-items: center;
+}
 .forty-track { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
 .forty-track::-webkit-scrollbar { display: none; }
 .forty-card {
@@ -1117,6 +1131,24 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .forty-tag { display: block; font-size: 11px; line-height: 14px; color: #b08356; margin-bottom: 8px; }
 .forty-tag[data-type="sepas"] { color: #7fd468; }
 .forty-name { font-size: 14px; line-height: 20px; font-weight: 500; color: #fff; margin: 0; overflow: hidden; white-space: nowrap; }
+
+/* نمای فهرستی */
+.forty-track.is-list { flex-direction: column; gap: 10px; overflow: visible; }
+.forty-row {
+  display: flex; align-items: stretch; min-height: 76px;
+  border-radius: 13px; overflow: hidden; background: #171b1e; cursor: pointer;
+}
+.forty-row-photo { flex: 0 0 72px; background: #222 center/cover no-repeat; }
+.forty-row-body { flex: 1 1 auto; min-width: 0; padding: 12px 12px 10px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.forty-row-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.forty-row-name { font-size: 15px; line-height: 22px; font-weight: 700; color: #fff; margin: 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+.forty-row-tag {
+  flex: 0 0 auto; font-size: 11.5px; line-height: 1; color: #cf9c63;
+  background: #000; padding: 5px 10px; border-radius: 999px;
+}
+.forty-row-meta { margin: 0; font-size: 12.5px; color: #8c8c8c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.forty-row-dot { margin: 0 6px; color: #5a5a5a; }
+.forty-row-bm { flex: 0 0 auto; align-self: center; margin-inline-end: 10px; }
 
 /* ---------- نمایش سریع آگهی عادی ---------- */
 .ls-sheet { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
