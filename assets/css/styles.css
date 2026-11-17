@@ -1238,3 +1238,7 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 /* تک‌تصویر (چهره‌ی درگذشته یا همدردی‌کننده): تصویرهای کوچک هم تا پهنای صفحه بزرگ می‌شوند */
 .lb-single .lb-frame { width: min(100%, 520px); }
 .lb-single .lb-img { width: 100%; height: auto; }
+/* پاپ‌آپ چهل روز گذشته: متن سپاسگزاری خانواده */
+.ls-thanks .ls-ev-head { display: flex; align-items: center; gap: 7px; }
+.ls-thanks-text { margin: 10px 0 0; font-size: 14px; line-height: 2.05; color: var(--text, #eee); text-align: justify; white-space: pre-line; }
+.ls-thanks-sign { margin-top: 8px; font-size: 12px; color: var(--text-mute, #8c8c8c); text-align: left; }

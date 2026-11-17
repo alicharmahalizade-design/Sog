@@ -940,7 +940,16 @@
       .then(function (d) { DETAILS = d || {}; return DETAILS; })
       .catch(function () { DETAILS = {}; return DETAILS; });
   }
-  function openListingSheet(item) {
+  /* متن سپاسگزاریِ قابل نمایش: نسخه‌ی ویرایش‌شده‌ی خانواده، متن آگهی یا جزئیات؛ پیش از موعد انتشار پنهان */
+  function thanksTextOf(item, det) {
+    if (item.thanks_at && Date.now() < new Date(item.thanks_at).getTime()) return "";
+    var edited = window.SogStore && SogStore.getAckText ? SogStore.getAckText(item.id) : "";
+    return String(edited || item.thanks || (det && det.acknowledgment && det.acknowledgment.text) || "").trim();
+  }
+
+  /* opts.past: مراسم برگزار شده (چهل روز گذشته) → اطلاعات اولیه + سپاسگزاری + پروفایل کامل */
+  function openListingSheet(item, opts) {
+    var past = !!(opts && opts.past);
     var url = "listing.html?id=" + encodeURIComponent(item.id);
     var back = el("div", "sheet-backdrop");
     var sheet = el("div", "notify-sheet notice-sheet ls-sheet");
@@ -980,6 +989,19 @@
       var where = (cer && cer.location) || item.location || item.city || "";
       var chips = (cer && cer.chips || []).slice(0, 3).map(function (c) { return '<span class="ls-chip">' + esc(c) + "</span>"; }).join("");
       var count = det.condolence_count ? '<span class="ls-cnt">' + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>' + esc(det.condolence_count) + " پیام تسلیت</span>" : "";
+      var thanks = past ? thanksTextOf(item, det) : "";
+      var eventHtml = past
+        ? (thanks ? '<div class="ls-event ls-thanks">' +
+            '<div class="ls-ev-head">' + SogIcon("thanks", 16) + "<span>سپاسگزاری خانواده</span></div>" +
+            '<p class="ls-thanks-text">' + esc(thanks) + "</p>" +
+            '<div class="ls-thanks-sign">خانواده‌ی سوگوار</div>' +
+          "</div>" : "")
+        : '<div class="ls-event">' +
+          '<div class="ls-ev-head">' + esc((cer && cer.title) || (item.ceremony_labels || []).join(" و ") || "مراسم") + "</div>" +
+          '<div class="ls-row">' + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>' + "<span>" + esc(when) + (time ? '<small>' + esc(time) + "</small>" : "") + "</span></div>" +
+          (where ? '<div class="ls-row">' + SogIcon("pin", 16) + "<span>" + esc(where) + "</span></div>" : "") +
+          (chips ? '<div class="ls-chips">' + chips + "</div>" : "") +
+        "</div>";
 
       sheet.innerHTML =
         '<div class="sheet-handle"></div>' +
@@ -994,12 +1016,7 @@
             '<span class="nt-photo' + (item.photo ? ' zoomable" role="button" aria-label="نمایش بزرگ تصویر" data-full="' + esc(item.photo).replace(/"/g, "&quot;") + '" style="background-image:url(\'' + item.photo + '\')"' : '"') + "></span>" +
           "</div>" +
         "</div>" +
-        '<div class="ls-event">' +
-          '<div class="ls-ev-head">' + esc((cer && cer.title) || (item.ceremony_labels || []).join(" و ") || "مراسم") + "</div>" +
-          '<div class="ls-row">' + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>' + "<span>" + esc(when) + (time ? '<small>' + esc(time) + "</small>" : "") + "</span></div>" +
-          (where ? '<div class="ls-row">' + SogIcon("pin", 16) + "<span>" + esc(where) + "</span></div>" : "") +
-          (chips ? '<div class="ls-chips">' + chips + "</div>" : "") +
-        "</div>" +
+        eventHtml +
         (count ? '<div class="ls-meta">' + count + "</div>" : "") +
         '<div class="ls-actions"></div>';
 
@@ -1022,7 +1039,7 @@
         else if (navigator.clipboard) navigator.clipboard.writeText(full).then(function () { toast("پیوند آگهی کپی شد."); });
       });
       acts.appendChild(sh);
-      var more = el("a", "ls-more", "<span>جزئیات کامل</span>" + SogIcon("chevLeft", 18));
+      var more = el("a", "ls-more", "<span>" + (past ? "مشاهده کامل پروفایل" : "جزئیات کامل") + "</span>" + SogIcon("chevLeft", 18));
       more.href = url;
       acts.appendChild(more);
     }
@@ -1310,7 +1327,7 @@
     marquee(nm);
     c.addEventListener("click", function () {
       SogStore.markSeen(item.id);
-      location.href = "listing.html?id=" + encodeURIComponent(item.id);
+      openListingSheet(item, { past: true });
     });
     return c;
   }
@@ -1329,7 +1346,7 @@
     marquee(nm);
     c.addEventListener("click", function () {
       SogStore.markSeen(item.id);
-      location.href = "listing.html?id=" + encodeURIComponent(item.id);
+      openListingSheet(item, { past: true });
     });
     return c;
   }
