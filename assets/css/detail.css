@@ -917,7 +917,7 @@
 
 /* بزرگ‌نمایی درجای تصویر همدردی‌کننده */
 .av-pop {
-  position: fixed; z-index: 120; border-radius: 22px;
+  position: fixed; z-index: 120; border-radius: 50%;
   background: #222 center/cover no-repeat;
   border: 2px solid rgba(217,154,91,.6);
   box-shadow: 0 14px 40px rgba(0,0,0,.7);

@@ -1381,8 +1381,15 @@
     var old = document.querySelector(".av-pop");
     if (old) old.remove();
     var SIZE = 156, r = img.getBoundingClientRect();
-    var left = Math.min(Math.max(8, r.right - SIZE), window.innerWidth - SIZE - 8);
-    var top = Math.min(Math.max(8, r.top + r.height / 2 - SIZE / 2), window.innerHeight - SIZE - 8);
+    /* دایره دقیقاً بالای نامِ همدردی‌کننده، هم‌مرکز با نام */
+    var head = img.closest(".cond-head");
+    var nameEl = head && head.querySelector(".cond-name");
+    var n = nameEl ? nameEl.getBoundingClientRect() : r;
+    var left = Math.min(Math.max(8, n.left + n.width / 2 - SIZE / 2), window.innerWidth - SIZE - 8);
+    var top = n.top - SIZE - 10;
+    var bar = document.querySelector(".detail-bar.is-in");
+    var minTop = (bar ? bar.getBoundingClientRect().bottom : 0) + 8;
+    if (top < minTop) top = n.bottom + 10;    /* جا نبود: زیر نام */
     var pop = el("div", "av-pop");
     pop.style.left = left + "px"; pop.style.top = top + "px";
     pop.style.width = pop.style.height = SIZE + "px";
