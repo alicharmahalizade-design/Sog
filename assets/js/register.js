@@ -276,10 +276,13 @@
 
   /* شهر یا روستا: انتخاب از تقسیمات کشوری (place-picker.js).
      data.city همیشه نام شهر (یا شهرستانِ روستا) است تا فیلتر شهرها در صفحه‌ی اصلی کار کند. */
-  function placeInput() {
+  /* opts.get/opts.set: برای فیلدهای دیگر مثل زادگاه؛ بدون آن، شهر محل سکونت */
+  function placeInput(opts) {
+    opts = opts || {};
     var b = el("button", "place-btn"); b.type = "button";
     function paint() {
-      var lbl = data.place && window.SogPlacePicker ? SogPlacePicker.label(data.place) : (data.city || "");
+      var lbl = opts.get ? opts.get()
+        : (data.place && window.SogPlacePicker ? SogPlacePicker.label(data.place) : (data.city || ""));
       b.innerHTML = '<span class="pb-ico">' + SogIcon("pin", 18) + "</span>" +
         '<span class="pb-text' + (lbl ? "" : " is-empty") + '">' + esc(lbl || "انتخاب شهر یا روستا") + "</span>" +
         '<span class="pb-chev">' + SogIcon("chevron", 18) + "</span>";
@@ -287,6 +290,7 @@
     b.addEventListener("click", function () {
       if (!window.SogPlacePicker) return;
       SogPlacePicker.open({ onPick: function (pl) {
+        if (opts.set) { opts.set(pl); paint(); return; }
         data.place = pl;
         data.city = pl.type === "city" ? pl.name : pl.county;
         data.province = pl.province;
@@ -599,7 +603,16 @@
       ageWrap.appendChild(ageInp); ageWrap.appendChild(ageHint);
       p.appendChild(field("سن درگذشته", true, ageWrap));
       autoAge();
-      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر یا روستای محل تولد را وارد کنید")));
+      /* زادگاه هم مثل شهر محل سکونت از فهرست شهر و روستا انتخاب می‌شود */
+      p.appendChild(field("زادگاه", false, placeInput({
+        get: function () {
+          return data.birth_place && window.SogPlacePicker ? SogPlacePicker.label(data.birth_place) : (data.birthplace || "");
+        },
+        set: function (pl) {
+          data.birth_place = pl;
+          data.birthplace = window.SogPlacePicker ? SogPlacePicker.label(pl) : pl.name;
+        }
+      })));
       p.appendChild(field("شهر محل سکونت", false, placeInput()));
       return p;
     }});
