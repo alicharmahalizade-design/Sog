@@ -1288,6 +1288,8 @@
 
   /* ---------- مراسمات چهل روز گذشته (اسکرولی + تب) ---------- */
   var fortyTab = null;
+  var fortyExpanded = false;   /* نمای فهرستی: فقط ۵ مورد اول، بقیه با «نمایش بیشتر» */
+  var FORTY_PREVIEW = 5;
   /* نمای فهرستی یا کارتی؛ انتخاب کاربر روی همین دستگاه می‌ماند */
   var fortyView = "list";
   try { fortyView = localStorage.getItem("sog:fortyView") === "cards" ? "cards" : "list"; } catch (e) {}
@@ -1406,12 +1408,31 @@
         var b = el("button", "forty-tab" + (fortyTab === l ? " is-on" : ""),
           esc(l) + '<span class="forty-count">' + toFa(countOf(l)) + "</span>");
         b.type = "button";
-        b.addEventListener("click", function () { fortyTab = fortyTab === l ? null : l; paint(); });
+        b.addEventListener("click", function () { fortyTab = fortyTab === l ? null : l; fortyExpanded = false; paint(); });
         tabBar.appendChild(b);
       });
-      items.filter(function (it) {
+      var shown = items.filter(function (it) {
         return !fortyTab || (it.ceremony_labels || []).indexOf(fortyTab) !== -1;
-      }).forEach(function (it) { track.appendChild(fortyView === "list" ? fortyRow(it) : fortyCard(it)); });
+      });
+      if (fortyView !== "list") {
+        shown.forEach(function (it) { track.appendChild(fortyCard(it)); });
+        return;
+      }
+      var cut = !fortyExpanded && shown.length > FORTY_PREVIEW;
+      (cut ? shown.slice(0, FORTY_PREVIEW + 1) : shown).forEach(function (it, i) {
+        var row = fortyRow(it);
+        /* ردیف ششم محو می‌شود تا معلوم باشد ادامه دارد */
+        if (cut && i === FORTY_PREVIEW) row.classList.add("is-faded");
+        track.appendChild(row);
+      });
+      if (cut) {
+        var more = el("button", "forty-more",
+          "<span>نمایش بیشتر (" + toFa(shown.length - FORTY_PREVIEW) + ")</span>" +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+        more.type = "button";
+        more.addEventListener("click", function () { fortyExpanded = true; paint(); });
+        track.appendChild(more);
+      }
     }
     paint();
     return wrap;

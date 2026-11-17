@@ -1170,6 +1170,20 @@ input, textarea, select, button { font-feature-settings: "ss01"; }
 .forty-row-dot { display: inline-block; width: 1px; height: 12px; margin: 0 8px; background: #4a4a4a; vertical-align: -1px; }
 .forty-row-cer { color: #cf9c63; }
 .forty-row-bm { flex: 0 0 auto; align-self: center; margin-inline-end: 10px; }
+/* پیش‌نمایش ۵تایی: ردیف بعدی زیر سایه‌ی محو، با دکمه‌ی نمایش بیشتر */
+.forty-track.is-list { position: relative; }
+.forty-row.is-faded {
+  pointer-events: none; opacity: .55;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+}
+.forty-more {
+  align-self: center; margin-top: -30px; position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 13px; font-weight: 700; color: #cf9c63;
+  background: #17191e; border: 1px solid #2c2c2c; border-radius: 999px;
+  padding: 9px 18px; cursor: pointer; box-shadow: 0 -10px 24px 6px #0d0e13;
+}
 
 /* ---------- نمایش سریع آگهی عادی ---------- */
 .ls-sheet { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
