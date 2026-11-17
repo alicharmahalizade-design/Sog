@@ -488,7 +488,7 @@
       p.appendChild(field("تاریخ تولد", true, dateBox(function () { return data.birth; }, function (v) { data.birth = v; })));
       p.appendChild(field("تاریخ درگذشت", true, dateBox(function () { return data.death; }, function (v) { data.death = v; })));
       p.appendChild(field("سن درگذشته", true, textInput("age", "مثال : ۸۵ سال")));
-      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر محل تولد را وارد کنید")));
+      p.appendChild(field("زادگاه", false, textInput("birthplace", "نام شهر یا روستای محل تولد را وارد کنید")));
       p.appendChild(field("شهر", false, textInput("city", "نام شهر محل زندگی را وارد کنید")));
       return p;
     }});
